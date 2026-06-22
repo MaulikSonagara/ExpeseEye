@@ -12,5 +12,6 @@
         
         <item name="android:textColorPrimary">@color/text_primary_dark</item>
         <item name="android:textColorSecondary">@color/text_secondary_dark</item>
+        <item name="colorOutlineVariant">@color/card_stroke_dark</item>
     </style>
 </resources>

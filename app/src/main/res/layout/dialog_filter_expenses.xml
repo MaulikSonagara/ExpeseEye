@@ -9,33 +9,34 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="24dp">
 
         <!-- Drag Handle -->
         <View
-            android:layout_width="40dp"
+            android:layout_width="36dp"
             android:layout_height="4dp"
             android:background="#D1D5DB"
             android:layout_gravity="center"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="20dp"
+            app:cornerRadius="2dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Filter Expenses"
-            android:textSize="20sp"
+            android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="?android:attr/textColorPrimary"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="20dp" />
 
         <!-- Date Range Selection -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Date Range"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:textColor="?android:attr/textColorPrimary"
+            android:textColor="?android:attr/textColorSecondary"
             android:layout_marginBottom="8dp" />
 
         <LinearLayout
@@ -55,7 +56,8 @@
                 app:icon="@drawable/ic_calendar"
                 android:textColor="?attr/colorPrimary"
                 app:iconTint="?attr/colorPrimary"
-                app:strokeColor="?attr/colorPrimary"/>
+                app:strokeColor="?attr/colorPrimary"
+                app:cornerRadius="12dp"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_filter_end_date"
@@ -68,7 +70,8 @@
                 app:icon="@drawable/ic_calendar"
                 android:textColor="?attr/colorPrimary"
                 app:iconTint="?attr/colorPrimary"
-                app:strokeColor="?attr/colorPrimary"/>
+                app:strokeColor="?attr/colorPrimary"
+                app:cornerRadius="12dp"/>
         </LinearLayout>
 
         <!-- Amount Range -->
@@ -76,9 +79,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Amount Range"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:textColor="?android:attr/textColorPrimary"
+            android:textColor="?android:attr/textColorSecondary"
             android:layout_marginBottom="8dp" />
 
         <LinearLayout
@@ -92,7 +95,11 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_filter_min_amount"
@@ -100,7 +107,7 @@
                     android:layout_height="wrap_content"
                     android:hint="Min (₹)"
                     android:inputType="numberDecimal"
-                    android:textSize="14sp"/>
+                    android:textSize="15sp"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -108,7 +115,11 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="6dp"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_filter_max_amount"
@@ -116,7 +127,7 @@
                     android:layout_height="wrap_content"
                     android:hint="Max (₹)"
                     android:inputType="numberDecimal"
-                    android:textSize="14sp"/>
+                    android:textSize="15sp"/>
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
 
@@ -125,9 +136,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Categories"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:textColor="?android:attr/textColorPrimary"
+            android:textColor="?android:attr/textColorSecondary"
             android:layout_marginBottom="8dp" />
 
         <com.google.android.material.chip.ChipGroup
@@ -135,16 +146,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            app:itemSpacing="8dp"/>
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="4dp"/>
 
         <!-- Payment Methods Selection -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Payment Methods"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:textColor="?android:attr/textColorPrimary"
+            android:textColor="?android:attr/textColorSecondary"
             android:layout_marginBottom="8dp" />
 
         <com.google.android.material.chip.ChipGroup
@@ -152,7 +164,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            app:itemSpacing="8dp"/>
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="4dp"/>
 
         <!-- Bottom Action Buttons -->
         <LinearLayout
@@ -167,7 +180,7 @@
                 android:layout_height="wrap_content"
                 style="@style/Widget.Material3.Button.TextButton"
                 android:text="Reset"
-                android:textColor="#D32F2F"
+                android:textColor="?attr/colorError"
                 android:layout_marginEnd="8dp"/>
 
             <com.google.android.material.button.MaterialButton
@@ -176,7 +189,8 @@
                 android:layout_height="wrap_content"
                 android:text="Apply"
                 app:backgroundTint="?attr/colorPrimary"
-                android:textColor="@android:color/white"/>
+                android:textColor="@android:color/white"
+                app:cornerRadius="12dp"/>
         </LinearLayout>
 
     </LinearLayout>

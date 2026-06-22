@@ -178,9 +178,10 @@ public class ChecklistAdapter extends ListAdapter<ChecklistItem, ChecklistAdapte
                     break;
             }
 
+            float density = itemView.getContext().getResources().getDisplayMetrics().density;
             GradientDrawable priorityBg = new GradientDrawable();
             priorityBg.setShape(GradientDrawable.RECTANGLE);
-            priorityBg.setCornerRadius(16);
+            priorityBg.setCornerRadius(8 * density);
             priorityBg.setColor(bgColor);
             priorityText.setBackground(priorityBg);
             priorityText.setTextColor(textColor);

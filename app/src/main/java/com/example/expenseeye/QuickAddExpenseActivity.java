@@ -15,7 +15,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.Spinner;
+import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,7 +48,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
     private RelativeLayout rootLayout;
     private CardView cardQuickAdd;
     private EditText etAmount, etTitle, etDescription;
-    private Spinner spinnerCategory;
+    private AutoCompleteTextView spinnerCategory;
     private ChipGroup cgPaymentMethod;
     private Button btnDate, btnTime, btnCancel, btnSave;
 
@@ -121,7 +121,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
                 String classified = ExpenseClassifier.classifyExpense(s.toString());
                 int index = categoryNames.indexOf(classified);
                 if (index >= 0) {
-                    spinnerCategory.setSelection(index);
+                    spinnerCategory.setText(classified, false);
                 }
             }
         });
@@ -169,17 +169,30 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
     }
 
     private void setupCategorySpinner() {
-        ArrayAdapter<String> catAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categoryNames);
-        catAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> catAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, categoryNames);
         spinnerCategory.setAdapter(catAdapter);
     }
 
     private void setupPaymentMethodChips() {
         cgPaymentMethod.removeAllViews();
         for (PaymentMethod pm : availablePaymentMethods) {
-            Chip chip = new Chip(this);
+            Chip chip = new Chip(this, null, com.google.android.material.R.attr.chipStyle);
             chip.setText(pm.getName());
             chip.setCheckable(true);
+
+            int iconResId = R.drawable.ic_other;
+            if (pm.getName().equalsIgnoreCase("Cash")) {
+                iconResId = R.drawable.ic_cash;
+            } else if (pm.getName().equalsIgnoreCase("Card") || pm.getName().equalsIgnoreCase("Credit Card") || pm.getName().equalsIgnoreCase("Debit Card")) {
+                iconResId = R.drawable.ic_card;
+            } else if (pm.getName().equalsIgnoreCase("UPI")) {
+                iconResId = R.drawable.ic_upi;
+            } else if (pm.getName().equalsIgnoreCase("Bank") || pm.getName().equalsIgnoreCase("Bank Transfer")) {
+                iconResId = R.drawable.ic_bank;
+            }
+            chip.setChipIcon(androidx.core.content.ContextCompat.getDrawable(this, iconResId));
+            chip.setChipIconVisible(true);
+
             // Default select UPI
             if (pm.getName().equalsIgnoreCase("UPI")) {
                 chip.setChecked(true);
@@ -211,7 +224,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
             }
 
             if (index >= 0) {
-                spinnerCategory.setSelection(index);
+                spinnerCategory.setText(categoryNames.get(index), false);
             }
         }
     }
@@ -267,7 +280,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         }
 
         double amount = Double.parseDouble(amountStr);
-        String category = spinnerCategory.getSelectedItem() != null ? spinnerCategory.getSelectedItem().toString() : "Other";
+        String category = spinnerCategory.getText() != null ? spinnerCategory.getText().toString() : "Other";
 
         // Get selected payment method
         String payment = "Other";

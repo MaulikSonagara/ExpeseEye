@@ -12,6 +12,7 @@
         
         <item name="android:textColorPrimary">@color/text_primary_light</item>
         <item name="android:textColorSecondary">@color/text_secondary_light</item>
+        <item name="colorOutlineVariant">@color/card_stroke_light</item>
     </style>
 
     <style name="Theme.ExpenseEye" parent="Base.Theme.ExpenseEye" />

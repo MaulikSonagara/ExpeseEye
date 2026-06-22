@@ -12,7 +12,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
+import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -364,7 +364,7 @@ public class ExpensesFragment extends Fragment {
         TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
         EditText etAmount = dialogView.findViewById(R.id.et_amount);
         EditText etTitle = dialogView.findViewById(R.id.et_title);
-        Spinner spinnerCategory = dialogView.findViewById(R.id.spinner_category);
+        AutoCompleteTextView spinnerCategory = dialogView.findViewById(R.id.spinner_category);
         ChipGroup cgPaymentMethod = dialogView.findViewById(R.id.cg_payment_method);
         Button btnDate = dialogView.findViewById(R.id.btn_date);
         Button btnTime = dialogView.findViewById(R.id.btn_time);
@@ -386,16 +386,29 @@ public class ExpensesFragment extends Fragment {
         for (Category c : availableCategories) {
             catNames.add(c.getName());
         }
-        ArrayAdapter<String> catAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, catNames);
-        catAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> catAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, catNames);
         spinnerCategory.setAdapter(catAdapter);
-        spinnerCategory.setSelection(catNames.indexOf(expense.getCategoryName()));
+        spinnerCategory.setText(expense.getCategoryName(), false);
 
         // Populate Payment Method Chips and select current
         for (PaymentMethod pm : availablePaymentMethods) {
-            Chip chip = new Chip(requireContext());
+            Chip chip = new Chip(requireContext(), null, com.google.android.material.R.attr.chipStyle);
             chip.setText(pm.getName());
             chip.setCheckable(true);
+
+            int iconResId = R.drawable.ic_other;
+            if (pm.getName().equalsIgnoreCase("Cash")) {
+                iconResId = R.drawable.ic_cash;
+            } else if (pm.getName().equalsIgnoreCase("Card") || pm.getName().equalsIgnoreCase("Credit Card") || pm.getName().equalsIgnoreCase("Debit Card")) {
+                iconResId = R.drawable.ic_card;
+            } else if (pm.getName().equalsIgnoreCase("UPI")) {
+                iconResId = R.drawable.ic_upi;
+            } else if (pm.getName().equalsIgnoreCase("Bank") || pm.getName().equalsIgnoreCase("Bank Transfer")) {
+                iconResId = R.drawable.ic_bank;
+            }
+            chip.setChipIcon(androidx.core.content.ContextCompat.getDrawable(requireContext(), iconResId));
+            chip.setChipIconVisible(true);
+
             if (pm.getName().equalsIgnoreCase(expense.getPaymentMethodName())) {
                 chip.setChecked(true);
             }
@@ -445,7 +458,7 @@ public class ExpensesFragment extends Fragment {
             }
 
             double amount = Double.parseDouble(amountStr);
-            String category = spinnerCategory.getSelectedItem().toString();
+            String category = spinnerCategory.getText().toString();
             
             // Get selected payment from ChipGroup
             String payment = "Other";

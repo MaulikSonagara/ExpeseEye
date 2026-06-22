@@ -10,7 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
+import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -36,7 +36,7 @@ public class ChecklistFragment extends Fragment {
     private AppViewModel viewModel;
     private ChecklistAdapter adapter;
     private EditText etTitle, etQty;
-    private Spinner spinnerPriority;
+    private AutoCompleteTextView spinnerPriority;
     private ChipGroup cgFilters;
     private LinearLayout layoutEmpty;
     private RecyclerView rvChecklist;
@@ -59,10 +59,9 @@ public class ChecklistFragment extends Fragment {
         rvChecklist = view.findViewById(R.id.rv_checklist);
 
         // Populate Priority Spinner
-        ArrayAdapter<String> priorityAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, priorities);
-        priorityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> priorityAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, priorities);
         spinnerPriority.setAdapter(priorityAdapter);
-        spinnerPriority.setSelection(0); // LOW default
+        spinnerPriority.setText(priorities[0], false); // LOW default
 
         // Setup Recycler
         rvChecklist.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -115,7 +114,7 @@ public class ChecklistFragment extends Fragment {
         btnAdd.setOnClickListener(v -> {
             String title = etTitle.getText().toString().trim();
             String qty = etQty.getText().toString().trim();
-            String priority = spinnerPriority.getSelectedItem().toString();
+            String priority = spinnerPriority.getText().toString();
 
             if (title.isEmpty()) {
                 Toast.makeText(getContext(), "Please enter an item name", Toast.LENGTH_SHORT).show();
@@ -131,7 +130,7 @@ public class ChecklistFragment extends Fragment {
             // Reset inputs
             etTitle.setText("");
             etQty.setText("");
-            spinnerPriority.setSelection(0);
+            spinnerPriority.setText(priorities[0], false);
             Toast.makeText(getContext(), "Item added: Classified as " + category, Toast.LENGTH_SHORT).show();
         });
 

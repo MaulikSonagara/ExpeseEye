@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.graphics.ColorUtils;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -265,10 +266,11 @@ public class ExpenseAdapter extends ListAdapter<ExpenseAdapter.ListItem, Recycle
                 iconName = cat.getIconName();
             }
 
-            // Draw circular background with soft category color
+            // Draw circular background with soft category color (15% alpha)
             GradientDrawable drawable = new GradientDrawable();
             drawable.setShape(GradientDrawable.OVAL);
-            drawable.setColor(color);
+            int softBgColor = ColorUtils.setAlphaComponent(color, 38); // ~15% alpha
+            drawable.setColor(softBgColor);
             iconContainer.setBackground(drawable);
 
             int resId = context.getResources().getIdentifier(iconName, "drawable", context.getPackageName());
@@ -277,6 +279,8 @@ public class ExpenseAdapter extends ListAdapter<ExpenseAdapter.ListItem, Recycle
             } else {
                 categoryIcon.setImageResource(R.drawable.ic_other);
             }
+            // Tint the icon with the solid category color
+            categoryIcon.setColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN);
         }
     }
 }

@@ -21,7 +21,7 @@
             android:id="@+id/category_icon_container"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="@drawable/ic_launcher_background"
+            android:background="@android:color/transparent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent">
@@ -119,7 +119,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#D32F2F"
+                android:textColor="?attr/colorError"
                 tools:text="- ₹250.00" />
 
             <TextView
