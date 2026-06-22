@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_widget_config_category"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="5dp"
+    android:layout_marginHorizontal="2dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="1dp"
+    app:strokeWidth="1.5dp"
+    app:strokeColor="#1F000000"
+    android:clickable="true"
+    android:focusable="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical">
+
+        <!-- Category Icon Container -->
+        <FrameLayout
+            android:id="@+id/layout_cat_icon_bg"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_widget_button"
+            android:padding="8dp">
+            <ImageView
+                android:id="@+id/iv_cat_icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_other"
+                android:tint="#FFFFFF" />
+        </FrameLayout>
+
+        <!-- Category Name -->
+        <TextView
+            android:id="@+id/tv_cat_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:text="Category Name"
+            android:textSize="15sp"
+            android:textColor="?android:attr/textColorPrimary" />
+
+        <!-- Selection Order Badge -->
+        <TextView
+            android:id="@+id/tv_cat_badge"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="@drawable/bg_widget_button"
+            android:gravity="center"
+            android:textColor="#6C7CFF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <!-- Unselected Circle Placeholder -->
+        <View
+            android:id="@+id/view_cat_unselected"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="@drawable/bg_widget_button"
+            android:visibility="visible" />
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

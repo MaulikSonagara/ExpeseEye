@@ -1,5 +1,6 @@
 package com.example.expenseeye;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
@@ -33,6 +34,29 @@ public class MainActivity extends AppCompatActivity {
             NavController navController = navHostFragment.getNavController();
             BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
             NavigationUI.setupWithNavController(bottomNavigationView, navController);
+            handleIntentNavigation(navController);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment);
+        if (navHostFragment != null) {
+            handleIntentNavigation(navHostFragment.getNavController());
+        }
+    }
+
+    private void handleIntentNavigation(NavController navController) {
+        if (getIntent() != null && getIntent().hasExtra("navigate_to")) {
+            int destId = getIntent().getIntExtra("navigate_to", R.id.dashboardFragment);
+            try {
+                navController.navigate(destId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }

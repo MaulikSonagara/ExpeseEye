@@ -77,6 +77,12 @@ public class SettingsFragment extends Fragment {
         Button btnBackup = view.findViewById(R.id.btn_backup);
         Button btnRestore = view.findViewById(R.id.btn_restore);
         Button btnCreateCat = view.findViewById(R.id.btn_create_category);
+        Button btnWidgetConfig = view.findViewById(R.id.btn_configure_widget_shortcuts);
+
+        btnWidgetConfig.setOnClickListener(v -> {
+            Intent intent = new Intent(getContext(), com.example.expenseeye.widget.WidgetConfigActivity.class);
+            startActivity(intent);
+        });
 
         sharedPrefs = requireActivity().getSharedPreferences("ExpenseEyePrefs", Context.MODE_PRIVATE);
 

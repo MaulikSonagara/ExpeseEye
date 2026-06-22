@@ -36,7 +36,7 @@ public class DatabaseBackupHelper {
             if (walFile.exists()) walFile.delete();
             File shmFile = new File(dbFile.getPath() + "-shm");
             if (shmFile.exists()) shmFile.delete();
-            com.example.expenseeye.widget.ExpenseWidgetProvider.updateAllWidgets(context);
+            com.example.expenseeye.widget.WidgetProvider.updateAllWidgets(context);
             return true;
         } catch (IOException e) {
             e.printStackTrace();

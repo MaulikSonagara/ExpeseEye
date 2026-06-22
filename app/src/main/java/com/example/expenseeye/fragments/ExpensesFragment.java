@@ -346,26 +346,18 @@ public class ExpensesFragment extends Fragment {
     }
 
     private void showEditExpenseBottomSheet(Expense expense) {
-        BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
+        android.app.Dialog dialog = new android.app.Dialog(requireContext(), R.style.Theme_ExpenseEye_Dialog);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_expense, null);
         dialog.setContentView(dialogView);
         if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
-        dialog.setOnShowListener(dialogInterface -> {
-            BottomSheetDialog d = (BottomSheetDialog) dialogInterface;
-            View bottomSheet = d.findViewById(com.google.android.material.R.id.design_bottom_sheet);
-            if (bottomSheet != null) {
-                com.google.android.material.bottomsheet.BottomSheetBehavior.from(bottomSheet)
-                        .setState(com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED);
-            }
-        });
 
         TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
         EditText etAmount = dialogView.findViewById(R.id.et_amount);
         EditText etTitle = dialogView.findViewById(R.id.et_title);
         AutoCompleteTextView spinnerCategory = dialogView.findViewById(R.id.spinner_category);
-        ChipGroup cgPaymentMethod = dialogView.findViewById(R.id.cg_payment_method);
         Button btnDate = dialogView.findViewById(R.id.btn_date);
         Button btnTime = dialogView.findViewById(R.id.btn_time);
         EditText etDescription = dialogView.findViewById(R.id.et_description);
@@ -373,7 +365,9 @@ public class ExpensesFragment extends Fragment {
         Button btnSave = dialogView.findViewById(R.id.btn_save);
         Button btnDelete = dialogView.findViewById(R.id.btn_delete);
 
-        tvTitle.setText("Edit Expense");
+        if (tvTitle != null) {
+            tvTitle.setVisibility(View.GONE);
+        }
         etAmount.setText(String.valueOf(expense.getAmount()));
         etTitle.setText(expense.getTitle());
         etDescription.setText(expense.getDescription());
@@ -391,29 +385,7 @@ public class ExpensesFragment extends Fragment {
         spinnerCategory.setText(expense.getCategoryName(), false);
 
         // Populate Payment Method Chips and select current
-        for (PaymentMethod pm : availablePaymentMethods) {
-            Chip chip = new Chip(requireContext(), null, com.google.android.material.R.attr.chipStyle);
-            chip.setText(pm.getName());
-            chip.setCheckable(true);
-
-            int iconResId = R.drawable.ic_other;
-            if (pm.getName().equalsIgnoreCase("Cash")) {
-                iconResId = R.drawable.ic_cash;
-            } else if (pm.getName().equalsIgnoreCase("Card") || pm.getName().equalsIgnoreCase("Credit Card") || pm.getName().equalsIgnoreCase("Debit Card")) {
-                iconResId = R.drawable.ic_card;
-            } else if (pm.getName().equalsIgnoreCase("UPI")) {
-                iconResId = R.drawable.ic_upi;
-            } else if (pm.getName().equalsIgnoreCase("Bank") || pm.getName().equalsIgnoreCase("Bank Transfer")) {
-                iconResId = R.drawable.ic_bank;
-            }
-            chip.setChipIcon(androidx.core.content.ContextCompat.getDrawable(requireContext(), iconResId));
-            chip.setChipIconVisible(true);
-
-            if (pm.getName().equalsIgnoreCase(expense.getPaymentMethodName())) {
-                chip.setChecked(true);
-            }
-            cgPaymentMethod.addView(chip);
-        }
+        setupPaymentMethodChipsForDialog(dialogView, expense.getPaymentMethodName());
 
         // Show Delete button and wire click listener
         btnDelete.setVisibility(View.VISIBLE);
@@ -460,16 +432,8 @@ public class ExpensesFragment extends Fragment {
             double amount = Double.parseDouble(amountStr);
             String category = spinnerCategory.getText().toString();
             
-            // Get selected payment from ChipGroup
-            String payment = "Other";
-            int checkedChipId = cgPaymentMethod.getCheckedChipId();
-            if (checkedChipId != View.NO_ID) {
-                Chip checkedChip = dialogView.findViewById(checkedChipId);
-                if (checkedChip != null) {
-                    payment = checkedChip.getText().toString();
-                }
-            }
-            
+            // Get selected payment method
+            String payment = getSelectedPaymentMethodFromDialog(dialogView);
             String desc = etDescription.getText().toString();
 
             int catId = expense.getCategoryId();
@@ -503,5 +467,94 @@ public class ExpensesFragment extends Fragment {
         });
 
         dialog.show();
+    }
+
+    private void setupPaymentMethodChipsForDialog(View dialogView, String selectedPaymentMethod) {
+        ChipGroup cgPaymentMethod = dialogView.findViewById(R.id.cg_payment_method);
+        android.widget.LinearLayout layoutCardType = dialogView.findViewById(R.id.layout_card_type);
+        ChipGroup cgCardType = dialogView.findViewById(R.id.cg_card_type);
+        Chip chipDebitCard = dialogView.findViewById(R.id.chip_debit_card);
+        Chip chipCreditCard = dialogView.findViewById(R.id.chip_credit_card);
+
+        cgPaymentMethod.removeAllViews();
+        String[] mainMethods = {"UPI", "Cash", "Debit/Credit", "Bank Transfer", "Other"};
+
+        for (String name : mainMethods) {
+            Chip chip = new Chip(requireContext(), null, com.google.android.material.R.attr.chipStyle);
+            chip.setText(name);
+            chip.setCheckable(true);
+
+            int iconResId = R.drawable.ic_other;
+            if (name.equals("Cash")) {
+                iconResId = R.drawable.ic_cash;
+            } else if (name.equals("Debit/Credit")) {
+                iconResId = R.drawable.ic_card;
+            } else if (name.equals("UPI")) {
+                iconResId = R.drawable.ic_upi;
+            } else if (name.equals("Bank Transfer")) {
+                iconResId = R.drawable.ic_bank;
+            }
+            chip.setChipIcon(androidx.core.content.ContextCompat.getDrawable(requireContext(), iconResId));
+            chip.setChipIconVisible(true);
+
+            chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked && name.equals("Debit/Credit")) {
+                    layoutCardType.setVisibility(View.VISIBLE);
+                    if (cgCardType.getCheckedChipId() == View.NO_ID) {
+                        chipDebitCard.setChecked(true);
+                    }
+                } else if (!isChecked && name.equals("Debit/Credit")) {
+                    layoutCardType.setVisibility(View.GONE);
+                }
+            });
+
+            // Set checked state
+            if (selectedPaymentMethod != null) {
+                if (name.equals("Debit/Credit") && (selectedPaymentMethod.equalsIgnoreCase("Credit Card") || selectedPaymentMethod.equalsIgnoreCase("Debit Card"))) {
+                    chip.setChecked(true);
+                    layoutCardType.setVisibility(View.VISIBLE);
+                    if (selectedPaymentMethod.equalsIgnoreCase("Credit Card")) {
+                        chipCreditCard.setChecked(true);
+                    } else {
+                        chipDebitCard.setChecked(true);
+                    }
+                } else if (name.equals("Bank Transfer") && (selectedPaymentMethod.equalsIgnoreCase("Bank") || selectedPaymentMethod.equalsIgnoreCase("Bank Transfer"))) {
+                    chip.setChecked(true);
+                } else if (selectedPaymentMethod.equalsIgnoreCase(name)) {
+                    chip.setChecked(true);
+                }
+            } else {
+                // Default select UPI for new entries
+                if (name.equals("UPI")) {
+                    chip.setChecked(true);
+                }
+            }
+
+            cgPaymentMethod.addView(chip);
+        }
+    }
+
+    private String getSelectedPaymentMethodFromDialog(View dialogView) {
+        ChipGroup cgPaymentMethod = dialogView.findViewById(R.id.cg_payment_method);
+        ChipGroup cgCardType = dialogView.findViewById(R.id.cg_card_type);
+        
+        int checkedChipId = cgPaymentMethod.getCheckedChipId();
+        if (checkedChipId != View.NO_ID) {
+            Chip checkedChip = dialogView.findViewById(checkedChipId);
+            if (checkedChip != null) {
+                String checkedText = checkedChip.getText().toString();
+                if (checkedText.equals("Debit/Credit")) {
+                    int cardCheckedId = cgCardType.getCheckedChipId();
+                    if (cardCheckedId == R.id.chip_credit_card) {
+                        return "Credit Card";
+                    } else {
+                        return "Debit Card";
+                    }
+                } else {
+                    return checkedText;
+                }
+            }
+        }
+        return "Other";
     }
 }

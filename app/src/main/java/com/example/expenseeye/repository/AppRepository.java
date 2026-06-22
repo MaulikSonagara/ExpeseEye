@@ -14,7 +14,7 @@ import com.example.expenseeye.models.Category;
 import com.example.expenseeye.models.ChecklistItem;
 import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.models.PaymentMethod;
-import com.example.expenseeye.widget.ExpenseWidgetProvider;
+import com.example.expenseeye.widget.WidgetProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,21 +57,21 @@ public class AppRepository {
     public void insertExpense(Expense expense) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             expenseDao.insert(expense);
-            ExpenseWidgetProvider.updateAllWidgets(context);
+            WidgetProvider.updateAllWidgets(context);
         });
     }
 
     public void updateExpense(Expense expense) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             expenseDao.update(expense);
-            ExpenseWidgetProvider.updateAllWidgets(context);
+            WidgetProvider.updateAllWidgets(context);
         });
     }
 
     public void deleteExpense(Expense expense) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             expenseDao.delete(expense);
-            ExpenseWidgetProvider.updateAllWidgets(context);
+            WidgetProvider.updateAllWidgets(context);
         });
     }
 

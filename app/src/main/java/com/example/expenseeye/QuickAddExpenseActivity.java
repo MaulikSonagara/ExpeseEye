@@ -50,6 +50,9 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
     private EditText etAmount, etTitle, etDescription;
     private AutoCompleteTextView spinnerCategory;
     private ChipGroup cgPaymentMethod;
+    private android.widget.LinearLayout layoutCardType;
+    private ChipGroup cgCardType;
+    private Chip chipDebitCard, chipCreditCard;
     private Button btnDate, btnTime, btnCancel, btnSave;
 
     private List<Category> availableCategories = new ArrayList<>();
@@ -77,6 +80,10 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         etTitle = findViewById(R.id.et_title);
         spinnerCategory = findViewById(R.id.spinner_category);
         cgPaymentMethod = findViewById(R.id.cg_payment_method);
+        layoutCardType = findViewById(R.id.layout_card_type);
+        cgCardType = findViewById(R.id.cg_card_type);
+        chipDebitCard = findViewById(R.id.chip_debit_card);
+        chipCreditCard = findViewById(R.id.chip_credit_card);
         btnDate = findViewById(R.id.btn_date);
         btnTime = findViewById(R.id.btn_time);
         etDescription = findViewById(R.id.et_description);
@@ -175,26 +182,39 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
 
     private void setupPaymentMethodChips() {
         cgPaymentMethod.removeAllViews();
-        for (PaymentMethod pm : availablePaymentMethods) {
+        String[] mainMethods = {"UPI", "Cash", "Debit/Credit", "Bank Transfer", "Other"};
+        
+        for (String name : mainMethods) {
             Chip chip = new Chip(this, null, com.google.android.material.R.attr.chipStyle);
-            chip.setText(pm.getName());
+            chip.setText(name);
             chip.setCheckable(true);
 
             int iconResId = R.drawable.ic_other;
-            if (pm.getName().equalsIgnoreCase("Cash")) {
+            if (name.equals("Cash")) {
                 iconResId = R.drawable.ic_cash;
-            } else if (pm.getName().equalsIgnoreCase("Card") || pm.getName().equalsIgnoreCase("Credit Card") || pm.getName().equalsIgnoreCase("Debit Card")) {
+            } else if (name.equals("Debit/Credit")) {
                 iconResId = R.drawable.ic_card;
-            } else if (pm.getName().equalsIgnoreCase("UPI")) {
+            } else if (name.equals("UPI")) {
                 iconResId = R.drawable.ic_upi;
-            } else if (pm.getName().equalsIgnoreCase("Bank") || pm.getName().equalsIgnoreCase("Bank Transfer")) {
+            } else if (name.equals("Bank Transfer")) {
                 iconResId = R.drawable.ic_bank;
             }
             chip.setChipIcon(androidx.core.content.ContextCompat.getDrawable(this, iconResId));
             chip.setChipIconVisible(true);
 
+            chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked && name.equals("Debit/Credit")) {
+                    layoutCardType.setVisibility(View.VISIBLE);
+                    if (cgCardType.getCheckedChipId() == View.NO_ID) {
+                        chipDebitCard.setChecked(true);
+                    }
+                } else if (!isChecked && name.equals("Debit/Credit")) {
+                    layoutCardType.setVisibility(View.GONE);
+                }
+            });
+
             // Default select UPI
-            if (pm.getName().equalsIgnoreCase("UPI")) {
+            if (name.equals("UPI")) {
                 chip.setChecked(true);
             }
             cgPaymentMethod.addView(chip);
@@ -234,12 +254,15 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         rootLayout.animate().alpha(1f).setDuration(250).start();
 
         cardQuickAdd.post(() -> {
-            int cardHeight = cardQuickAdd.getHeight();
-            cardQuickAdd.setTranslationY(cardHeight > 0 ? cardHeight : 1200f);
+            cardQuickAdd.setScaleX(0.8f);
+            cardQuickAdd.setScaleY(0.8f);
+            cardQuickAdd.setAlpha(0f);
             cardQuickAdd.animate()
-                    .translationY(0f)
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
+                    .alpha(1.0f)
                     .setDuration(300)
-                    .setInterpolator(new DecelerateInterpolator())
+                    .setInterpolator(new android.view.animation.OvershootInterpolator())
                     .withEndAction(() -> {
                         // Focus on amount and show keyboard
                         etAmount.requestFocus();
@@ -264,8 +287,11 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
 
         rootLayout.animate().alpha(0f).setDuration(200).start();
         cardQuickAdd.animate()
-                .translationY(cardQuickAdd.getHeight())
-                .setDuration(250)
+                .scaleX(0.8f)
+                .scaleY(0.8f)
+                .alpha(0f)
+                .setDuration(200)
+                .setInterpolator(new android.view.animation.AccelerateInterpolator())
                 .withEndAction(this::finish)
                 .start();
     }
@@ -282,13 +308,22 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         double amount = Double.parseDouble(amountStr);
         String category = spinnerCategory.getText() != null ? spinnerCategory.getText().toString() : "Other";
 
-        // Get selected payment method
         String payment = "Other";
         int checkedChipId = cgPaymentMethod.getCheckedChipId();
         if (checkedChipId != View.NO_ID) {
             Chip checkedChip = findViewById(checkedChipId);
             if (checkedChip != null) {
-                payment = checkedChip.getText().toString();
+                String checkedText = checkedChip.getText().toString();
+                if (checkedText.equals("Debit/Credit")) {
+                    int cardCheckedId = cgCardType.getCheckedChipId();
+                    if (cardCheckedId == R.id.chip_credit_card) {
+                        payment = "Credit Card";
+                    } else {
+                        payment = "Debit Card";
+                    }
+                } else {
+                    payment = checkedText;
+                }
             }
         }
 
