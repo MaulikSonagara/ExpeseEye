@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:background="?android:attr/windowBackground">
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,21 +15,30 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Settings &amp; Tools"
-            android:textSize="22sp"
+            android:text="Settings"
+            android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="?android:attr/textColorPrimary"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginBottom="24dp"/>
 
-        <!-- Export Reports Card -->
+        <!-- Theme Selection Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Appearance"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:layout_marginBottom="12dp"/>
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="1dp"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
             app:strokeWidth="1dp"
-            app:strokeColor="#1F000000">
+            app:strokeColor="?attr/colorOutlineVariant">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -41,251 +49,139 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Export Data"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="?android:attr/textColorPrimary"
+                    android:text="Select Theme"
+                    android:textSize="14sp"
+                    android:textColor="?android:attr/textColorSecondary"
                     android:layout_marginBottom="12dp"/>
 
-                <LinearLayout
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_themes"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/item_theme_preview"
+                    android:layout_marginBottom="16dp"/>
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_export_pdf"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="6dp"
-                        android:text="Export PDF"
-                        app:iconTint="@android:color/white"
-                        app:backgroundTint="#C62828"
-                        android:textColor="@android:color/white"/>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_export_csv"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="6dp"
-                        android:text="Export CSV"
-                        app:iconTint="@android:color/white"
-                        app:backgroundTint="#2E7D32"
-                        android:textColor="@android:color/white"/>
-                </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Backup & Restore Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="1dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="#1F000000">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Local Storage Backup"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:layout_marginBottom="12dp"/>
-
-                <LinearLayout
+                <View
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_backup"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="6dp"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:text="Backup DB"
-                        android:textColor="?attr/colorPrimary"
-                        app:strokeColor="?attr/colorPrimary"/>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_restore"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="6dp"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:text="Restore DB"
-                        android:textColor="?attr/colorPrimary"
-                        app:strokeColor="?attr/colorPrimary"/>
-                </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Preferences Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="1dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="#1F000000">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Preferences"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:layout_marginBottom="12dp"/>
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant"
+                    android:layout_marginBottom="16dp"/>
 
                 <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/switch_dark_mode"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:text="Dark Mode"
-                    android:textSize="14sp"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-                <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/switch_daily_reminders"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:text="Daily Reminder Notifications"
-                    android:textSize="14sp"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_configure_widget_shortcuts"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Configure Widget Shortcuts"
-                    android:textColor="?attr/colorPrimary"
-                    app:strokeColor="?attr/colorPrimary" />
+                    android:text="Dark Mode"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorPrimary" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Add Custom Category Card -->
+        <!-- Tools & Data Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tools &amp; Data"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:layout_marginBottom="12dp"/>
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="80dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="1dp"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
             app:strokeWidth="1dp"
-            app:strokeColor="#1F000000">
+            app:strokeColor="?attr/colorOutlineVariant">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Create Custom Category"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:layout_marginBottom="12dp"/>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_new_cat_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Category Name (e.g. Subscriptions)"
-                        android:inputType="textCapSentences"
-                        android:textSize="14sp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="16dp">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:layout_marginEnd="6dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Color"
-                            android:textSize="11sp"
-                            android:textColor="#757575"
-                            android:layout_marginBottom="4dp"/>
-
-                        <Spinner
-                            android:id="@+id/spinner_new_cat_color"
-                            android:layout_width="match_parent"
-                            android:layout_height="36dp"
-                            android:background="@android:drawable/btn_dropdown"
-                            android:spinnerMode="dropdown"/>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:layout_marginStart="6dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Icon"
-                            android:textSize="11sp"
-                            android:textColor="#757575"
-                            android:layout_marginBottom="4dp"/>
-
-                        <Spinner
-                            android:id="@+id/spinner_new_cat_icon"
-                            android:layout_width="match_parent"
-                            android:layout_height="36dp"
-                            android:background="@android:drawable/btn_dropdown"
-                            android:spinnerMode="dropdown"/>
-                    </LinearLayout>
-                </LinearLayout>
+                android:padding="4dp">
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_create_category"
+                    android:id="@+id/btn_export_pdf"
+                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Save Category"
-                    app:backgroundTint="?attr/colorPrimary"
-                    android:textColor="@android:color/white"/>
+                    android:text="Export PDF Report"
+                    android:gravity="start|center_vertical"
+                    app:icon="@drawable/ic_export"
+                    android:padding="16dp"/>
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_export_csv"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Export CSV Sheet"
+                    android:gravity="start|center_vertical"
+                    app:icon="@drawable/ic_export"
+                    android:padding="16dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_backup"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Backup Database"
+                    android:gravity="start|center_vertical"
+                    app:icon="@drawable/ic_dashboard"
+                    android:padding="16dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_restore"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Restore Database"
+                    android:gravity="start|center_vertical"
+                    app:icon="@drawable/ic_calendar"
+                    android:padding="16dp"/>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Widget Customization Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Widgets"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:layout_marginBottom="12dp"/>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="100dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="?attr/colorOutlineVariant">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="4dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_configure_widget_shortcuts"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Configure Shortcuts"
+                    android:gravity="start|center_vertical"
+                    app:icon="@drawable/ic_settings"
+                    android:padding="16dp"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

@@ -17,13 +17,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Load and apply theme preference
-        SharedPreferences sharedPrefs = getSharedPreferences("ExpenseEyePrefs", MODE_PRIVATE);
-        boolean isDarkMode = sharedPrefs.getBoolean("dark_mode", false);
-        if (isDarkMode) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        }
+        com.example.expenseeye.theme.ThemeManager.applyTheme(this);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);

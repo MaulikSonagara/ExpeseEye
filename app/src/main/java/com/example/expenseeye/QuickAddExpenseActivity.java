@@ -29,11 +29,13 @@ import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.models.PaymentMethod;
 import com.example.expenseeye.repository.AppRepository;
 import com.example.expenseeye.utils.ExpenseClassifier;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import com.example.expenseeye.adapters.PaymentMethodAdapter;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -49,10 +51,6 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
     private CardView cardQuickAdd;
     private EditText etAmount, etTitle, etDescription;
     private AutoCompleteTextView spinnerCategory;
-    private ChipGroup cgPaymentMethod;
-    private android.widget.LinearLayout layoutCardType;
-    private ChipGroup cgCardType;
-    private Chip chipDebitCard, chipCreditCard;
     private Button btnDate, btnTime, btnCancel, btnSave;
 
     private List<Category> availableCategories = new ArrayList<>();
@@ -62,13 +60,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Load and apply theme preference
-        SharedPreferences sharedPrefs = getSharedPreferences("ExpenseEyePrefs", MODE_PRIVATE);
-        boolean isDarkMode = sharedPrefs.getBoolean("dark_mode", false);
-        if (isDarkMode) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        }
+        com.example.expenseeye.theme.ThemeManager.applyTheme(this);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_quick_add_expense);
@@ -79,11 +71,6 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         etAmount = findViewById(R.id.et_amount);
         etTitle = findViewById(R.id.et_title);
         spinnerCategory = findViewById(R.id.spinner_category);
-        cgPaymentMethod = findViewById(R.id.cg_payment_method);
-        layoutCardType = findViewById(R.id.layout_card_type);
-        cgCardType = findViewById(R.id.cg_card_type);
-        chipDebitCard = findViewById(R.id.chip_debit_card);
-        chipCreditCard = findViewById(R.id.chip_credit_card);
         btnDate = findViewById(R.id.btn_date);
         btnTime = findViewById(R.id.btn_time);
         etDescription = findViewById(R.id.et_description);
@@ -180,45 +167,33 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         spinnerCategory.setAdapter(catAdapter);
     }
 
+    private PaymentMethodAdapter adapterMain, adapterOther;
+
     private void setupPaymentMethodChips() {
-        cgPaymentMethod.removeAllViews();
-        String[] mainMethods = {"UPI", "Cash", "Debit/Credit", "Bank Transfer", "Other"};
-        
-        for (String name : mainMethods) {
-            Chip chip = new Chip(this, null, com.google.android.material.R.attr.chipStyle);
-            chip.setText(name);
-            chip.setCheckable(true);
+        RecyclerView rvMain = findViewById(R.id.rv_payment_main);
+        android.widget.LinearLayout layoutOther = findViewById(R.id.layout_payment_other);
+        RecyclerView rvOther = findViewById(R.id.rv_payment_other);
 
-            int iconResId = R.drawable.ic_other;
-            if (name.equals("Cash")) {
-                iconResId = R.drawable.ic_cash;
-            } else if (name.equals("Debit/Credit")) {
-                iconResId = R.drawable.ic_card;
-            } else if (name.equals("UPI")) {
-                iconResId = R.drawable.ic_upi;
-            } else if (name.equals("Bank Transfer")) {
-                iconResId = R.drawable.ic_bank;
+        List<String> mainMethods = Arrays.asList("Cash", "UPI", "Other");
+        List<String> otherMethods = Arrays.asList("Debit Card", "Credit Card", "Bank Transfer", "Wallet");
+
+        adapterMain = new PaymentMethodAdapter(mainMethods, "UPI", name -> {
+            if ("Other".equals(name)) {
+                layoutOther.setVisibility(View.VISIBLE);
+            } else {
+                layoutOther.setVisibility(View.GONE);
+                if (adapterOther != null) adapterOther.setSelectedMethod(null);
             }
-            chip.setChipIcon(androidx.core.content.ContextCompat.getDrawable(this, iconResId));
-            chip.setChipIconVisible(true);
+        });
 
-            chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                if (isChecked && name.equals("Debit/Credit")) {
-                    layoutCardType.setVisibility(View.VISIBLE);
-                    if (cgCardType.getCheckedChipId() == View.NO_ID) {
-                        chipDebitCard.setChecked(true);
-                    }
-                } else if (!isChecked && name.equals("Debit/Credit")) {
-                    layoutCardType.setVisibility(View.GONE);
-                }
-            });
+        rvMain.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        rvMain.setAdapter(adapterMain);
 
-            // Default select UPI
-            if (name.equals("UPI")) {
-                chip.setChecked(true);
-            }
-            cgPaymentMethod.addView(chip);
-        }
+        adapterOther = new PaymentMethodAdapter(otherMethods, "", name -> {
+            // Handled
+        });
+        rvOther.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        rvOther.setAdapter(adapterOther);
     }
 
     private void handlePreselectedCategory() {
@@ -309,21 +284,13 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         String category = spinnerCategory.getText() != null ? spinnerCategory.getText().toString() : "Other";
 
         String payment = "Other";
-        int checkedChipId = cgPaymentMethod.getCheckedChipId();
-        if (checkedChipId != View.NO_ID) {
-            Chip checkedChip = findViewById(checkedChipId);
-            if (checkedChip != null) {
-                String checkedText = checkedChip.getText().toString();
-                if (checkedText.equals("Debit/Credit")) {
-                    int cardCheckedId = cgCardType.getCheckedChipId();
-                    if (cardCheckedId == R.id.chip_credit_card) {
-                        payment = "Credit Card";
-                    } else {
-                        payment = "Debit Card";
-                    }
-                } else {
-                    payment = checkedText;
-                }
+        if (adapterMain != null) {
+            String main = adapterMain.getSelectedMethod();
+            if ("Other".equals(main) && adapterOther != null) {
+                String other = adapterOther.getSelectedMethod();
+                payment = (other != null) ? other : "Other";
+            } else {
+                payment = (main != null) ? main : "Cash";
             }
         }
 

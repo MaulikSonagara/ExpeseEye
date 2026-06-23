@@ -1,21 +1,55 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.ExpenseEye" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <item name="colorPrimary">@color/primary_light</item>
-        <item name="colorPrimaryVariant">@color/primary_variant_light</item>
-        <item name="colorSecondary">@color/secondary_light</item>
-        <item name="colorSecondaryVariant">@color/secondary_variant_light</item>
-        <item name="android:windowBackground">@color/background_light</item>
-        <item name="colorSurface">@color/surface_light</item>
-        <item name="colorError">@color/error_light</item>
-        
-        <item name="android:textColorPrimary">@color/text_primary_light</item>
-        <item name="android:textColorSecondary">@color/text_secondary_light</item>
-        <item name="colorOutlineVariant">@color/card_stroke_light</item>
+
+    <!-- Midnight Calm -->
+    <style name="Theme.ExpenseEye.MidnightCalm" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/mc_l_primary</item>
+        <item name="colorSecondary">@color/mc_l_secondary</item>
+        <item name="android:windowBackground">@color/mc_l_background</item>
+        <item name="colorSurface">@color/mc_l_surface</item>
+        <item name="colorError">@color/mc_l_danger</item>
+        <item name="android:textColorPrimary">@color/mc_l_text_primary</item>
+        <item name="android:textColorSecondary">@color/mc_l_text_secondary</item>
+        <item name="colorOnSurface">@color/mc_l_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/mc_l_text_secondary</item>
     </style>
 
-    <style name="Theme.ExpenseEye" parent="Base.Theme.ExpenseEye" />
+    <!-- Forest Ledger -->
+    <style name="Theme.ExpenseEye.ForestLedger" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/fl_l_primary</item>
+        <item name="colorSecondary">@color/fl_l_secondary</item>
+        <item name="android:windowBackground">@color/fl_l_background</item>
+        <item name="colorSurface">@color/fl_l_surface</item>
+        <item name="android:textColorPrimary">@color/fl_l_text_primary</item>
+        <item name="android:textColorSecondary">@color/fl_l_text_secondary</item>
+        <item name="colorOnSurface">@color/fl_l_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/fl_l_text_secondary</item>
+    </style>
+
+    <!-- Minimal Sand -->
+    <style name="Theme.ExpenseEye.MinimalSand" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/ms_l_primary</item>
+        <item name="colorSecondary">@color/ms_l_secondary</item>
+        <item name="android:windowBackground">@color/ms_l_background</item>
+        <item name="colorSurface">@color/ms_l_surface</item>
+        <item name="android:textColorPrimary">@color/ms_l_text_primary</item>
+        <item name="android:textColorSecondary">@color/ms_l_text_secondary</item>
+        <item name="colorOnSurface">@color/ms_l_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/ms_l_text_secondary</item>
+    </style>
+
+    <!-- Ocean Ledger -->
+    <style name="Theme.ExpenseEye.OceanLedger" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/ol_l_primary</item>
+        <item name="colorSecondary">@color/ol_l_secondary</item>
+        <item name="android:windowBackground">@color/ol_l_background</item>
+        <item name="colorSurface">@color/ol_l_surface</item>
+        <item name="android:textColorPrimary">@color/ol_l_text_primary</item>
+        <item name="android:textColorSecondary">@color/ol_l_text_secondary</item>
+        <item name="colorOnSurface">@color/ol_l_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/ol_l_text_secondary</item>
+    </style>
+
+    <style name="Theme.ExpenseEye" parent="Theme.ExpenseEye.MidnightCalm" />
 
     <!-- Transparent style for Quick Add Activity -->
     <style name="Theme.ExpenseEye.TransparentActivity" parent="Theme.Material3.DayNight.NoActionBar">

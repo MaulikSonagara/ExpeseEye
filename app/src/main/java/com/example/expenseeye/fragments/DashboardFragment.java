@@ -32,12 +32,13 @@ import com.example.expenseeye.models.PaymentMethod;
 import com.example.expenseeye.utils.ExpenseClassifier;
 import com.example.expenseeye.viewmodel.AppViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import com.example.expenseeye.adapters.PaymentMethodAdapter;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -475,90 +476,57 @@ public class DashboardFragment extends Fragment {
     }
 
     private void setupPaymentMethodChipsForDialog(View dialogView, String selectedPaymentMethod) {
-        ChipGroup cgPaymentMethod = dialogView.findViewById(R.id.cg_payment_method);
-        android.widget.LinearLayout layoutCardType = dialogView.findViewById(R.id.layout_card_type);
-        ChipGroup cgCardType = dialogView.findViewById(R.id.cg_card_type);
-        Chip chipDebitCard = dialogView.findViewById(R.id.chip_debit_card);
-        Chip chipCreditCard = dialogView.findViewById(R.id.chip_credit_card);
+        RecyclerView rvMain = dialogView.findViewById(R.id.rv_payment_main);
+        android.widget.LinearLayout layoutOther = dialogView.findViewById(R.id.layout_payment_other);
+        RecyclerView rvOther = dialogView.findViewById(R.id.rv_payment_other);
 
-        cgPaymentMethod.removeAllViews();
-        String[] mainMethods = {"UPI", "Cash", "Debit/Credit", "Bank Transfer", "Other"};
+        List<String> mainMethods = Arrays.asList("Cash", "UPI", "Other");
+        List<String> otherMethods = Arrays.asList("Debit Card", "Credit Card", "Bank Transfer", "Wallet");
 
-        for (String name : mainMethods) {
-            Chip chip = new Chip(requireContext(), null, com.google.android.material.R.attr.chipStyle);
-            chip.setText(name);
-            chip.setCheckable(true);
-
-            int iconResId = R.drawable.ic_other;
-            if (name.equals("Cash")) {
-                iconResId = R.drawable.ic_cash;
-            } else if (name.equals("Debit/Credit")) {
-                iconResId = R.drawable.ic_card;
-            } else if (name.equals("UPI")) {
-                iconResId = R.drawable.ic_upi;
-            } else if (name.equals("Bank Transfer")) {
-                iconResId = R.drawable.ic_bank;
-            }
-            chip.setChipIcon(androidx.core.content.ContextCompat.getDrawable(requireContext(), iconResId));
-            chip.setChipIconVisible(true);
-
-            chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                if (isChecked && name.equals("Debit/Credit")) {
-                    layoutCardType.setVisibility(View.VISIBLE);
-                    if (cgCardType.getCheckedChipId() == View.NO_ID) {
-                        chipDebitCard.setChecked(true);
-                    }
-                } else if (!isChecked && name.equals("Debit/Credit")) {
-                    layoutCardType.setVisibility(View.GONE);
-                }
-            });
-
-            // Set checked state
-            if (selectedPaymentMethod != null) {
-                if (name.equals("Debit/Credit") && (selectedPaymentMethod.equalsIgnoreCase("Credit Card") || selectedPaymentMethod.equalsIgnoreCase("Debit Card"))) {
-                    chip.setChecked(true);
-                    layoutCardType.setVisibility(View.VISIBLE);
-                    if (selectedPaymentMethod.equalsIgnoreCase("Credit Card")) {
-                        chipCreditCard.setChecked(true);
-                    } else {
-                        chipDebitCard.setChecked(true);
-                    }
-                } else if (name.equals("Bank Transfer") && (selectedPaymentMethod.equalsIgnoreCase("Bank") || selectedPaymentMethod.equalsIgnoreCase("Bank Transfer"))) {
-                    chip.setChecked(true);
-                } else if (selectedPaymentMethod.equalsIgnoreCase(name)) {
-                    chip.setChecked(true);
-                }
-            } else {
-                // Default select UPI for new entries
-                if (name.equals("UPI")) {
-                    chip.setChecked(true);
-                }
-            }
-
-            cgPaymentMethod.addView(chip);
+        String initialMain = "UPI";
+        if (selectedPaymentMethod != null) {
+            if (mainMethods.contains(selectedPaymentMethod)) initialMain = selectedPaymentMethod;
+            else if (otherMethods.contains(selectedPaymentMethod)) initialMain = "Other";
         }
+
+        final PaymentMethodAdapter[] adapterOther = new PaymentMethodAdapter[1];
+        final PaymentMethodAdapter adapterMain = new PaymentMethodAdapter(mainMethods, initialMain, name -> {
+            if ("Other".equals(name)) {
+                layoutOther.setVisibility(View.VISIBLE);
+            } else {
+                layoutOther.setVisibility(View.GONE);
+                if (adapterOther[0] != null) adapterOther[0].setSelectedMethod(null);
+            }
+        });
+
+        rvMain.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        rvMain.setAdapter(adapterMain);
+
+        if ("Other".equals(initialMain)) {
+            layoutOther.setVisibility(View.VISIBLE);
+        }
+
+        adapterOther[0] = new PaymentMethodAdapter(otherMethods, selectedPaymentMethod, name -> {
+            // Sub-selection handled by adapter notify
+        });
+        rvOther.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        rvOther.setAdapter(adapterOther[0]);
     }
 
     private String getSelectedPaymentMethodFromDialog(View dialogView) {
-        ChipGroup cgPaymentMethod = dialogView.findViewById(R.id.cg_payment_method);
-        ChipGroup cgCardType = dialogView.findViewById(R.id.cg_card_type);
+        RecyclerView rvMain = dialogView.findViewById(R.id.rv_payment_main);
+        RecyclerView rvOther = dialogView.findViewById(R.id.rv_payment_other);
         
-        int checkedChipId = cgPaymentMethod.getCheckedChipId();
-        if (checkedChipId != View.NO_ID) {
-            Chip checkedChip = dialogView.findViewById(checkedChipId);
-            if (checkedChip != null) {
-                String checkedText = checkedChip.getText().toString();
-                if (checkedText.equals("Debit/Credit")) {
-                    int cardCheckedId = cgCardType.getCheckedChipId();
-                    if (cardCheckedId == R.id.chip_credit_card) {
-                        return "Credit Card";
-                    } else {
-                        return "Debit Card";
-                    }
-                } else {
-                    return checkedText;
-                }
+        PaymentMethodAdapter mainAdapter = (PaymentMethodAdapter) rvMain.getAdapter();
+        PaymentMethodAdapter otherAdapter = (PaymentMethodAdapter) rvOther.getAdapter();
+
+        if (mainAdapter != null) {
+            String main = mainAdapter.getSelectedMethod();
+            if ("Other".equals(main) && otherAdapter != null) {
+                String other = otherAdapter.getSelectedMethod();
+                return (other != null) ? other : "Other";
             }
+            return (main != null) ? main : "Cash";
         }
         return "Other";
     }
