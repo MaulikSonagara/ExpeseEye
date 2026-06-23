@@ -4,32 +4,30 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_widget_glass"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="8dp">
 
-    <!-- Row 1: Today, Weekly, Monthly -->
+    <!-- Row 1: Today, Weekly, Monthly Totals -->
     <LinearLayout
-        android:id="@+id/layout_widget_main_click"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="horizontal"
-        android:clickable="true"
-        android:focusable="true">
+        android:layout_height="52dp"
+        android:orientation="horizontal">
 
         <!-- Today -->
         <LinearLayout
+            android:id="@+id/layout_widget_main_click"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@drawable/bg_widget_card"
             android:orientation="vertical"
             android:gravity="center"
-            android:padding="4dp">
+            android:clickable="true"
+            android:focusable="true">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Today"
+                android:text="TODAY"
                 android:textColor="#94A3B8"
                 android:textSize="9sp"
                 android:textStyle="bold" />
@@ -38,9 +36,9 @@
                 android:id="@+id/tv_widget_amount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="₹0.00"
+                android:text="₹0"
                 android:textColor="#F8FAFC"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:singleLine="true"
                 android:ellipsize="end" />
@@ -51,16 +49,17 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:layout_marginStart="6dp"
             android:background="@drawable/bg_widget_card"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginStart="6dp"
-            android:padding="4dp">
+            android:clickable="true"
+            android:focusable="true">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Weekly"
+                android:text="WEEKLY"
                 android:textColor="#94A3B8"
                 android:textSize="9sp"
                 android:textStyle="bold" />
@@ -69,9 +68,9 @@
                 android:id="@+id/tv_widget_amount_week"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="₹0.00"
+                android:text="₹0"
                 android:textColor="#5DD6C0"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:singleLine="true"
                 android:ellipsize="end" />
@@ -81,17 +80,18 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="1.1"
+            android:layout_marginStart="6dp"
             android:background="@drawable/bg_widget_card"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginStart="6dp"
-            android:padding="4dp">
+            android:clickable="true"
+            android:focusable="true">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Monthly"
+                android:text="MONTHLY"
                 android:textColor="#94A3B8"
                 android:textSize="9sp"
                 android:textStyle="bold" />
@@ -100,89 +100,116 @@
                 android:id="@+id/tv_widget_amount_month"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="₹0.00"
+                android:text="₹0"
                 android:textColor="#6C7CFF"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:singleLine="true"
                 android:ellipsize="end" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Row 2: Pie Chart -->
-    <LinearLayout
-        android:id="@+id/layout_widget_pie_click"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1.6"
-        android:background="@drawable/bg_widget_card"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="6dp"
-        android:layout_marginTop="8dp"
-        android:clickable="true"
-        android:focusable="true">
-
-        <ImageView
-            android:id="@+id/iv_widget_pie"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitCenter" />
-    </LinearLayout>
-
-    <!-- Row 3: Add, Special 1, Special 2 -->
+    <!-- Row 2: Payment Stats & Pie Chart -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp">
+        android:layout_height="64dp"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal">
 
-        <!-- Add Button -->
+        <!-- Payment Stats -->
         <LinearLayout
-            android:id="@+id/btn_widget_add"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@drawable/bg_widget_surface"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:padding="8dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.2"
+            android:background="@drawable/bg_widget_card"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
             android:clickable="true"
             android:focusable="true">
-
-            <ImageView
-                android:layout_width="12dp"
-                android:layout_height="12dp"
-                android:src="@drawable/ic_add"
-                android:tint="#6C7CFF" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=" Add"
+                android:text="PAYMENT STATS"
+                android:textColor="#94A3B8"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="2dp"/>
+
+            <TextView
+                android:id="@+id/tv_widget_pay_cash"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cash: ₹0"
+                android:textColor="#F8FAFC"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_widget_pay_upi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="UPI: ₹0"
                 android:textColor="#6C7CFF"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_widget_pay_card"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Card: ₹0"
+                android:textColor="#5DD6C0"
                 android:textSize="10sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Special Item 1 -->
+        <!-- Pie Chart -->
         <LinearLayout
-            android:id="@+id/btn_widget_action_1"
+            android:id="@+id/layout_widget_pie_click"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.1"
-            android:background="@drawable/bg_widget_surface"
-            android:orientation="horizontal"
-            android:gravity="center"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:layout_marginStart="6dp"
-            android:padding="8dp"
+            android:background="@drawable/bg_widget_card"
+            android:gravity="center"
+            android:padding="2dp"
             android:clickable="true"
             android:focusable="true">
 
             <ImageView
+                android:id="@+id/iv_widget_pie"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Row 3: Quick Categories (height 48dp) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal">
+
+        <!-- Action 1 -->
+        <LinearLayout
+            android:id="@+id/btn_widget_action_1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_widget_surface"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone">
+
+            <ImageView
                 android:id="@+id/iv_widget_action_1"
-                android:layout_width="12dp"
-                android:layout_height="12dp"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
                 android:src="@drawable/ic_other"
                 android:tint="#5DD6C0" />
 
@@ -190,7 +217,8 @@
                 android:id="@+id/tv_widget_action_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=" Item 1"
+                android:layout_marginStart="4dp"
+                android:text=" Cat 1"
                 android:textColor="#5DD6C0"
                 android:textSize="10sp"
                 android:textStyle="bold"
@@ -198,24 +226,24 @@
                 android:ellipsize="end" />
         </LinearLayout>
 
-        <!-- Special Item 2 -->
+        <!-- Action 2 -->
         <LinearLayout
             android:id="@+id/btn_widget_action_2"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.1"
-            android:background="@drawable/bg_widget_surface"
-            android:orientation="horizontal"
-            android:gravity="center"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:layout_marginStart="6dp"
-            android:padding="8dp"
+            android:background="@drawable/bg_widget_surface"
+            android:gravity="center"
+            android:orientation="horizontal"
             android:clickable="true"
-            android:focusable="true">
+            android:focusable="true"
+            android:visibility="gone">
 
             <ImageView
                 android:id="@+id/iv_widget_action_2"
-                android:layout_width="12dp"
-                android:layout_height="12dp"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
                 android:src="@drawable/ic_other"
                 android:tint="#5DD6C0" />
 
@@ -223,12 +251,223 @@
                 android:id="@+id/tv_widget_action_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=" Item 2"
+                android:layout_marginStart="4dp"
+                android:text=" Cat 2"
                 android:textColor="#5DD6C0"
                 android:textSize="10sp"
                 android:textStyle="bold"
                 android:singleLine="true"
                 android:ellipsize="end" />
+        </LinearLayout>
+
+        <!-- Action 3 -->
+        <LinearLayout
+            android:id="@+id/btn_widget_action_3"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_widget_surface"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/iv_widget_action_3"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_other"
+                android:tint="#5DD6C0" />
+
+            <TextView
+                android:id="@+id/tv_widget_action_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text=" Cat 3"
+                android:textColor="#5DD6C0"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:ellipsize="end" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Row 4: Checklist Container (2 items) -->
+    <LinearLayout
+        android:id="@+id/layout_widget_checklist"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_widget_card"
+        android:orientation="vertical"
+        android:padding="6dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PENDING CHECKS"
+            android:textColor="#94A3B8"
+            android:textSize="8sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:id="@+id/tv_widget_checklist_empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="All caught up! 🎉"
+            android:textColor="#64748B"
+            android:textSize="11sp"
+            android:visibility="gone" />
+
+        <!-- Item 1 -->
+        <LinearLayout
+            android:id="@+id/layout_widget_checklist_item_1"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="visible">
+
+            <ImageView
+                android:id="@+id/cb_widget_checklist_1"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:padding="4dp"
+                android:src="@drawable/ic_widget_checkbox_blank"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/tv_widget_checklist_title_1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="Item 1"
+                android:textColor="#F8FAFC"
+                android:textSize="12sp"
+                android:singleLine="true"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/tv_widget_checklist_desc_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="HIGH"
+                android:textColor="#F87171"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Item 2 -->
+        <LinearLayout
+            android:id="@+id/layout_widget_checklist_item_2"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="visible">
+
+            <ImageView
+                android:id="@+id/cb_widget_checklist_2"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:padding="4dp"
+                android:src="@drawable/ic_widget_checkbox_blank"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/tv_widget_checklist_title_2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="Item 2"
+                android:textColor="#F8FAFC"
+                android:textSize="12sp"
+                android:singleLine="true"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/tv_widget_checklist_desc_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="1 qty"
+                android:textColor="#94A3B8"
+                android:textSize="9sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Row 5: Action Buttons (height 48dp) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/btn_widget_add"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_widget_surface"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_add"
+                android:tint="#6C7CFF" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="Add Expense"
+                android:textColor="#6C7CFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btn_widget_add_checklist"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_widget_surface"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_checklist"
+                android:tint="#5DD6C0" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="Add Task"
+                android:textColor="#5DD6C0"
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 

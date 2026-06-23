@@ -48,6 +48,14 @@
             android:excludeFromRecents="true"
             android:exported="false" />
 
+        <!-- Quick Add Checklist Dialog-Activity -->
+        <activity
+            android:name=".QuickAddChecklistActivity"
+            android:theme="@style/Theme.ExpenseEye.TransparentActivity"
+            android:windowSoftInputMode="stateAlwaysVisible|adjustResize"
+            android:excludeFromRecents="true"
+            android:exported="false" />
+
         <!-- Custom Widget Settings & Config Activity -->
         <activity
             android:name=".widget.WidgetConfigActivity"

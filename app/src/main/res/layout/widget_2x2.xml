@@ -4,10 +4,9 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_widget_glass"
     android:orientation="vertical"
-    android:padding="8dp"
-    android:gravity="center">
+    android:padding="8dp">
 
-    <!-- Today -->
+    <!-- Today's Stats -->
     <LinearLayout
         android:id="@+id/layout_widget_main_click"
         android:layout_width="match_parent"
@@ -16,89 +15,128 @@
         android:background="@drawable/bg_widget_card"
         android:orientation="vertical"
         android:gravity="center"
-        android:padding="4dp"
         android:clickable="true"
         android:focusable="true">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Today"
+            android:text="TODAY"
             android:textColor="#94A3B8"
-            android:textSize="9sp"
-            android:textStyle="bold" />
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05" />
 
         <TextView
             android:id="@+id/tv_widget_amount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="₹0.00"
+            android:text="₹0"
             android:textColor="#F8FAFC"
-            android:textSize="13sp"
+            android:textSize="18sp"
             android:textStyle="bold"
             android:singleLine="true"
-            android:ellipsize="end" />
+            android:ellipsize="end"
+            android:layout_marginTop="2dp" />
     </LinearLayout>
 
-    <!-- Weekly -->
+    <!-- Weekly Stats -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:layout_marginTop="6dp"
         android:background="@drawable/bg_widget_card"
         android:orientation="vertical"
         android:gravity="center"
-        android:layout_marginTop="5dp"
-        android:padding="4dp"
         android:clickable="true"
         android:focusable="true">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Weekly"
+            android:text="WEEKLY"
             android:textColor="#94A3B8"
-            android:textSize="9sp"
-            android:textStyle="bold" />
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05" />
 
         <TextView
             android:id="@+id/tv_widget_amount_week"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="₹0.00"
+            android:text="₹0"
             android:textColor="#5DD6C0"
-            android:textSize="13sp"
+            android:textSize="18sp"
             android:textStyle="bold"
             android:singleLine="true"
-            android:ellipsize="end" />
+            android:ellipsize="end"
+            android:layout_marginTop="2dp" />
     </LinearLayout>
 
-    <!-- Add Button -->
+    <!-- Buttons Row -->
     <LinearLayout
-        android:id="@+id/btn_widget_add"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_widget_surface"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:padding="6dp"
-        android:layout_marginTop="5dp"
-        android:clickable="true"
-        android:focusable="true">
+        android:layout_height="48dp"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal">
 
-        <ImageView
-            android:layout_width="12dp"
-            android:layout_height="12dp"
-            android:src="@drawable/ic_add"
-            android:tint="#6C7CFF" />
+        <!-- Add Expense -->
+        <LinearLayout
+            android:id="@+id/btn_widget_add"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_widget_surface"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:clickable="true"
+            android:focusable="true">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=" Add Expense"
-            android:textColor="#6C7CFF"
-            android:textSize="10sp"
-            android:textStyle="bold" />
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_add"
+                android:tint="#6C7CFF" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="Expense"
+                android:textColor="#6C7CFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Add Checklist -->
+        <LinearLayout
+            android:id="@+id/btn_widget_add_checklist"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_widget_surface"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_checklist"
+                android:tint="#5DD6C0" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="Task"
+                android:textColor="#5DD6C0"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

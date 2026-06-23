@@ -204,15 +204,24 @@ public class AppRepository {
     }
 
     public void insertChecklistItem(ChecklistItem item) {
-        AppDatabase.databaseWriteExecutor.execute(() -> checklistItemDao.insert(item));
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            checklistItemDao.insert(item);
+            WidgetProvider.updateAllWidgets(context);
+        });
     }
 
     public void updateChecklistItem(ChecklistItem item) {
-        AppDatabase.databaseWriteExecutor.execute(() -> checklistItemDao.update(item));
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            checklistItemDao.update(item);
+            WidgetProvider.updateAllWidgets(context);
+        });
     }
 
     public void deleteChecklistItem(ChecklistItem item) {
-        AppDatabase.databaseWriteExecutor.execute(() -> checklistItemDao.delete(item));
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            checklistItemDao.delete(item);
+            WidgetProvider.updateAllWidgets(context);
+        });
     }
 
     public LiveData<Integer> getPendingChecklistCountLive() {

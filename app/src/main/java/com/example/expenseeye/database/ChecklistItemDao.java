@@ -31,4 +31,7 @@ public interface ChecklistItemDao {
 
     @Query("SELECT COUNT(*) FROM checklist_items WHERE isCompleted = 0")
     LiveData<Integer> getPendingCountLive();
+
+    @Query("SELECT * FROM checklist_items WHERE id = :id LIMIT 1")
+    ChecklistItem getItemByIdSync(long id);
 }
