@@ -47,7 +47,12 @@ public class MainActivity extends AppCompatActivity {
         if (getIntent() != null && getIntent().hasExtra("navigate_to")) {
             int destId = getIntent().getIntExtra("navigate_to", R.id.dashboardFragment);
             try {
-                navController.navigate(destId);
+                BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+                if (bottomNavigationView != null) {
+                    bottomNavigationView.setSelectedItemId(destId);
+                } else {
+                    navController.navigate(destId);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

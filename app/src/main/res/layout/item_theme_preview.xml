@@ -1,69 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/card_theme_preview"
-    android:layout_width="160dp"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:strokeWidth="3dp"
-    app:strokeColor="@android:color/transparent"
-    android:clickable="true"
-    android:focusable="true">
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:padding="8dp">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_theme_preview"
+        android:layout_width="140dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="12dp">
-
-        <TextView
-            android:id="@+id/tv_theme_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Midnight Calm"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="?android:attr/textColorPrimary"
-            android:layout_marginBottom="12dp"/>
+        app:cardCornerRadius="16dp"
+        app:cardElevation="2dp"
+        app:strokeWidth="3dp"
+        app:strokeColor="@android:color/transparent"
+        android:clickable="true"
+        android:focusable="true">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:orientation="horizontal"
-            android:weightSum="3">
-
-            <View
-                android:id="@+id/view_color_1"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@color/mc_l_primary"/>
-
-            <View
-                android:id="@+id/view_color_2"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@color/mc_l_secondary"/>
-
-            <View
-                android:id="@+id/view_color_3"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@color/mc_l_background"/>
-
-        </LinearLayout>
-
-        <RadioButton
-            android:id="@+id/rb_selected"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginTop="8dp"
-            android:clickable="false" />
-    </LinearLayout>
+            android:orientation="vertical"
+            android:padding="12dp">
 
-</com.google.android.material.card.MaterialCardView>
+            <TextView
+                android:id="@+id/tv_theme_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Midnight Calm"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="?android:attr/textColorPrimary"
+                android:layout_marginBottom="12dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="24dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <View
+                    android:id="@+id/view_color_1"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_theme_color_dot"/>
+
+                <View
+                    android:id="@+id/view_color_2"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_theme_color_dot"/>
+
+                <View
+                    android:id="@+id/view_color_3"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_theme_color_dot"/>
+
+                <View
+                    android:id="@+id/view_color_4"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:background="@drawable/bg_theme_color_dot"/>
+
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Checkmark Badge in Corner -->
+    <FrameLayout
+        android:id="@+id/layout_check_badge"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="end|top"
+        android:layout_marginTop="-4dp"
+        android:layout_marginEnd="-4dp"
+        android:background="@drawable/bg_check_badge"
+        android:elevation="4dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_check"
+            app:tint="@android:color/white"/>
+    </FrameLayout>
+
+</FrameLayout>

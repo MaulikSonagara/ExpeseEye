@@ -114,7 +114,17 @@ public class DashboardFragment extends Fragment {
         });
 
         // See All action
-        btnSeeAll.setOnClickListener(v -> Navigation.findNavController(view).navigate(R.id.expensesFragment));
+        btnSeeAll.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = 
+                        getActivity().findViewById(R.id.bottom_navigation);
+                if (bottomNav != null) {
+                    bottomNav.setSelectedItemId(R.id.expensesFragment);
+                    return;
+                }
+            }
+            Navigation.findNavController(view).navigate(R.id.expensesFragment);
+        });
 
         // FAB Quick Add action
         fabAddExpense.setOnClickListener(v -> showAddExpenseBottomSheet());

@@ -49,32 +49,25 @@ import java.util.TreeMap;
 public class ReportsFragment extends Fragment {
 
     private AppViewModel viewModel;
-    private Spinner spinnerRange;
+    private com.google.android.material.chip.ChipGroup cgFilterRange;
     private TextView tvDailyAverage, tvTopCategory;
     private PieChart pieChart;
     private LineChart lineChart;
     private BarChart barChart;
 
     private List<Expense> allExpensesList = new ArrayList<>();
-    private final String[] ranges = {"This Month", "Last Month", "This Year", "All Time"};
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_reports, container, false);
 
-        spinnerRange = view.findViewById(R.id.spinner_report_range);
+        cgFilterRange = view.findViewById(R.id.cg_filter_range);
         tvDailyAverage = view.findViewById(R.id.tv_daily_average);
         tvTopCategory = view.findViewById(R.id.tv_top_category);
         pieChart = view.findViewById(R.id.pie_chart_categories);
         lineChart = view.findViewById(R.id.line_chart_trend);
         barChart = view.findViewById(R.id.bar_chart_payments);
-
-        // Populate Range Spinner
-        ArrayAdapter<String> rangeAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, ranges);
-        rangeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerRange.setAdapter(rangeAdapter);
-        spinnerRange.setSelection(0); // This Month
 
         setupCharts();
 
@@ -88,15 +81,9 @@ public class ReportsFragment extends Fragment {
             }
         });
 
-        // Trigger updates when Spinner range changes
-        spinnerRange.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                updateReportData();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+        // Trigger updates when checked chip changes
+        cgFilterRange.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            updateReportData();
         });
 
         return view;
@@ -187,7 +174,18 @@ public class ReportsFragment extends Fragment {
         long now = cal.getTimeInMillis();
         long start = 0;
 
-        String selectedRange = spinnerRange.getSelectedItem().toString();
+        String selectedRange = "This Month";
+        if (cgFilterRange != null) {
+            int checkedId = cgFilterRange.getCheckedChipId();
+            if (checkedId == R.id.chip_last_month) {
+                selectedRange = "Last Month";
+            } else if (checkedId == R.id.chip_this_year) {
+                selectedRange = "This Year";
+            } else if (checkedId == R.id.chip_all_time) {
+                selectedRange = "All Time";
+            }
+        }
+
         switch (selectedRange) {
             case "This Month":
                 cal.set(Calendar.DAY_OF_MONTH, 1);

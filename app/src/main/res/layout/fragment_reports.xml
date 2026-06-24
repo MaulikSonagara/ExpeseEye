@@ -13,30 +13,61 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Title & Range selector -->
-        <LinearLayout
+        <!-- Title & Chip Range selector -->
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
+            android:text="Spending Reports"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="?android:attr/textColorPrimary"
+            android:layout_marginBottom="12dp"/>
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
             android:layout_marginBottom="16dp">
 
-            <TextView
-                android:layout_width="0dp"
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/cg_filter_range"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Spending Reports"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:textColor="?android:attr/textColorPrimary"/>
+                app:singleLine="true"
+                app:singleSelection="true"
+                app:selectionRequired="true">
 
-            <Spinner
-                android:id="@+id/spinner_report_range"
-                android:layout_width="150dp"
-                android:layout_height="36dp"
-                android:background="@android:drawable/btn_dropdown"
-                android:spinnerMode="dropdown"/>
-        </LinearLayout>
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_this_month"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="This Month"
+                    android:checked="true"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_last_month"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Last Month"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_this_year"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="This Year"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_all_time"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="All Time"/>
+
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
 
         <!-- KPI Metrics Grid (Daily Average & Highest Category) -->
         <LinearLayout
