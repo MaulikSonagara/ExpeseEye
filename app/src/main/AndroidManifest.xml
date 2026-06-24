@@ -56,15 +56,7 @@
             android:excludeFromRecents="true"
             android:exported="false" />
 
-        <!-- Custom Widget Settings & Config Activity -->
-        <activity
-            android:name=".widget.WidgetConfigActivity"
-            android:exported="true"
-            android:theme="@style/Theme.ExpenseEye">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
-            </intent-filter>
-        </activity>
+
 
         <!-- Expense Home Screen Widget Provider -->
         <receiver
@@ -77,6 +69,12 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_info" />
         </receiver>
+
+        <!-- RemoteViews Service for Checklist Widget ListView -->
+        <service
+            android:name=".widget.WidgetChecklistService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
 
     </application>
 

@@ -1,5 +1,6 @@
 package com.example.expenseeye.widget;
 
+import android.net.Uri;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -10,7 +11,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.os.Bundle;
-import android.util.TypedValue;
 import android.widget.RemoteViews;
 
 import com.example.expenseeye.MainActivity;
@@ -21,8 +21,12 @@ import com.example.expenseeye.database.AppDatabase;
 import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.theme.ThemeManager;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Calendar;
 
 public class WidgetProvider extends AppWidgetProvider {
@@ -32,14 +36,28 @@ public class WidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId);
-        }
+        final PendingResult pendingResult = goAsync();
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            try {
+                for (int appWidgetId : appWidgetIds) {
+                    updateAppWidgetSync(context, appWidgetManager, appWidgetId);
+                }
+            } finally {
+                pendingResult.finish();
+            }
+        });
     }
 
     @Override
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager, int appWidgetId, Bundle newOptions) {
-        updateAppWidget(context, appWidgetManager, appWidgetId);
+        final PendingResult pendingResult = goAsync();
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            try {
+                updateAppWidgetSync(context, appWidgetManager, appWidgetId);
+            } finally {
+                pendingResult.finish();
+            }
+        });
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions);
     }
 
@@ -65,12 +83,17 @@ public class WidgetProvider extends AppWidgetProvider {
     public static void updateAllWidgets(Context context) {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         int[] ids = appWidgetManager.getAppWidgetIds(new android.content.ComponentName(context, WidgetProvider.class));
-        for (int id : ids) {
-            updateAppWidget(context, appWidgetManager, id);
-        }
+
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            for (int id : ids) {
+                updateAppWidgetSync(context, appWidgetManager, id);
+            }
+            // Notify list views to reload new data from Room
+            appWidgetManager.notifyAppWidgetViewDataChanged(ids, R.id.lv_widget_checklist);
+        });
     }
 
-    static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
+    static void updateAppWidgetSync(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         Bundle options = appWidgetManager.getAppWidgetOptions(appWidgetId);
         int minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH);
         int minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT);
@@ -80,51 +103,75 @@ public class WidgetProvider extends AppWidgetProvider {
         RemoteViews views = new RemoteViews(context.getPackageName(), layoutId);
 
         // Fetch Data and Update
-        new Thread(() -> {
-            AppDatabase db = AppDatabase.getDatabase(context);
-            List<Expense> expenses = db.expenseDao().getAllExpensesSync();
-            List<com.example.expenseeye.models.Category> categories = db.categoryDao().getAllCategoriesSync();
-            List<com.example.expenseeye.models.ChecklistItem> checklistItems = db.checklistItemDao().getAllChecklistItemsSync();
+        AppDatabase db = AppDatabase.getDatabase(context);
+        
+        // Optimize: Fetch only last 31 days for widget
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_YEAR, -31);
+        long thirtyDaysAgo = cal.getTimeInMillis();
+        
+        List<Expense> expenses = db.expenseDao().getExpensesInRangeSync(thirtyDaysAgo, System.currentTimeMillis());
+        List<com.example.expenseeye.models.ChecklistItem> checklistItems = db.checklistItemDao().getAllChecklistItemsSync();
 
-            WidgetData data = calculateWidgetData(expenses);
+        WidgetData data = calculateWidgetData(expenses);
 
-            views.setTextViewText(R.id.tv_widget_amount, String.format(Locale.getDefault(), "₹%.0f", data.todayTotal));
+        views.setTextViewText(R.id.tv_widget_amount, String.format(Locale.getDefault(), "₹%.0f", data.todayTotal));
 
-            // Size-dependent views
-            if (hasView(layoutId, R.id.tv_widget_amount_week)) {
-                views.setTextViewText(R.id.tv_widget_amount_week, String.format(Locale.getDefault(), "₹%.0f", data.weekTotal));
+        // Size-dependent views
+        if (hasView(layoutId, R.id.tv_widget_amount_week)) {
+            views.setTextViewText(R.id.tv_widget_amount_week, String.format(Locale.getDefault(), "₹%.0f", data.weekTotal));
+        }
+        if (hasView(layoutId, R.id.tv_widget_amount_month)) {
+            views.setTextViewText(R.id.tv_widget_amount_month, String.format(Locale.getDefault(), "₹%.0f", data.monthTotal));
+        }
+        if (hasView(layoutId, R.id.iv_widget_pie)) {
+            int primary = ThemeManager.getColor(context, ThemeManager.ThemeColor.PRIMARY);
+            int textSecondary = ThemeManager.getColor(context, ThemeManager.ThemeColor.TEXT_SECONDARY);
+            views.setImageViewBitmap(R.id.iv_widget_pie, createDetailedPieChart(context, expenses, primary, textSecondary));
+        }
+
+        // Payment method stats
+        if (hasView(layoutId, R.id.tv_widget_pay_cash)) {
+            views.setTextViewText(R.id.tv_widget_pay_cash, String.format(Locale.getDefault(), "Cash: ₹%.0f", data.cashTotal));
+            views.setTextViewText(R.id.tv_widget_pay_upi, String.format(Locale.getDefault(), "UPI: ₹%.0f", data.upiTotal));
+            views.setTextViewText(R.id.tv_widget_pay_card, String.format(Locale.getDefault(), "Card: ₹%.0f", data.cardTotal));
+        }
+
+        // Checklist Setup (ListView Adapter and template PendingIntent)
+        if (hasView(layoutId, R.id.lv_widget_checklist)) {
+            Intent serviceIntent = new Intent(context, WidgetChecklistService.class);
+            serviceIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+            serviceIntent.setData(Uri.parse(serviceIntent.toUri(Intent.URI_INTENT_SCHEME)));
+            views.setRemoteAdapter(R.id.lv_widget_checklist, serviceIntent);
+
+            // Setup broadcast intent template
+            Intent clickIntent = new Intent(context, WidgetProvider.class);
+            clickIntent.setAction(ACTION_TOGGLE_CHECKLIST_ITEM);
+            clickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+            PendingIntent clickPI = PendingIntent.getBroadcast(context, appWidgetId, clickIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+            views.setPendingIntentTemplate(R.id.lv_widget_checklist, clickPI);
+
+            // Show/hide empty state
+            boolean hasPending = false;
+            for (com.example.expenseeye.models.ChecklistItem ci : checklistItems) {
+                if (!ci.isCompleted()) {
+                    hasPending = true;
+                    break;
+                }
             }
-            if (hasView(layoutId, R.id.tv_widget_amount_month)) {
-                views.setTextViewText(R.id.tv_widget_amount_month, String.format(Locale.getDefault(), "₹%.0f", data.monthTotal));
+            if (hasPending) {
+                views.setViewVisibility(R.id.tv_widget_checklist_empty, android.view.View.GONE);
+                views.setViewVisibility(R.id.lv_widget_checklist, android.view.View.VISIBLE);
+            } else {
+                views.setViewVisibility(R.id.tv_widget_checklist_empty, android.view.View.VISIBLE);
+                views.setViewVisibility(R.id.lv_widget_checklist, android.view.View.GONE);
             }
-            if (hasView(layoutId, R.id.iv_widget_pie)) {
-                int primary = ThemeManager.getColor(context, ThemeManager.ThemeColor.PRIMARY);
-                int textSecondary = ThemeManager.getColor(context, ThemeManager.ThemeColor.TEXT_SECONDARY);
-                views.setImageViewBitmap(R.id.iv_widget_pie, createMiniPieChart(primary, textSecondary));
-            }
+        }
 
-            // Payment method stats
-            if (hasView(layoutId, R.id.tv_widget_pay_cash)) {
-                views.setTextViewText(R.id.tv_widget_pay_cash, String.format(Locale.getDefault(), "Cash: ₹%.0f", data.cashTotal));
-                views.setTextViewText(R.id.tv_widget_pay_upi, String.format(Locale.getDefault(), "UPI: ₹%.0f", data.upiTotal));
-                views.setTextViewText(R.id.tv_widget_pay_card, String.format(Locale.getDefault(), "Card: ₹%.0f", data.cardTotal));
-            }
+        // Click Intents for standard buttons
+        setupClickIntents(context, views);
 
-            // Quick Category Actions
-            if (hasView(layoutId, R.id.btn_widget_action_1)) {
-                setupQuickActions(context, views, categories);
-            }
-
-            // Checklist Setup
-            if (hasView(layoutId, R.id.layout_widget_checklist)) {
-                setupChecklistViews(context, views, checklistItems, layoutId);
-            }
-
-            // Click Intents for standard buttons
-            setupClickIntents(context, views);
-
-            appWidgetManager.updateAppWidget(appWidgetId, views);
-        }).start();
+        appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
     private static int getLayoutForSize(int width, int height) {
@@ -152,120 +199,7 @@ public class WidgetProvider extends AppWidgetProvider {
         return (size + 30) / 70;
     }
 
-    private static void setupQuickActions(Context context, RemoteViews views, List<com.example.expenseeye.models.Category> categories) {
-        List<String> actionCategories = WidgetPreferenceManager.getQuickActions(context);
-        int[] actionBtnIds = {R.id.btn_widget_action_1, R.id.btn_widget_action_2, R.id.btn_widget_action_3};
-        int[] actionIvIds = {R.id.iv_widget_action_1, R.id.iv_widget_action_2, R.id.iv_widget_action_3};
-        int[] actionTvIds = {R.id.tv_widget_action_1, R.id.tv_widget_action_2, R.id.tv_widget_action_3};
 
-        for (int i = 0; i < 3; i++) {
-            if (i < actionCategories.size()) {
-                String catName = actionCategories.get(i);
-                views.setViewVisibility(actionBtnIds[i], android.view.View.VISIBLE);
-                views.setTextViewText(actionTvIds[i], catName);
-
-                // Find icon
-                int iconResId = R.drawable.ic_other;
-                for (com.example.expenseeye.models.Category c : categories) {
-                    if (c.getName().equalsIgnoreCase(catName)) {
-                        int resId = context.getResources().getIdentifier(c.getIconName(), "drawable", context.getPackageName());
-                        if (resId != 0) {
-                            iconResId = resId;
-                        }
-                        break;
-                    }
-                }
-                views.setImageViewResource(actionIvIds[i], iconResId);
-
-                // Set click intent
-                Intent addIntent = new Intent(context, QuickAddExpenseActivity.class);
-                addIntent.putExtra(QuickAddExpenseActivity.EXTRA_CATEGORY, catName);
-                PendingIntent addPI = PendingIntent.getActivity(context, 10 + i, addIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-                views.setOnClickPendingIntent(actionBtnIds[i], addPI);
-            } else {
-                views.setViewVisibility(actionBtnIds[i], android.view.View.GONE);
-            }
-        }
-    }
-
-    private static void setupChecklistViews(Context context, RemoteViews views, List<com.example.expenseeye.models.ChecklistItem> items, int layoutId) {
-        List<com.example.expenseeye.models.ChecklistItem> pendingItems = new java.util.ArrayList<>();
-        for (com.example.expenseeye.models.ChecklistItem item : items) {
-            if (!item.isCompleted()) {
-                pendingItems.add(item);
-            }
-        }
-
-        int maxItemsToShow = 2;
-        if (layoutId == R.layout.widget_2x4 || layoutId == R.layout.widget_4x4) {
-            maxItemsToShow = 3;
-        }
-
-        int[] itemLayoutIds = {
-                R.id.layout_widget_checklist_item_1,
-                R.id.layout_widget_checklist_item_2,
-                R.id.layout_widget_checklist_item_3
-        };
-        int[] cbIds = {
-                R.id.cb_widget_checklist_1,
-                R.id.cb_widget_checklist_2,
-                R.id.cb_widget_checklist_3
-        };
-        int[] titleIds = {
-                R.id.tv_widget_checklist_title_1,
-                R.id.tv_widget_checklist_title_2,
-                R.id.tv_widget_checklist_title_3
-        };
-        int[] descIds = {
-                R.id.tv_widget_checklist_desc_1,
-                R.id.tv_widget_checklist_desc_2,
-                R.id.tv_widget_checklist_desc_3
-        };
-
-        if (pendingItems.isEmpty()) {
-            views.setViewVisibility(R.id.tv_widget_checklist_empty, android.view.View.VISIBLE);
-            for (int i = 0; i < 3; i++) {
-                if (hasView(layoutId, itemLayoutIds[i])) {
-                    views.setViewVisibility(itemLayoutIds[i], android.view.View.GONE);
-                }
-            }
-        } else {
-            views.setViewVisibility(R.id.tv_widget_checklist_empty, android.view.View.GONE);
-            for (int i = 0; i < 3; i++) {
-                if (hasView(layoutId, itemLayoutIds[i])) {
-                    if (i < pendingItems.size() && i < maxItemsToShow) {
-                        com.example.expenseeye.models.ChecklistItem item = pendingItems.get(i);
-                        views.setViewVisibility(itemLayoutIds[i], android.view.View.VISIBLE);
-                        views.setTextViewText(titleIds[i], item.getTitle());
-
-                        String desc = item.getPriority();
-                        if (item.getQuantity() != null && !item.getQuantity().trim().isEmpty()) {
-                            desc += " (" + item.getQuantity() + ")";
-                        }
-                        views.setTextViewText(descIds[i], desc);
-
-                        int color = android.graphics.Color.parseColor("#60A5FA");
-                        if ("HIGH".equalsIgnoreCase(item.getPriority())) {
-                            color = android.graphics.Color.parseColor("#F87171");
-                        } else if ("MEDIUM".equalsIgnoreCase(item.getPriority())) {
-                            color = android.graphics.Color.parseColor("#FB923C");
-                        }
-                        views.setTextColor(descIds[i], color);
-
-                        views.setImageViewResource(cbIds[i], item.isCompleted() ? R.drawable.ic_widget_checkbox_checked : R.drawable.ic_widget_checkbox_blank);
-
-                        Intent toggleIntent = new Intent(context, WidgetProvider.class);
-                        toggleIntent.setAction(ACTION_TOGGLE_CHECKLIST_ITEM);
-                        toggleIntent.putExtra(EXTRA_CHECKLIST_ITEM_ID, item.getId());
-                        PendingIntent togglePI = PendingIntent.getBroadcast(context, (int) item.getId() + 100, toggleIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-                        views.setOnClickPendingIntent(cbIds[i], togglePI);
-                    } else {
-                        views.setViewVisibility(itemLayoutIds[i], android.view.View.GONE);
-                    }
-                }
-            }
-        }
-    }
 
     private static void setupClickIntents(Context context, RemoteViews views) {
         // Main Click (Open Dashboard)
@@ -305,28 +239,11 @@ public class WidgetProvider extends AppWidgetProvider {
         if (viewId == R.id.tv_widget_pay_cash || viewId == R.id.tv_widget_pay_upi || viewId == R.id.tv_widget_pay_card) {
             return layoutId == R.layout.widget_4x3 || layoutId == R.layout.widget_4x4;
         }
-        if (viewId == R.id.btn_widget_action_1 || viewId == R.id.btn_widget_action_2 || viewId == R.id.btn_widget_action_3) {
-            return layoutId == R.layout.widget_3x2 || layoutId == R.layout.widget_3x3 ||
-                    layoutId == R.layout.widget_4x2 || layoutId == R.layout.widget_4x3 ||
-                    layoutId == R.layout.widget_4x4;
-        }
-        if (viewId == R.id.layout_widget_checklist) {
+
+        if (viewId == R.id.lv_widget_checklist) {
             return layoutId == R.layout.widget_2x3 || layoutId == R.layout.widget_2x4 ||
                     layoutId == R.layout.widget_3x3 || layoutId == R.layout.widget_4x3 ||
                     layoutId == R.layout.widget_4x4;
-        }
-        if (viewId == R.id.layout_widget_checklist_item_1) {
-            return layoutId == R.layout.widget_2x3 || layoutId == R.layout.widget_2x4 ||
-                    layoutId == R.layout.widget_3x3 || layoutId == R.layout.widget_4x3 ||
-                    layoutId == R.layout.widget_4x4;
-        }
-        if (viewId == R.id.layout_widget_checklist_item_2) {
-            return layoutId == R.layout.widget_2x3 || layoutId == R.layout.widget_2x4 ||
-                    layoutId == R.layout.widget_3x3 || layoutId == R.layout.widget_4x3 ||
-                    layoutId == R.layout.widget_4x4;
-        }
-        if (viewId == R.id.layout_widget_checklist_item_3) {
-            return layoutId == R.layout.widget_2x4 || layoutId == R.layout.widget_4x4;
         }
         return true;
     }
@@ -369,19 +286,121 @@ public class WidgetProvider extends AppWidgetProvider {
         return data;
     }
 
-    private static Bitmap createMiniPieChart(int color, int bgColor) {
-        Bitmap bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
+    private static Bitmap createDetailedPieChart(Context context, List<Expense> expenses, int primaryColor, int textSecondaryColor) {
+        Bitmap bitmap = Bitmap.createBitmap(640, 240, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-        paint.setColor(bgColor);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(15);
-        canvas.drawCircle(50, 50, 40, paint);
+        // Group month's expenses by category
+        Map<String, Double> catTotals = new HashMap<>();
+        double totalSpend = 0;
 
-        paint.setColor(color);
-        canvas.drawArc(new RectF(10, 10, 90, 90), -90, 240, false, paint);
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        long monthStart = cal.getTimeInMillis();
+
+        for (Expense e : expenses) {
+            if (e.getTimestamp() >= monthStart) {
+                String cat = e.getCategoryName();
+                if (cat == null) cat = "Other";
+                double amt = e.getAmount();
+                catTotals.put(cat, catTotals.getOrDefault(cat, 0.0) + amt);
+                totalSpend += amt;
+            }
+        }
+
+        if (totalSpend == 0) {
+            // Draw empty state donut (scaled)
+            paint.setColor(android.graphics.Color.parseColor("#334155"));
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(24);
+            canvas.drawCircle(120, 120, 72, paint);
+
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(android.graphics.Color.parseColor("#94A3B8"));
+            paint.setTextSize(32f);
+            paint.setFakeBoldText(true);
+            canvas.drawText("No expenses", 260, 110, paint);
+            canvas.drawText("recorded this month", 260, 155, paint);
+            return bitmap;
+        }
+
+        // Sort by amount descending
+        List<Map.Entry<String, Double>> sorted = new ArrayList<>(catTotals.entrySet());
+        Collections.sort(sorted, (a, b) -> Double.compare(b.getValue(), a.getValue()));
+
+        // Prepare slices
+        List<ChartSlice> slices = new ArrayList<>();
+        double otherAmt = 0;
+        int[] colorPalette = {
+                android.graphics.Color.parseColor("#6C7CFF"), // Primary blue
+                android.graphics.Color.parseColor("#5DD6C0"), // Teal
+                android.graphics.Color.parseColor("#FB923C"), // Orange
+                android.graphics.Color.parseColor("#A78BFA"), // Purple
+                android.graphics.Color.parseColor("#F87171")  // Red/Rose
+        };
+
+        for (int i = 0; i < sorted.size(); i++) {
+            if (i < 3) {
+                slices.add(new ChartSlice(sorted.get(i).getKey(), sorted.get(i).getValue(), colorPalette[i % colorPalette.length]));
+            } else {
+                otherAmt += sorted.get(i).getValue();
+            }
+        }
+
+        if (otherAmt > 0) {
+            slices.add(new ChartSlice("Other", otherAmt, colorPalette[3 % colorPalette.length]));
+        }
+
+        // Draw donut chart (scaled)
+        float startAngle = -90f;
+        RectF oval = new RectF(48, 48, 192, 192);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(24);
+
+        for (ChartSlice slice : slices) {
+            float sweepAngle = (float) (slice.amount / totalSpend * 360f);
+            paint.setColor(slice.color);
+            canvas.drawArc(oval, startAngle, sweepAngle, false, paint);
+            startAngle += sweepAngle;
+        }
+
+        // Draw Legend next to donut (scaled and bold)
+        paint.setStyle(Paint.Style.FILL);
+        paint.setTextSize(28f);
+        paint.setFakeBoldText(true);
+
+        for (int i = 0; i < slices.size() && i < 3; i++) {
+            ChartSlice slice = slices.get(i);
+            double percent = (slice.amount / totalSpend) * 100;
+
+            // Draw color dot
+            paint.setColor(slice.color);
+            canvas.drawCircle(270, 74 + i * 52, 10, paint);
+
+            // Draw category info text
+            paint.setColor(android.graphics.Color.parseColor("#F8FAFC"));
+            String label = String.format(Locale.getDefault(), "%s: %.0f%% (₹%.0f)", slice.name, percent, slice.amount);
+            canvas.drawText(label, 295, 84 + i * 52, paint);
+        }
+
         return bitmap;
+    }
+
+    private static class ChartSlice {
+        String name;
+        double amount;
+        int color;
+
+        ChartSlice(String name, double amount, int color) {
+            this.name = name;
+            this.amount = amount;
+            this.color = color;
+        }
     }
 
     private static class WidgetData {

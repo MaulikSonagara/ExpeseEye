@@ -45,4 +45,7 @@ public interface ExpenseDao {
 
     @Query("SELECT * FROM expenses WHERE timestamp >= :startTimestamp AND timestamp <= :endTimestamp ORDER BY timestamp DESC")
     LiveData<List<Expense>> getExpensesInRange(long startTimestamp, long endTimestamp);
+
+    @Query("SELECT * FROM expenses WHERE timestamp >= :startTimestamp AND timestamp <= :endTimestamp ORDER BY timestamp DESC")
+    List<Expense> getExpensesInRangeSync(long startTimestamp, long endTimestamp);
 }

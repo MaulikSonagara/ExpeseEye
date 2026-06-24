@@ -174,86 +174,15 @@
             android:textSize="11sp"
             android:visibility="gone" />
 
-        <!-- Item 1 -->
-        <LinearLayout
-            android:id="@+id/layout_widget_checklist_item_1"
+        <!-- ListView for scrolling checklist -->
+        <ListView
+            android:id="@+id/lv_widget_checklist"
             android:layout_width="match_parent"
-            android:layout_height="36dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:visibility="visible">
-
-            <ImageView
-                android:id="@+id/cb_widget_checklist_1"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:padding="6dp"
-                android:src="@drawable/ic_widget_checkbox_blank"
-                android:clickable="true"
-                android:focusable="true" />
-
-            <TextView
-                android:id="@+id/tv_widget_checklist_title_1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="4dp"
-                android:text="Item 1"
-                android:textColor="#F8FAFC"
-                android:textSize="12sp"
-                android:singleLine="true"
-                android:ellipsize="end" />
-
-            <TextView
-                android:id="@+id/tv_widget_checklist_desc_1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="HIGH"
-                android:textColor="#F87171"
-                android:textSize="9sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- Item 2 -->
-        <LinearLayout
-            android:id="@+id/layout_widget_checklist_item_2"
-            android:layout_width="match_parent"
-            android:layout_height="36dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:visibility="visible">
-
-            <ImageView
-                android:id="@+id/cb_widget_checklist_2"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:padding="6dp"
-                android:src="@drawable/ic_widget_checkbox_blank"
-                android:clickable="true"
-                android:focusable="true" />
-
-            <TextView
-                android:id="@+id/tv_widget_checklist_title_2"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="4dp"
-                android:text="Item 2"
-                android:textColor="#F8FAFC"
-                android:textSize="12sp"
-                android:singleLine="true"
-                android:ellipsize="end" />
-
-            <TextView
-                android:id="@+id/tv_widget_checklist_desc_2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="1 qty"
-                android:textColor="#94A3B8"
-                android:textSize="9sp" />
-        </LinearLayout>
+            android:layout_height="match_parent"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="4dp"
+            android:nestedScrollingEnabled="true"
+            android:scrollbars="none" />
 
     </LinearLayout>
 

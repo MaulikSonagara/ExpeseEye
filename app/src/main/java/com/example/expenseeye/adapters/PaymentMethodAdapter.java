@@ -31,6 +31,7 @@ public class PaymentMethodAdapter extends RecyclerView.Adapter<PaymentMethodAdap
     }
 
     public void setSelectedMethod(String selectedMethod) {
+        android.util.Log.d("PaymentAdapter", "Selected: " + selectedMethod);
         this.selectedMethod = selectedMethod;
         notifyDataSetChanged();
     }
@@ -67,21 +68,31 @@ public class PaymentMethodAdapter extends RecyclerView.Adapter<PaymentMethodAdap
         holder.ivIcon.setImageResource(iconRes);
 
         boolean isSelected = name.equalsIgnoreCase(selectedMethod);
+        android.util.Log.d("PaymentAdapter", "Pos: " + position + ", Name: " + name + ", Selected: " + selectedMethod + ", IsSelected: " + isSelected);
+
+        // Convert 2dp and 4dp to pixels
+        float density = ctx.getResources().getDisplayMetrics().density;
+        int strokeWidthSelected = Math.round(3 * density);
+        int strokeWidthUnselected = Math.round(1.5f * density);
+
         if (isSelected) {
             holder.cardView.setCardBackgroundColor(ColorStateList.valueOf(elevatedSurface));
             holder.cardView.setStrokeColor(ColorStateList.valueOf(primaryColor));
-            holder.cardView.setStrokeWidth(4);
+            holder.cardView.setStrokeWidth(strokeWidthSelected);
             holder.tvLabel.setTextColor(primaryColor);
             holder.ivIcon.setImageTintList(ColorStateList.valueOf(primaryColor));
+            holder.cardView.setCardElevation(2 * density);
         } else {
             holder.cardView.setCardBackgroundColor(ColorStateList.valueOf(surfaceColor));
             holder.cardView.setStrokeColor(ColorStateList.valueOf(dividerColor));
-            holder.cardView.setStrokeWidth(2);
+            holder.cardView.setStrokeWidth(strokeWidthUnselected);
             holder.tvLabel.setTextColor(textSecondary);
             holder.ivIcon.setImageTintList(ColorStateList.valueOf(textSecondary));
+            holder.cardView.setCardElevation(0);
         }
 
         holder.itemView.setOnClickListener(v -> {
+            setSelectedMethod(name);
             if (listener != null) listener.onPaymentMethodClick(name);
         });
     }

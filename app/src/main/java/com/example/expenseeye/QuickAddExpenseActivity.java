@@ -190,7 +190,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         rvMain.setAdapter(adapterMain);
 
         adapterOther = new PaymentMethodAdapter(otherMethods, "", name -> {
-            // Handled
+            // Handled internally by adapter
         });
         rvOther.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         rvOther.setAdapter(adapterOther);
