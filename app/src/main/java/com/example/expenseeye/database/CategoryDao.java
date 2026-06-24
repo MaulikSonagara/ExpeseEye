@@ -20,6 +20,12 @@ public interface CategoryDao {
     @Query("SELECT * FROM categories ORDER BY name ASC")
     List<Category> getAllCategoriesSync();
 
+    @Query("SELECT * FROM categories WHERE is_enabled = 1 ORDER BY name ASC")
+    LiveData<List<Category>> getEnabledCategories();
+
+    @Query("SELECT * FROM categories WHERE is_enabled = 1 ORDER BY name ASC")
+    List<Category> getEnabledCategoriesSync();
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(Category category);
 
@@ -32,6 +38,12 @@ public interface CategoryDao {
     @Query("SELECT * FROM categories WHERE name = :name LIMIT 1")
     Category getByName(String name);
 
+    @Query("SELECT * FROM categories WHERE id = :id LIMIT 1")
+    Category getById(int id);
+
     @Query("SELECT COUNT(*) FROM categories")
     int getCount();
+
+    @Query("DELETE FROM categories")
+    void deleteAll();
 }

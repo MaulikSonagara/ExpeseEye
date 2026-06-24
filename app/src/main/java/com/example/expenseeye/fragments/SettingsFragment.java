@@ -165,8 +165,10 @@ public class SettingsFragment extends Fragment {
             restoreLauncher.launch(intent);
         });
 
-        view.findViewById(R.id.btn_configure_widget_shortcuts).setOnClickListener(v -> 
-                Toast.makeText(getContext(), "Shortcut customization is automated from widget configs.", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.btn_manage_categories).setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), com.example.expenseeye.CategoryManagementActivity.class);
+            startActivity(intent);
+        });
     }
 
     // --- PDF Export Flow ---

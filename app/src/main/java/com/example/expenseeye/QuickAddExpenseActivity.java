@@ -84,9 +84,11 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         setupDateTimeButtons();
 
         // Load Categories & Payment Methods in background thread
+        final List<com.example.expenseeye.models.CategoryKeyword>[] allKeywords = new List[]{new ArrayList<>()};
         AppDatabase.databaseWriteExecutor.execute(() -> {
-            availableCategories = repository.getAllCategoriesSync();
+            availableCategories = repository.getEnabledCategoriesSync();
             availablePaymentMethods = repository.getAllPaymentMethodsSync();
+            allKeywords[0] = repository.getAllKeywordsSync();
 
             // Populate category name list
             categoryNames.clear();
@@ -112,7 +114,9 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                String classified = ExpenseClassifier.classifyExpense(s.toString());
+                String titleText = s.toString();
+                String descText = etDescription != null ? etDescription.getText().toString() : "";
+                String classified = ExpenseClassifier.classifyExpense(titleText + " " + descText, availableCategories, allKeywords[0]);
                 int index = categoryNames.indexOf(classified);
                 if (index >= 0) {
                     spinnerCategory.setText(classified, false);

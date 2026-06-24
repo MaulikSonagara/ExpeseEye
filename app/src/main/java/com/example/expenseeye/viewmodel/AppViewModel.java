@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
 import com.example.expenseeye.models.Category;
+import com.example.expenseeye.models.CategoryKeyword;
 import com.example.expenseeye.models.ChecklistItem;
 import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.models.PaymentMethod;
@@ -24,6 +25,7 @@ public class AppViewModel extends AndroidViewModel {
     private final LiveData<List<Category>> allCategories;
     private final LiveData<List<PaymentMethod>> allPaymentMethods;
     private final LiveData<List<ChecklistItem>> allChecklistItems;
+    private final LiveData<List<CategoryKeyword>> allKeywords;
     private final LiveData<Integer> pendingChecklistCount;
 
     // Filter states
@@ -48,6 +50,7 @@ public class AppViewModel extends AndroidViewModel {
         allCategories = repository.getAllCategories();
         allPaymentMethods = repository.getAllPaymentMethods();
         allChecklistItems = repository.getAllChecklistItems();
+        allKeywords = repository.getAllKeywords();
         pendingChecklistCount = repository.getPendingChecklistCountLive();
 
         // Reactive filter switchmap
@@ -138,6 +141,50 @@ public class AppViewModel extends AndroidViewModel {
 
     public void deleteCategory(Category category) {
         repository.deleteCategory(category);
+    }
+
+    public LiveData<List<Category>> getEnabledCategories() {
+        return repository.getEnabledCategories();
+    }
+
+    public List<Category> getEnabledCategoriesSync() {
+        return repository.getEnabledCategoriesSync();
+    }
+
+    public LiveData<List<CategoryKeyword>> getKeywordsForCategory(int categoryId) {
+        return repository.getKeywordsForCategory(categoryId);
+    }
+
+    public List<CategoryKeyword> getKeywordsForCategorySync(int categoryId) {
+        return repository.getKeywordsForCategorySync(categoryId);
+    }
+
+    public LiveData<List<CategoryKeyword>> getAllKeywords() {
+        return repository.getAllKeywords();
+    }
+
+    public List<CategoryKeyword> getAllKeywordsSync() {
+        return repository.getAllKeywordsSync();
+    }
+
+    public void insertCategoryKeyword(CategoryKeyword keyword) {
+        repository.insertCategoryKeyword(keyword);
+    }
+
+    public void deleteCategoryKeyword(CategoryKeyword keyword) {
+        repository.deleteCategoryKeyword(keyword);
+    }
+
+    public void deleteKeywordsForCategory(int categoryId) {
+        repository.deleteKeywordsForCategory(categoryId);
+    }
+
+    public void deleteCategoryAndMoveExpenses(Category category) {
+        repository.deleteCategoryAndMoveExpenses(category);
+    }
+
+    public void resetCategoriesToDefault() {
+        repository.resetCategoriesToDefault();
     }
 
     // PaymentMethod actions

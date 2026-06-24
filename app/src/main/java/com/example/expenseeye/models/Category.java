@@ -1,5 +1,6 @@
 package com.example.expenseeye.models;
 
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -12,11 +13,19 @@ public class Category {
     private int color;
     private boolean isDefault;
 
+    @ColumnInfo(name = "is_enabled", defaultValue = "1")
+    private boolean isEnabled = true;
+
+    @ColumnInfo(name = "created_at", defaultValue = "0")
+    private long createdAt = System.currentTimeMillis();
+
     public Category(String name, String iconName, int color, boolean isDefault) {
         this.name = name;
         this.iconName = iconName;
         this.color = color;
         this.isDefault = isDefault;
+        this.isEnabled = true;
+        this.createdAt = System.currentTimeMillis();
     }
 
     public int getId() {
@@ -57,5 +66,21 @@ public class Category {
 
     public void setDefault(boolean aDefault) {
         isDefault = aDefault;
+    }
+
+    public boolean isEnabled() {
+        return isEnabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        isEnabled = enabled;
+    }
+
+    public long getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
     }
 }

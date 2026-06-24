@@ -88,6 +88,21 @@ public class DashboardFragment extends Fragment {
             }
         });
 
+        // Store enabled categories and keywords for add/edit dialogs
+        final List<Category>[] enabledCategories = new List[]{new ArrayList<>()};
+        viewModel.getEnabledCategories().observe(getViewLifecycleOwner(), categories -> {
+            if (categories != null) {
+                enabledCategories[0] = categories;
+            }
+        });
+
+        final List<com.example.expenseeye.models.CategoryKeyword>[] allKeywords = new List[]{new ArrayList<>()};
+        viewModel.getAllKeywords().observe(getViewLifecycleOwner(), keywords -> {
+            if (keywords != null) {
+                allKeywords[0] = keywords;
+            }
+        });
+
         viewModel.getAllPaymentMethods().observe(getViewLifecycleOwner(), pms -> {
             if (pms != null) {
                 availablePaymentMethods = pms;
@@ -259,8 +274,12 @@ public class DashboardFragment extends Fragment {
         selectedDateTime = Calendar.getInstance();
 
         // Populate Category Spinner
+        List<Category> activeCats = viewModel.getEnabledCategories().getValue();
+        if (activeCats == null) {
+            activeCats = availableCategories;
+        }
         List<String> catNames = new ArrayList<>();
-        for (Category c : availableCategories) {
+        for (Category c : activeCats) {
             catNames.add(c.getName());
         }
         ArrayAdapter<String> catAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, catNames);
@@ -270,6 +289,7 @@ public class DashboardFragment extends Fragment {
         setupPaymentMethodChipsForDialog(dialogView, null);
 
         // Smart Classifier Text Watcher
+        final List<Category> finalActiveCats = activeCats;
         etTitle.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -279,7 +299,10 @@ public class DashboardFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                String classified = ExpenseClassifier.classifyExpense(s.toString());
+                String titleText = s.toString();
+                String descText = etDescription != null ? etDescription.getText().toString() : "";
+                List<com.example.expenseeye.models.CategoryKeyword> kws = viewModel.getAllKeywords().getValue();
+                String classified = ExpenseClassifier.classifyExpense(titleText + " " + descText, finalActiveCats, kws);
                 int index = catNames.indexOf(classified);
                 if (index >= 0) {
                     spinnerCategory.setText(classified, false);
@@ -390,9 +413,20 @@ public class DashboardFragment extends Fragment {
         selectedDateTime.setTimeInMillis(expense.getTimestamp());
 
         // Populate Category Spinner
+        List<Category> activeCats = viewModel.getEnabledCategories().getValue();
+        if (activeCats == null) {
+            activeCats = availableCategories;
+        }
         List<String> catNames = new ArrayList<>();
-        for (Category c : availableCategories) {
+        boolean currentCatIncluded = false;
+        for (Category c : activeCats) {
             catNames.add(c.getName());
+            if (c.getName().equals(expense.getCategoryName())) {
+                currentCatIncluded = true;
+            }
+        }
+        if (!currentCatIncluded && expense.getCategoryName() != null) {
+            catNames.add(expense.getCategoryName());
         }
         ArrayAdapter<String> catAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, catNames);
         spinnerCategory.setAdapter(catAdapter);

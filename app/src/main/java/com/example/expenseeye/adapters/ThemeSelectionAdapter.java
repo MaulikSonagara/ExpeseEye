@@ -92,14 +92,14 @@ public class ThemeSelectionAdapter extends RecyclerView.Adapter<ThemeSelectionAd
             holder.layoutCheckBadge.setVisibility(View.GONE);
         }
 
-        holder.itemView.setOnClickListener(v -> {
+        holder.card.setOnClickListener(v -> {
             // Bounce scale-down / scale-up animation on selection
-            holder.itemView.animate()
+            holder.card.animate()
                 .scaleX(0.92f)
                 .scaleY(0.92f)
                 .setDuration(100)
                 .withEndAction(() -> {
-                    holder.itemView.animate()
+                    holder.card.animate()
                         .scaleX(1.0f)
                         .scaleY(1.0f)
                         .setDuration(100)

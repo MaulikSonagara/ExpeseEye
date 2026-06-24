@@ -56,6 +56,20 @@
             android:excludeFromRecents="true"
             android:exported="false" />
 
+        <!-- Category Management Activity -->
+        <activity
+            android:name=".CategoryManagementActivity"
+            android:label="Manage Categories"
+            android:theme="@style/Theme.ExpenseEye"
+            android:exported="false" />
+
+        <!-- Category Editor Activity -->
+        <activity
+            android:name=".CategoryEditorActivity"
+            android:label="Edit Category"
+            android:theme="@style/Theme.ExpenseEye"
+            android:exported="false" />
+
 
 
         <!-- Expense Home Screen Widget Provider -->

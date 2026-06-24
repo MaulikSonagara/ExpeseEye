@@ -48,4 +48,7 @@ public interface ExpenseDao {
 
     @Query("SELECT * FROM expenses WHERE timestamp >= :startTimestamp AND timestamp <= :endTimestamp ORDER BY timestamp DESC")
     List<Expense> getExpensesInRangeSync(long startTimestamp, long endTimestamp);
+
+    @Query("UPDATE expenses SET categoryId = :newId, categoryName = :newName WHERE categoryId = :oldId")
+    void updateExpenseCategory(int oldId, int newId, String newName);
 }
