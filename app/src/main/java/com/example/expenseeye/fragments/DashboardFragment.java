@@ -52,6 +52,7 @@ public class DashboardFragment extends Fragment {
     private RecyclerView rvRecentExpenses;
     private List<Category> availableCategories = new ArrayList<>();
     private List<PaymentMethod> availablePaymentMethods = new ArrayList<>();
+    private List<com.example.expenseeye.models.CategoryKeyword> allKeywords = new ArrayList<>();
 
     // Variables for picker in BottomSheet dialog
     private Calendar selectedDateTime = Calendar.getInstance();
@@ -96,10 +97,9 @@ public class DashboardFragment extends Fragment {
             }
         });
 
-        final List<com.example.expenseeye.models.CategoryKeyword>[] allKeywords = new List[]{new ArrayList<>()};
         viewModel.getAllKeywords().observe(getViewLifecycleOwner(), keywords -> {
             if (keywords != null) {
-                allKeywords[0] = keywords;
+                allKeywords = keywords;
             }
         });
 
@@ -259,8 +259,30 @@ public class DashboardFragment extends Fragment {
 
         TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
         EditText etAmount = dialogView.findViewById(R.id.et_amount);
-        EditText etTitle = dialogView.findViewById(R.id.et_title);
+        AutoCompleteTextView etTitle = dialogView.findViewById(R.id.et_title);
         AutoCompleteTextView spinnerCategory = dialogView.findViewById(R.id.spinner_category);
+
+        // Setup suggestions for title
+        List<String> suggestions = new ArrayList<>();
+        List<com.example.expenseeye.models.CategoryKeyword> kws = viewModel.getAllKeywords().getValue();
+        if (kws == null) {
+            kws = allKeywords;
+        }
+        if (kws != null) {
+            for (com.example.expenseeye.models.CategoryKeyword kw : kws) {
+                if (kw.getKeyword() != null && !kw.getKeyword().trim().isEmpty()) {
+                    String cleanKw = kw.getKeyword().trim();
+                    if (!cleanKw.isEmpty()) {
+                        cleanKw = cleanKw.substring(0, 1).toUpperCase() + cleanKw.substring(1);
+                    }
+                    if (!suggestions.contains(cleanKw)) {
+                        suggestions.add(cleanKw);
+                    }
+                }
+            }
+        }
+        ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, suggestions);
+        etTitle.setAdapter(titleAdapter);
         Button btnDate = dialogView.findViewById(R.id.btn_date);
         Button btnTime = dialogView.findViewById(R.id.btn_time);
         EditText etDescription = dialogView.findViewById(R.id.et_description);
@@ -393,8 +415,30 @@ public class DashboardFragment extends Fragment {
 
         TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
         EditText etAmount = dialogView.findViewById(R.id.et_amount);
-        EditText etTitle = dialogView.findViewById(R.id.et_title);
+        AutoCompleteTextView etTitle = dialogView.findViewById(R.id.et_title);
         AutoCompleteTextView spinnerCategory = dialogView.findViewById(R.id.spinner_category);
+
+        // Setup suggestions for title
+        List<String> suggestions = new ArrayList<>();
+        List<com.example.expenseeye.models.CategoryKeyword> kws = viewModel.getAllKeywords().getValue();
+        if (kws == null) {
+            kws = allKeywords;
+        }
+        if (kws != null) {
+            for (com.example.expenseeye.models.CategoryKeyword kw : kws) {
+                if (kw.getKeyword() != null && !kw.getKeyword().trim().isEmpty()) {
+                    String cleanKw = kw.getKeyword().trim();
+                    if (!cleanKw.isEmpty()) {
+                        cleanKw = cleanKw.substring(0, 1).toUpperCase() + cleanKw.substring(1);
+                    }
+                    if (!suggestions.contains(cleanKw)) {
+                        suggestions.add(cleanKw);
+                    }
+                }
+            }
+        }
+        ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, suggestions);
+        etTitle.setAdapter(titleAdapter);
         Button btnDate = dialogView.findViewById(R.id.btn_date);
         Button btnTime = dialogView.findViewById(R.id.btn_time);
         EditText etDescription = dialogView.findViewById(R.id.et_description);

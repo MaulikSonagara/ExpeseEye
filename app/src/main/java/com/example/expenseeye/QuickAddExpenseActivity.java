@@ -49,8 +49,8 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
 
     private RelativeLayout rootLayout;
     private CardView cardQuickAdd;
-    private EditText etAmount, etTitle, etDescription;
-    private AutoCompleteTextView spinnerCategory;
+    private EditText etAmount, etDescription;
+    private AutoCompleteTextView etTitle, spinnerCategory;
     private Button btnDate, btnTime, btnCancel, btnSave;
 
     private List<Category> availableCategories = new ArrayList<>();
@@ -96,11 +96,26 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
                 categoryNames.add(cat.getName());
             }
 
+            List<String> suggestions = new ArrayList<>();
+            for (com.example.expenseeye.models.CategoryKeyword kw : allKeywords[0]) {
+                if (kw.getKeyword() != null && !kw.getKeyword().trim().isEmpty()) {
+                    String cleanKw = kw.getKeyword().trim();
+                    if (!cleanKw.isEmpty()) {
+                        cleanKw = cleanKw.substring(0, 1).toUpperCase() + cleanKw.substring(1);
+                    }
+                    if (!suggestions.contains(cleanKw)) {
+                        suggestions.add(cleanKw);
+                    }
+                }
+            }
+
             runOnUiThread(() -> {
                 setupCategorySpinner();
                 setupPaymentMethodChips();
                 // Check if category was preselected from widget
                 handlePreselectedCategory();
+                // Setup suggestions for title input
+                setupTitleAutocomplete(suggestions);
             });
         });
 
@@ -169,6 +184,11 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
     private void setupCategorySpinner() {
         ArrayAdapter<String> catAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, categoryNames);
         spinnerCategory.setAdapter(catAdapter);
+    }
+
+    private void setupTitleAutocomplete(List<String> suggestions) {
+        ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, suggestions);
+        etTitle.setAdapter(titleAdapter);
     }
 
     private PaymentMethodAdapter adapterMain, adapterOther;

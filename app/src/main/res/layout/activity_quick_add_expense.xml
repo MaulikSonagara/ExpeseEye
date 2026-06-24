@@ -80,13 +80,19 @@
                     app:boxCornerRadiusBottomEnd="12dp"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
-                    <com.google.android.material.textfield.TextInputEditText
+                    <AutoCompleteTextView
                         android:id="@+id/et_title"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
                         android:hint="Title (e.g. Milk, Petrol)"
                         android:inputType="textCapSentences"
-                        android:textSize="16sp" />
+                        android:completionThreshold="1"
+                        android:textSize="16sp"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="16dp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Category Exposed Dropdown -->
