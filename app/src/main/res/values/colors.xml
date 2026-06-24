@@ -92,5 +92,5 @@
     <color name="ol_d_text_secondary">#7C89C1</color>
 
     <!-- App Icon / General -->
-    <color name="ic_launcher_background">#1D0B00</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
 </resources>

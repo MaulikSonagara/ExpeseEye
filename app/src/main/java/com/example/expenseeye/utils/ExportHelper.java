@@ -53,7 +53,7 @@ public class ExportHelper {
         return value;
     }
 
-    public static boolean exportToPDF(List<Expense> expenses, File file) {
+    public static boolean exportToPDF(List<Expense> expenses, File file, long startDate, long endDate) {
         PdfDocument document = new PdfDocument();
         int pageWidth = 595; // A4 size width
         int pageHeight = 842; // A4 size height
@@ -114,21 +114,74 @@ public class ExportHelper {
         int totalCategoriesUsed = categoryMap.size();
 
         SimpleDateFormat rangeFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
-        String dateRangeStr;
-        if (expenses.isEmpty()) {
-            dateRangeStr = "No data available";
-        } else {
-            dateRangeStr = rangeFormat.format(new Date(oldestTimestamp)) + " - " + rangeFormat.format(new Date(newestTimestamp));
-        }
+        String dateRangeStr = rangeFormat.format(new Date(startDate)) + " - " + rangeFormat.format(new Date(endDate));
 
         SimpleDateFormat genFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
         String genDateStr = genFormat.format(new Date());
 
-        int expensesPerPage = 22;
-        int totalPages = 1 + (int) Math.ceil((double) expenses.size() / expensesPerPage);
-        if (expenses.isEmpty()) {
-            totalPages = 1;
+        // Group expenses by month
+        SimpleDateFormat monthGroupFormat = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
+        List<MonthSection> sections = new ArrayList<>();
+        MonthSection currentSection = null;
+
+        List<Expense> sortedExpenses = new ArrayList<>(expenses);
+        Collections.sort(sortedExpenses, (e1, e2) -> Long.compare(e2.getTimestamp(), e1.getTimestamp()));
+
+        for (Expense e : sortedExpenses) {
+            String mName = monthGroupFormat.format(new Date(e.getTimestamp()));
+            if (currentSection == null || !currentSection.monthName.equals(mName)) {
+                currentSection = new MonthSection();
+                currentSection.monthName = mName;
+                sections.add(currentSection);
+            }
+            currentSection.expenses.add(e);
+            currentSection.monthTotal += e.getAmount();
         }
+
+        // Dry-run layout pass to calculate total pages
+        int estimatedPages = 1; // page 1 is stats
+        float dryY = 80;
+        boolean firstDetailedElement = true;
+
+        for (MonthSection section : sections) {
+            if (firstDetailedElement) {
+                estimatedPages++;
+                dryY = 112;
+                firstDetailedElement = false;
+            }
+
+            // Month header
+            if (dryY > 720) {
+                estimatedPages++;
+                dryY = 112;
+            }
+            dryY += 24;
+
+            // Expenses
+            for (Expense e : section.expenses) {
+                if (dryY > 740) {
+                    estimatedPages++;
+                    dryY = 112;
+                }
+                dryY += 28;
+            }
+
+            // Month total
+            if (dryY > 730) {
+                estimatedPages++;
+                dryY = 112;
+            }
+            dryY += 48; // 28 + 20
+        }
+
+        // Grand total
+        if (dryY > 720) {
+            estimatedPages++;
+            dryY = 112;
+        }
+        dryY += 32;
+
+        final int totalPages = estimatedPages;
 
         // --- 2. Page 1: Statistics Summary ---
         PdfDocument.PageInfo pageInfo1 = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, 1).create();
@@ -356,60 +409,92 @@ public class ExportHelper {
         document.finishPage(page1);
 
         // --- 3. Page 2 onward: Expense List ---
-        int expenseIndex = 0;
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
-        
-        for (int pNum = 2; pNum <= totalPages; pNum++) {
-            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pNum).create();
-            PdfDocument.Page page = document.startPage(pageInfo);
-            Canvas canvas = page.getCanvas();
-
-            // Table Title / Header
-            paint.setColor(Color.parseColor("#0F172A"));
-            paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
-            paint.setTextSize(13);
-            canvas.drawText("Detailed Expense Log", 20, 45, paint);
-
-            // Period dates smaller
-            paint.setColor(Color.parseColor("#64748B"));
-            paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL));
-            paint.setTextSize(9);
-            canvas.drawText("Items " + (expenseIndex + 1) + " - " + Math.min(expenseIndex + expensesPerPage, expenses.size()) + " of " + expenses.size(), 20, 60, paint);
-
+        // Dynamic PDF Page Drawer State Helper
+        class PageState {
+            PdfDocument.Page page;
+            Canvas canvas;
+            int pageNum = 1;
             float rowY = 80;
-            // Table Column Headers Background
-            paint.setColor(Color.parseColor("#F1F5F9"));
-            canvas.drawRoundRect(new RectF(20, rowY, pageWidth - 20, rowY + 22), 4, 4, paint);
 
-            // Table Headers
-            paint.setColor(Color.parseColor("#475569"));
+            void startNewPage(PdfDocument doc, int pageWidth, int pageHeight, Paint paint, SimpleDateFormat sdf) {
+                if (page != null) {
+                    drawFooter(canvas, pageWidth, pageHeight, pageNum, totalPages);
+                    doc.finishPage(page);
+                }
+                pageNum++;
+                PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNum).create();
+                page = doc.startPage(pageInfo);
+                canvas = page.getCanvas();
+
+                // Table Title / Header
+                paint.setColor(Color.parseColor("#0F172A"));
+                paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
+                paint.setTextSize(13);
+                canvas.drawText("Detailed Expense Log", 20, 45, paint);
+
+                paint.setColor(Color.parseColor("#64748B"));
+                paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL));
+                paint.setTextSize(9);
+                canvas.drawText("Grouped by Month", 20, 60, paint);
+
+                rowY = 80;
+                // Draw Table Column Headers Background
+                paint.setColor(Color.parseColor("#F1F5F9"));
+                canvas.drawRoundRect(new RectF(20, rowY, pageWidth - 20, rowY + 22), 4, 4, paint);
+
+                // Table Headers
+                paint.setColor(Color.parseColor("#475569"));
+                paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
+                paint.setTextSize(9);
+
+                canvas.drawText("Date & Time", 30, rowY + 14, paint);
+                canvas.drawText("Title & Description", 130, rowY + 14, paint);
+                canvas.drawText("Category", 310, rowY + 14, paint);
+                canvas.drawText("Payment", 420, rowY + 14, paint);
+                canvas.drawText("Amount", 510, rowY + 14, paint);
+
+                rowY += 32;
+            }
+        }
+
+        PageState state = new PageState();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+
+        for (MonthSection section : sections) {
+            if (state.page == null) {
+                state.startNewPage(document, pageWidth, pageHeight, paint, sdf);
+            }
+
+            // Month Header
+            if (state.rowY > 720) {
+                state.startNewPage(document, pageWidth, pageHeight, paint, sdf);
+            }
+            paint.setColor(Color.parseColor("#EEF2FF"));
+            state.canvas.drawRoundRect(new RectF(20, state.rowY - 14, pageWidth - 20, state.rowY + 14), 6, 6, paint);
+
+            paint.setColor(Color.parseColor("#5B67F5"));
             paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
-            paint.setTextSize(9);
-            
-            canvas.drawText("Date & Time", 30, rowY + 14, paint);
-            canvas.drawText("Title & Description", 130, rowY + 14, paint);
-            canvas.drawText("Category", 310, rowY + 14, paint);
-            canvas.drawText("Payment", 420, rowY + 14, paint);
-            canvas.drawText("Amount", 510, rowY + 14, paint);
+            paint.setTextSize(10);
+            state.canvas.drawText(section.monthName.toUpperCase(), 30, state.rowY + 4, paint);
+            state.rowY += 24;
 
-            rowY += 22;
-
-            int itemsOnThisPage = 0;
-            while (expenseIndex < expenses.size() && itemsOnThisPage < expensesPerPage) {
-                rowY += 28;
-                Expense expense = expenses.get(expenseIndex);
+            // Expenses
+            for (Expense expense : section.expenses) {
+                if (state.rowY > 740) {
+                    state.startNewPage(document, pageWidth, pageHeight, paint, sdf);
+                }
 
                 // Date
                 paint.setColor(Color.parseColor("#0F172A"));
                 paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL));
                 paint.setTextSize(8.5f);
-                canvas.drawText(sdf.format(new Date(expense.getTimestamp())), 30, rowY, paint);
+                state.canvas.drawText(sdf.format(new Date(expense.getTimestamp())), 30, state.rowY, paint);
 
                 // Title & Description (Stack them)
                 String title = expense.getTitle();
                 if (title.length() > 28) title = title.substring(0, 26) + "..";
                 paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
-                canvas.drawText(title, 130, rowY - 4, paint);
+                state.canvas.drawText(title, 130, state.rowY - 4, paint);
 
                 String desc = expense.getDescription();
                 if (desc == null || desc.trim().isEmpty()) desc = "-";
@@ -417,7 +502,7 @@ public class ExportHelper {
                 paint.setColor(Color.parseColor("#64748B"));
                 paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL));
                 paint.setTextSize(7.5f);
-                canvas.drawText(desc, 130, rowY + 6, paint);
+                state.canvas.drawText(desc, 130, state.rowY + 6, paint);
 
                 // Category
                 paint.setColor(Color.parseColor("#0F172A"));
@@ -425,41 +510,57 @@ public class ExportHelper {
                 paint.setTextSize(8.5f);
                 String cat = expense.getCategoryName();
                 if (cat.length() > 16) cat = cat.substring(0, 14) + "..";
-                canvas.drawText(cat, 310, rowY, paint);
+                state.canvas.drawText(cat, 310, state.rowY, paint);
 
                 // Payment Method
                 String pay = expense.getPaymentMethodName();
                 if (pay.length() > 14) pay = pay.substring(0, 12) + "..";
-                canvas.drawText(pay, 420, rowY, paint);
+                state.canvas.drawText(pay, 420, state.rowY, paint);
 
                 // Amount
                 paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
-                canvas.drawText(String.format(Locale.getDefault(), "₹%.2f", expense.getAmount()), 510, rowY, paint);
+                state.canvas.drawText(String.format(Locale.getDefault(), "₹%.2f", expense.getAmount()), 510, state.rowY, paint);
 
                 // Draw thin divider line
                 paint.setColor(Color.parseColor("#E2E8F0"));
-                canvas.drawLine(20, rowY + 12, pageWidth - 20, rowY + 12, paint);
+                state.canvas.drawLine(20, state.rowY + 12, pageWidth - 20, state.rowY + 12, paint);
 
-                expenseIndex++;
-                itemsOnThisPage++;
+                state.rowY += 28;
             }
 
-            // Draw total spend on the final page of details
-            if (expenseIndex >= expenses.size()) {
-                rowY += 28;
-                paint.setColor(Color.parseColor("#F8FAFC"));
-                canvas.drawRoundRect(new RectF(20, rowY - 14, pageWidth - 20, rowY + 14), 6, 6, paint);
-                
-                paint.setColor(Color.parseColor("#5B67F5"));
-                paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
-                paint.setTextSize(10);
-                canvas.drawText("Total Detailed Expenses Logged:", 30, rowY + 4, paint);
-                canvas.drawText(String.format(Locale.getDefault(), "₹%.2f", totalExpenses), 500, rowY + 4, paint);
+            // Month total row
+            if (state.rowY > 730) {
+                state.startNewPage(document, pageWidth, pageHeight, paint, sdf);
             }
+            paint.setColor(Color.parseColor("#F8FAFC"));
+            state.canvas.drawRoundRect(new RectF(20, state.rowY - 14, pageWidth - 20, state.rowY + 14), 6, 6, paint);
 
-            // Page Footer
-            drawFooter(canvas, pageWidth, pageHeight, pNum, totalPages);
-            document.finishPage(page);
+            paint.setColor(Color.parseColor("#0F172A"));
+            paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
+            paint.setTextSize(9);
+            state.canvas.drawText("Total for " + section.monthName + ":", 30, state.rowY + 4, paint);
+
+            paint.setColor(Color.parseColor("#10B981"));
+            state.canvas.drawText(String.format(Locale.getDefault(), "₹%.2f", section.monthTotal), 500, state.rowY + 4, paint);
+            state.rowY += 48; // 28 + 20 extra space
+        }
+
+        // Grand Total row
+        if (state.rowY > 720) {
+            state.startNewPage(document, pageWidth, pageHeight, paint, sdf);
+        }
+        paint.setColor(Color.parseColor("#EEF2FF"));
+        state.canvas.drawRoundRect(new RectF(20, state.rowY - 18, pageWidth - 20, state.rowY + 18), 8, 8, paint);
+
+        paint.setColor(Color.parseColor("#5B67F5"));
+        paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
+        paint.setTextSize(11);
+        state.canvas.drawText("GRAND TOTAL:", 30, state.rowY + 5, paint);
+        state.canvas.drawText(String.format(Locale.getDefault(), "₹%.2f", totalExpenses), 500, state.rowY + 5, paint);
+
+        if (state.page != null) {
+            drawFooter(state.canvas, pageWidth, pageHeight, state.pageNum, totalPages);
+            document.finishPage(state.page);
         }
 
         // Write document to file
@@ -517,5 +618,11 @@ public class ExportHelper {
         canvas.drawText("ExpenseEye - Smart Personal Expense Tracker", 20, pageHeight - 25, p);
         String pageStr = "Page " + pageNum + " of " + totalPages;
         canvas.drawText(pageStr, pageWidth - 20 - p.measureText(pageStr), pageHeight - 25, p);
+    }
+
+    private static class MonthSection {
+        String monthName;
+        List<Expense> expenses = new ArrayList<>();
+        double monthTotal = 0.0;
     }
 }

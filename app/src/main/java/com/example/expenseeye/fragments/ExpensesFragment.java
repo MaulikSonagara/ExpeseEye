@@ -323,7 +323,8 @@ public class ExpensesFragment extends Fragment {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_expense, null);
         dialog.setContentView(dialogView);
         if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
             dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
 

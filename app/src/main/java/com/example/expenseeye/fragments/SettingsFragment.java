@@ -35,6 +35,18 @@ import com.example.expenseeye.utils.DatabaseBackupHelper;
 import com.example.expenseeye.utils.ExportHelper;
 import com.example.expenseeye.viewmodel.AppViewModel;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.card.MaterialCardView;
+import com.example.expenseeye.theme.ThemeManager;
+import android.content.res.ColorStateList;
+import android.content.Context;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.AutoCompleteTextView;
+import androidx.core.util.Pair;
+import java.util.Calendar;
+import java.util.ArrayList;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -199,16 +211,383 @@ public class SettingsFragment extends Fragment {
             return;
         }
 
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_pdf_date_range, null);
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        // Initialize UI Elements
+        AutoCompleteTextView actvMonth = dialogView.findViewById(R.id.actv_month);
+        AutoCompleteTextView actvYear = dialogView.findViewById(R.id.actv_year);
+
+        TextInputLayout tilFromDate = dialogView.findViewById(R.id.til_from_date);
+        TextInputEditText etFromDate = dialogView.findViewById(R.id.et_from_date);
+        TextInputLayout tilToDate = dialogView.findViewById(R.id.til_to_date);
+        TextInputEditText etToDate = dialogView.findViewById(R.id.et_to_date);
+
+        com.google.android.material.button.MaterialButton btnCancel = dialogView.findViewById(R.id.btn_cancel);
+        com.google.android.material.button.MaterialButton btnExport = dialogView.findViewById(R.id.btn_export);
+
+        // Prepopulate month & year options
+        String[] months = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+        
+        Calendar currentCal = Calendar.getInstance();
+        int currentYear = currentCal.get(Calendar.YEAR);
+        ArrayList<String> yearsList = new ArrayList<>();
+        for (int y = 2023; y <= currentYear; y++) {
+            yearsList.add(String.valueOf(y));
+        }
+        String[] years = yearsList.toArray(new String[0]);
+
+        android.widget.ArrayAdapter<String> monthAdapter = new android.widget.ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, months);
+        android.widget.ArrayAdapter<String> yearAdapter = new android.widget.ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, years);
+
+        actvMonth.setAdapter(monthAdapter);
+        actvYear.setAdapter(yearAdapter);
+
+        // Set Default Date Range for custom fields
+        SimpleDateFormat dateStrFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        Calendar dateRangeCal = Calendar.getInstance();
+        String todayStr = dateStrFormat.format(dateRangeCal.getTime());
+        dateRangeCal.set(Calendar.DAY_OF_MONTH, 1);
+        String firstDayStr = dateStrFormat.format(dateRangeCal.getTime());
+        etFromDate.setText(firstDayStr);
+        etToDate.setText(todayStr);
+
+        // Set current month/year selection by default in specific month dropdowns
+        actvMonth.setText(months[currentCal.get(Calendar.MONTH)], false);
+        actvYear.setText(String.valueOf(currentCal.get(Calendar.YEAR)), false);
+
+        // Selection state holder
+        final String[] selectedOption = {"This Month"};
+
+        // Initial visual style setup
+        selectOption(selectedOption[0], dialogView, requireContext());
+
+        // Card option click listeners
+        dialogView.findViewById(R.id.opt_today).setOnClickListener(v -> {
+            selectedOption[0] = "Today";
+            selectOption(selectedOption[0], dialogView, requireContext());
+        });
+        dialogView.findViewById(R.id.opt_last_30).setOnClickListener(v -> {
+            selectedOption[0] = "Last 30 Days";
+            selectOption(selectedOption[0], dialogView, requireContext());
+        });
+        dialogView.findViewById(R.id.opt_this_month).setOnClickListener(v -> {
+            selectedOption[0] = "This Month";
+            selectOption(selectedOption[0], dialogView, requireContext());
+        });
+        dialogView.findViewById(R.id.opt_spec_month).setOnClickListener(v -> {
+            selectedOption[0] = "Specific Month";
+            selectOption(selectedOption[0], dialogView, requireContext());
+        });
+        dialogView.findViewById(R.id.opt_range).setOnClickListener(v -> {
+            selectedOption[0] = "Custom Range";
+            selectOption(selectedOption[0], dialogView, requireContext());
+        });
+        dialogView.findViewById(R.id.opt_all_data).setOnClickListener(v -> {
+            selectedOption[0] = "All Data";
+            selectOption(selectedOption[0], dialogView, requireContext());
+        });
+
+        // Custom Date Range Picker triggers
+        tilFromDate.setEndIconOnClickListener(v -> showDatePicker(etFromDate));
+        etFromDate.setOnClickListener(v -> showDatePicker(etFromDate));
+        tilToDate.setEndIconOnClickListener(v -> showDatePicker(etToDate));
+        etToDate.setOnClickListener(v -> showDatePicker(etToDate));
+
+        // Action Buttons
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnExport.setOnClickListener(v -> {
+            long startDate = 0;
+            long endDate = 0;
+            Calendar cal = Calendar.getInstance();
+
+            switch (selectedOption[0]) {
+                case "Today":
+                    cal.set(Calendar.HOUR_OF_DAY, 0);
+                    cal.set(Calendar.MINUTE, 0);
+                    cal.set(Calendar.SECOND, 0);
+                    cal.set(Calendar.MILLISECOND, 0);
+                    startDate = cal.getTimeInMillis();
+
+                    cal.set(Calendar.HOUR_OF_DAY, 23);
+                    cal.set(Calendar.MINUTE, 59);
+                    cal.set(Calendar.SECOND, 59);
+                    cal.set(Calendar.MILLISECOND, 999);
+                    endDate = cal.getTimeInMillis();
+                    break;
+
+                case "Last 30 Days":
+                    cal.set(Calendar.HOUR_OF_DAY, 23);
+                    cal.set(Calendar.MINUTE, 59);
+                    cal.set(Calendar.SECOND, 59);
+                    cal.set(Calendar.MILLISECOND, 999);
+                    endDate = cal.getTimeInMillis();
+
+                    cal.add(Calendar.DAY_OF_YEAR, -30);
+                    cal.set(Calendar.HOUR_OF_DAY, 0);
+                    cal.set(Calendar.MINUTE, 0);
+                    cal.set(Calendar.SECOND, 0);
+                    cal.set(Calendar.MILLISECOND, 0);
+                    startDate = cal.getTimeInMillis();
+                    break;
+
+                case "This Month":
+                    cal.set(Calendar.HOUR_OF_DAY, 23);
+                    cal.set(Calendar.MINUTE, 59);
+                    cal.set(Calendar.SECOND, 59);
+                    cal.set(Calendar.MILLISECOND, 999);
+                    endDate = cal.getTimeInMillis();
+
+                    cal.set(Calendar.DAY_OF_MONTH, 1);
+                    cal.set(Calendar.HOUR_OF_DAY, 0);
+                    cal.set(Calendar.MINUTE, 0);
+                    cal.set(Calendar.SECOND, 0);
+                    cal.set(Calendar.MILLISECOND, 0);
+                    startDate = cal.getTimeInMillis();
+                    break;
+
+                case "All Data":
+                    startDate = 0;
+                    endDate = System.currentTimeMillis();
+                    break;
+
+                case "Specific Month":
+                    String monthStr = actvMonth.getText().toString();
+                    String yearStr = actvYear.getText().toString();
+                    int monthIdx = getSelectedMonthIndex(monthStr);
+                    if (monthIdx < 0 || yearStr.isEmpty()) {
+                        showToastOnMainThread("Please select both month and year.");
+                        return;
+                    }
+                    try {
+                        int year = Integer.parseInt(yearStr);
+                        cal.clear();
+                        cal.set(Calendar.YEAR, year);
+                        cal.set(Calendar.MONTH, monthIdx);
+                        cal.set(Calendar.DAY_OF_MONTH, 1);
+                        cal.set(Calendar.HOUR_OF_DAY, 0);
+                        cal.set(Calendar.MINUTE, 0);
+                        cal.set(Calendar.SECOND, 0);
+                        cal.set(Calendar.MILLISECOND, 0);
+                        startDate = cal.getTimeInMillis();
+
+                        int maxDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+                        cal.set(Calendar.DAY_OF_MONTH, maxDay);
+                        cal.set(Calendar.HOUR_OF_DAY, 23);
+                        cal.set(Calendar.MINUTE, 59);
+                        cal.set(Calendar.SECOND, 59);
+                        cal.set(Calendar.MILLISECOND, 999);
+                        endDate = cal.getTimeInMillis();
+
+                        long now = System.currentTimeMillis();
+                        if (startDate > now) {
+                            showToastOnMainThread("Future periods cannot be exported.");
+                            return;
+                        }
+                        if (endDate > now) {
+                            endDate = now;
+                        }
+                    } catch (Exception e) {
+                        showToastOnMainThread("Error parsing month/year.");
+                        return;
+                    }
+                    break;
+
+                case "Custom Range":
+                    String fromStr = etFromDate.getText().toString().trim();
+                    String toStr = etToDate.getText().toString().trim();
+
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                    sdf.setLenient(false);
+
+                    try {
+                        Date fromDate = sdf.parse(fromStr);
+                        Date toDate = sdf.parse(toStr);
+
+                        if (fromDate == null || toDate == null) {
+                            showToastOnMainThread("Invalid date format. Use DD-MM-YYYY");
+                            return;
+                        }
+
+                        if (fromDate.after(toDate)) {
+                            showToastOnMainThread("From Date cannot be after To Date.");
+                            return;
+                        }
+
+                        startDate = fromDate.getTime();
+
+                        Calendar endCal = Calendar.getInstance();
+                        endCal.setTime(toDate);
+                        endCal.set(Calendar.HOUR_OF_DAY, 23);
+                        endCal.set(Calendar.MINUTE, 59);
+                        endCal.set(Calendar.SECOND, 59);
+                        endCal.set(Calendar.MILLISECOND, 999);
+                        endDate = endCal.getTimeInMillis();
+
+                        long now = System.currentTimeMillis();
+                        if (startDate > now) {
+                            showToastOnMainThread("Future dates cannot be exported.");
+                            return;
+                        }
+                        if (endDate > now) {
+                            endDate = now;
+                        }
+
+                    } catch (Exception e) {
+                        showToastOnMainThread("Please enter valid dates in DD-MM-YYYY format.");
+                        return;
+                    }
+                    break;
+            }
+
+            dialog.dismiss();
+            generatePdfForRange(startDate, endDate);
+        });
+
+        dialog.show();
+    }
+
+    private void selectOption(String option, View dialogView, Context ctx) {
+        String[] options = {"Today", "Last 30 Days", "This Month", "Specific Month", "Custom Range", "All Data"};
+        int[] cardIds = {R.id.opt_today, R.id.opt_last_30, R.id.opt_this_month, R.id.opt_spec_month, R.id.opt_range, R.id.opt_all_data};
+        int[] tvIds = {R.id.tv_opt_today, R.id.tv_opt_last_30, R.id.tv_opt_this_month, R.id.tv_opt_spec_month, R.id.tv_opt_range, R.id.tv_opt_all_data};
+        int[] ivIds = {R.id.iv_opt_today, R.id.iv_opt_last_30, R.id.iv_opt_this_month, R.id.iv_opt_spec_month, R.id.iv_opt_range, R.id.iv_opt_all_data};
+
+        int primaryColor = ThemeManager.getColor(ctx, ThemeManager.ThemeColor.PRIMARY);
+        int textSecondary = ThemeManager.getColor(ctx, ThemeManager.ThemeColor.TEXT_SECONDARY);
+        int dividerColor = ThemeManager.getColor(ctx, ThemeManager.ThemeColor.DIVIDER);
+        int surfaceColor = ThemeManager.getColor(ctx, ThemeManager.ThemeColor.SURFACE);
+        int elevatedSurface = ThemeManager.getColor(ctx, ThemeManager.ThemeColor.ELEVATED_SURFACE);
+
+        float density = ctx.getResources().getDisplayMetrics().density;
+        int strokeWidthSelected = Math.round(3 * density);
+        int strokeWidthUnselected = Math.round(1.5f * density);
+
+        for (int i = 0; i < options.length; i++) {
+            MaterialCardView card = dialogView.findViewById(cardIds[i]);
+            TextView tv = dialogView.findViewById(tvIds[i]);
+            ImageView iv = dialogView.findViewById(ivIds[i]);
+
+            boolean isSelected = options[i].equals(option);
+
+            if (isSelected) {
+                card.setCardBackgroundColor(ColorStateList.valueOf(elevatedSurface));
+                card.setStrokeColor(ColorStateList.valueOf(primaryColor));
+                card.setStrokeWidth(strokeWidthSelected);
+                tv.setTextColor(primaryColor);
+                iv.setImageTintList(ColorStateList.valueOf(primaryColor));
+                card.setCardElevation(2 * density);
+            } else {
+                card.setCardBackgroundColor(ColorStateList.valueOf(surfaceColor));
+                card.setStrokeColor(ColorStateList.valueOf(dividerColor));
+                card.setStrokeWidth(strokeWidthUnselected);
+                tv.setTextColor(textSecondary);
+                iv.setImageTintList(ColorStateList.valueOf(textSecondary));
+                card.setCardElevation(0);
+            }
+        }
+
+        View specMonthPanel = dialogView.findViewById(R.id.section_specific_month);
+        View customRangePanel = dialogView.findViewById(R.id.section_custom_range);
+
+        if ("Specific Month".equals(option)) {
+            specMonthPanel.setVisibility(View.VISIBLE);
+            customRangePanel.setVisibility(View.GONE);
+        } else if ("Custom Range".equals(option)) {
+            specMonthPanel.setVisibility(View.GONE);
+            customRangePanel.setVisibility(View.VISIBLE);
+        } else {
+            specMonthPanel.setVisibility(View.GONE);
+            customRangePanel.setVisibility(View.GONE);
+        }
+    }
+
+    private void showDatePicker(TextInputEditText editText) {
+        Calendar cal = Calendar.getInstance();
+        String txt = editText.getText().toString().trim();
+        if (!txt.isEmpty()) {
+            try {
+                String[] parts = txt.split("-");
+                if (parts.length == 3) {
+                    int day = Integer.parseInt(parts[0]);
+                    int month = Integer.parseInt(parts[1]) - 1;
+                    int year = Integer.parseInt(parts[2]);
+                    cal.set(Calendar.YEAR, year);
+                    cal.set(Calendar.MONTH, month);
+                    cal.set(Calendar.DAY_OF_MONTH, day);
+                }
+            } catch (Exception ignored) {}
+        }
+
+        android.app.DatePickerDialog datePickerDialog = new android.app.DatePickerDialog(requireContext(), (view, year, month, dayOfMonth) -> {
+            String formattedDate = String.format(Locale.getDefault(), "%02d-%02d-%04d", dayOfMonth, month + 1, year);
+            editText.setText(formattedDate);
+        }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
+
+        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        datePickerDialog.show();
+    }
+
+    private void updateSpecificMonthRange(int monthIndex, String yearStr, TextInputEditText etFrom, TextInputEditText etTo) {
+        if (monthIndex < 0 || yearStr.isEmpty()) return;
+        try {
+            int year = Integer.parseInt(yearStr);
+            Calendar cal = Calendar.getInstance();
+            cal.clear();
+            cal.set(Calendar.YEAR, year);
+            cal.set(Calendar.MONTH, monthIndex);
+            cal.set(Calendar.DAY_OF_MONTH, 1);
+
+            SimpleDateFormat dateStrFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+            String firstDay = dateStrFormat.format(cal.getTime());
+
+            int lastDayVal = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+            cal.set(Calendar.DAY_OF_MONTH, lastDayVal);
+            String lastDay = dateStrFormat.format(cal.getTime());
+
+            etFrom.setText(firstDay);
+            etTo.setText(lastDay);
+        } catch (Exception ignored) {}
+    }
+
+    private int getSelectedMonthIndex(String monthName) {
+        String[] months = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+        for (int i = 0; i < months.length; i++) {
+            if (months[i].equals(monthName)) return i;
+        }
+        return -1;
+    }
+
+    private void generatePdfForRange(long startDate, long endDate) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
-            List<Expense> expenses = viewModel.getAllExpensesSync();
-            if (expenses == null || expenses.isEmpty()) {
+            List<Expense> allExpenses = viewModel.getAllExpensesSync();
+            if (allExpenses == null || allExpenses.isEmpty()) {
                 showToastOnMainThread("No expenses to export.");
+                return;
+            }
+
+            // Filter in-range expenses
+            List<Expense> expenses = new ArrayList<>();
+            for (Expense e : allExpenses) {
+                if (e.getTimestamp() >= startDate && e.getTimestamp() <= endDate) {
+                    expenses.add(e);
+                }
+            }
+
+            if (expenses.isEmpty()) {
+                showToastOnMainThread("No expenses found in the selected range.");
                 return;
             }
 
             try {
                 File tempFile = new File(requireContext().getCacheDir(), "expense_report_" + System.currentTimeMillis() + ".pdf");
-                boolean exportSuccess = ExportHelper.exportToPDF(expenses, tempFile);
+                boolean exportSuccess = ExportHelper.exportToPDF(expenses, tempFile, startDate, endDate);
                 if (exportSuccess) {
                     String fileName = "ExpenseEye_Report_" + new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + ".pdf";
                     boolean saveSuccess = saveFileToDownloads(tempFile, fileName, "application/pdf");
