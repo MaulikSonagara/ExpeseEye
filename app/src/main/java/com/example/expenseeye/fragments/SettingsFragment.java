@@ -247,19 +247,19 @@ public class SettingsFragment extends Fragment {
 
     // --- Database Backup ---
     private void performBackup(Uri targetUri) {
-        AppDatabase.databaseWriteExecutor.execute(() -> {
+        new Thread(() -> {
             boolean success = DatabaseBackupHelper.backupDatabase(requireContext(), targetUri);
             if (success) {
                 showToastOnMainThread("Database backup created successfully!");
             } else {
                 showToastOnMainThread("Database backup failed.");
             }
-        });
+        }).start();
     }
 
     // --- Database Restore ---
     private void performRestore(Uri sourceUri) {
-        AppDatabase.databaseWriteExecutor.execute(() -> {
+        new Thread(() -> {
             // 1. Validate file before restoring
             boolean isValid = DatabaseBackupHelper.validateBackupFile(requireContext(), sourceUri);
             if (!isValid) {
@@ -270,15 +270,24 @@ public class SettingsFragment extends Fragment {
             // 2. Perform safe restore
             boolean success = DatabaseBackupHelper.restoreDatabase(requireContext(), sourceUri);
             if (success) {
-                showToastOnMainThread("Database restored successfully!");
-                // Reload UI by recreating the parent activity on the main thread
+                showToastOnMainThread("Database restored successfully! Restarting app...");
+                
+                // Restart app on main thread to apply changes cleanly
                 if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> getActivity().recreate());
+                    getActivity().runOnUiThread(() -> {
+                        Intent intent = getActivity().getPackageManager().getLaunchIntentForPackage(getActivity().getPackageName());
+                        if (intent != null) {
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                        }
+                        getActivity().finishAffinity();
+                        System.exit(0);
+                    });
                 }
             } else {
                 showToastOnMainThread("Database restore failed.");
             }
-        });
+        }).start();
     }
 
     // --- Helpers ---

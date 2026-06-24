@@ -14,8 +14,8 @@ import java.io.OutputStream;
 public class DatabaseBackupHelper {
 
     public static boolean backupDatabase(Context context, Uri targetUri) {
-        // Force close database connection to flush memory to disk
-        AppDatabase.getDatabase(context).close();
+        // Force close database connection to flush memory to disk and reset instance
+        AppDatabase.destroyInstance();
         File dbFile = context.getDatabasePath("expense_eye_database");
         
         if (dbFile.exists()) {
@@ -72,9 +72,20 @@ public class DatabaseBackupHelper {
     }
 
     public static boolean restoreDatabase(Context context, Uri sourceUri) {
-        // Force close Room database connection
-        AppDatabase.getDatabase(context).close();
+        // Force close Room database connection and reset the instance
+        AppDatabase.destroyInstance();
         File dbFile = context.getDatabasePath("expense_eye_database");
+
+        // Delete existing database file and secondary SQLite helper files BEFORE copying
+        if (dbFile.exists()) {
+            dbFile.delete();
+        }
+        File journalFile = new File(dbFile.getPath() + "-journal");
+        if (journalFile.exists()) journalFile.delete();
+        File walFile = new File(dbFile.getPath() + "-wal");
+        if (walFile.exists()) walFile.delete();
+        File shmFile = new File(dbFile.getPath() + "-shm");
+        if (shmFile.exists()) shmFile.delete();
 
         try (InputStream in = context.getContentResolver().openInputStream(sourceUri);
              OutputStream out = new FileOutputStream(dbFile)) {
@@ -84,14 +95,6 @@ public class DatabaseBackupHelper {
             while ((read = in.read(buffer)) != -1) {
                 out.write(buffer, 0, read);
             }
-            
-            // Delete secondary database files so they are recreated fresh
-            File journalFile = new File(dbFile.getPath() + "-journal");
-            if (journalFile.exists()) journalFile.delete();
-            File walFile = new File(dbFile.getPath() + "-wal");
-            if (walFile.exists()) walFile.delete();
-            File shmFile = new File(dbFile.getPath() + "-shm");
-            if (shmFile.exists()) shmFile.delete();
             
             com.example.expenseeye.widget.WidgetProvider.updateAllWidgets(context);
             return true;

@@ -117,6 +117,15 @@ public abstract class AppDatabase extends RoomDatabase {
         return INSTANCE;
     }
 
+    public static void destroyInstance() {
+        synchronized (AppDatabase.class) {
+            if (INSTANCE != null) {
+                INSTANCE.close();
+                INSTANCE = null;
+            }
+        }
+    }
+
     private static final RoomDatabase.Callback sRoomDatabaseCallback = new RoomDatabase.Callback() {
         @Override
         public void onCreate(@NonNull SupportSQLiteDatabase db) {
