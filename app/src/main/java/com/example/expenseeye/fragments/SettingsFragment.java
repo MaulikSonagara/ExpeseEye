@@ -133,6 +133,26 @@ public class SettingsFragment extends Fragment {
 
         rvThemes.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         rvThemes.setAdapter(adapter);
+
+        // Disallow ViewPager2 from intercepting touch events when interacting with the themes recycler view
+        rvThemes.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull android.view.MotionEvent e) {
+                int action = e.getAction();
+                if (action == android.view.MotionEvent.ACTION_DOWN) {
+                    if (rv.getParent() != null) {
+                        rv.getParent().requestDisallowInterceptTouchEvent(true);
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull android.view.MotionEvent e) {}
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {}
+        });
     }
 
     private void setupModeSwitch(View view) {

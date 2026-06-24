@@ -18,10 +18,10 @@
     <color name="mc_l_divider">#CBD5E1</color>
 
     <!-- Theme 1: Midnight Calm (Dark) - Refined Slate & Lavender -->
-    <color name="mc_d_background">#0F111A</color>
-    <color name="mc_d_surface">#181B26</color>
-    <color name="mc_d_elevated">#212533</color>
-    <color name="mc_d_primary">#94A3FF</color>
+    <color name="mc_d_background">#06080F</color>
+    <color name="mc_d_surface">#111420</color>
+    <color name="mc_d_elevated">#1A1D2B</color>
+    <color name="mc_d_primary">#6376FF</color>
     <color name="mc_d_primary_soft">#BCC6FF</color>
     <color name="mc_d_secondary">#7EE7FF</color>
     <color name="mc_d_success">#4ADE80</color>
@@ -40,9 +40,9 @@
     <color name="fl_l_text_secondary">#4D5B52</color>
 
     <!-- Theme 2: Forest Ledger (Dark) - Refined Moss & Sage -->
-    <color name="fl_d_background">#0D120F</color>
-    <color name="fl_d_surface">#161D1A</color>
-    <color name="fl_d_primary">#5EEAD4</color>
+    <color name="fl_d_background">#050806</color>
+    <color name="fl_d_surface">#0F1512</color>
+    <color name="fl_d_primary">#08A58F</color>
     <color name="fl_d_secondary">#94FBAB</color>
     <color name="fl_d_text_primary">#E8F2EE</color>
     <color name="fl_d_text_secondary">#8A9993</color>
@@ -56,9 +56,9 @@
     <color name="ms_l_text_secondary">#78716C</color>
 
     <!-- Theme 3: Minimal Sand (Dark) -->
-    <color name="ms_d_background">#18181B</color>
-    <color name="ms_d_surface">#27272A</color>
-    <color name="ms_d_primary">#A78BFA</color>
+    <color name="ms_d_background">#09090B</color>
+    <color name="ms_d_surface">#18181B</color>
+    <color name="ms_d_primary">#8453FF</color>
     <color name="ms_d_secondary">#F4A261</color>
     <color name="ms_d_text_primary">#FAFAFA</color>
     <color name="ms_d_text_secondary">#A1A1AA</color>
@@ -83,14 +83,14 @@
     <color name="ol_l_text_secondary">#4E598C</color>
 
     <!-- Theme 4: Ocean Ledger (Dark) -->
-    <color name="ol_d_background">#000F08</color>
-    <color name="ol_d_surface">#0A1A14</color>
-    <color name="ol_d_primary">#7C89C1</color>
+    <color name="ol_d_background">#010604</color>
+    <color name="ol_d_surface">#07120E</color>
+    <color name="ol_d_primary">#6F7CB8</color>
     <color name="ol_d_secondary">#4DD9F5</color>
     <color name="ol_d_accent">#F4A3AF</color>
     <color name="ol_d_text_primary">#FFFCFF</color>
     <color name="ol_d_text_secondary">#7C89C1</color>
 
     <!-- App Icon / General -->
-    <color name="ic_launcher_background">#FEFAF5</color>
+    <color name="ic_launcher_background">#1D0B00</color>
 </resources>

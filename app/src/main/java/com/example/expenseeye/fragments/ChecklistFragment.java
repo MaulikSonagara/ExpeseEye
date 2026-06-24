@@ -36,7 +36,8 @@ public class ChecklistFragment extends Fragment {
     private AppViewModel viewModel;
     private ChecklistAdapter adapter;
     private EditText etTitle, etQty;
-    private AutoCompleteTextView spinnerPriority;
+    private androidx.recyclerview.widget.RecyclerView rvPriority;
+    private com.example.expenseeye.adapters.PrioritySelectionAdapter priorityAdapter;
     private ChipGroup cgFilters;
     private LinearLayout layoutEmpty;
     private RecyclerView rvChecklist;
@@ -51,17 +52,17 @@ public class ChecklistFragment extends Fragment {
 
         etTitle = view.findViewById(R.id.et_item_title);
         etQty = view.findViewById(R.id.et_item_qty);
-        spinnerPriority = view.findViewById(R.id.spinner_item_priority);
+        rvPriority = view.findViewById(R.id.rv_item_priority);
         Button btnAdd = view.findViewById(R.id.btn_add_item);
         cgFilters = view.findViewById(R.id.cg_checklist_filters);
         MaterialSwitch switchShopping = view.findViewById(R.id.switch_shopping_mode);
         layoutEmpty = view.findViewById(R.id.layout_checklist_empty);
         rvChecklist = view.findViewById(R.id.rv_checklist);
 
-        // Populate Priority Spinner
-        ArrayAdapter<String> priorityAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, priorities);
-        spinnerPriority.setAdapter(priorityAdapter);
-        spinnerPriority.setText(priorities[0], false); // LOW default
+        // Populate Priority RecyclerView selector
+        rvPriority.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        priorityAdapter = new com.example.expenseeye.adapters.PrioritySelectionAdapter(java.util.Arrays.asList(priorities), priorities[0], null);
+        rvPriority.setAdapter(priorityAdapter);
 
         // Setup Recycler
         rvChecklist.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -114,7 +115,7 @@ public class ChecklistFragment extends Fragment {
         btnAdd.setOnClickListener(v -> {
             String title = etTitle.getText().toString().trim();
             String qty = etQty.getText().toString().trim();
-            String priority = spinnerPriority.getText().toString();
+            String priority = priorityAdapter.getSelectedPriority();
 
             if (title.isEmpty()) {
                 Toast.makeText(getContext(), "Please enter an item name", Toast.LENGTH_SHORT).show();
@@ -130,7 +131,7 @@ public class ChecklistFragment extends Fragment {
             // Reset inputs
             etTitle.setText("");
             etQty.setText("");
-            spinnerPriority.setText(priorities[0], false);
+            priorityAdapter.setSelectedPriority(priorities[0]);
             Toast.makeText(getContext(), "Item added: Classified as " + category, Toast.LENGTH_SHORT).show();
         });
 

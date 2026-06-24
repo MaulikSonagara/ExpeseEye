@@ -26,7 +26,8 @@ public class QuickAddChecklistActivity extends AppCompatActivity {
     private RelativeLayout rootLayout;
     private CardView cardQuickAdd;
     private EditText etTitle, etQty;
-    private AutoCompleteTextView spinnerPriority;
+    private androidx.recyclerview.widget.RecyclerView rvPriority;
+    private com.example.expenseeye.adapters.PrioritySelectionAdapter priorityAdapter;
     private MaterialButton btnCancel, btnSave;
 
     private final String[] priorities = {"LOW", "MEDIUM", "HIGH"};
@@ -44,17 +45,17 @@ public class QuickAddChecklistActivity extends AppCompatActivity {
         cardQuickAdd = findViewById(R.id.card_quick_add);
         etTitle = findViewById(R.id.et_item_title);
         etQty = findViewById(R.id.et_item_qty);
-        spinnerPriority = findViewById(R.id.spinner_item_priority);
+        rvPriority = findViewById(R.id.rv_item_priority);
         btnCancel = findViewById(R.id.btn_cancel);
         btnSave = findViewById(R.id.btn_save);
 
         // Initialize Repository
         repository = new AppRepository(getApplication());
 
-        // Populate Priority Spinner
-        ArrayAdapter<String> priorityAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, priorities);
-        spinnerPriority.setAdapter(priorityAdapter);
-        spinnerPriority.setText(priorities[0], false); // LOW default
+        // Populate Priority RecyclerView selector
+        rvPriority.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(this, androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false));
+        priorityAdapter = new com.example.expenseeye.adapters.PrioritySelectionAdapter(java.util.Arrays.asList(priorities), priorities[0], null);
+        rvPriority.setAdapter(priorityAdapter);
 
         // Cancel click listener
         btnCancel.setOnClickListener(v -> dismissWithAnimation());
@@ -120,7 +121,7 @@ public class QuickAddChecklistActivity extends AppCompatActivity {
     private void saveChecklistItem() {
         String titleStr = etTitle.getText().toString().trim();
         String qtyStr = etQty.getText().toString().trim();
-        String priorityStr = spinnerPriority.getText().toString();
+        String priorityStr = priorityAdapter.getSelectedPriority();
 
         if (titleStr.isEmpty()) {
             Toast.makeText(this, "Please enter an item name", Toast.LENGTH_SHORT).show();

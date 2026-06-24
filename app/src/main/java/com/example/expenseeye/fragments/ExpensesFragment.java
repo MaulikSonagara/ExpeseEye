@@ -123,37 +123,7 @@ public class ExpensesFragment extends Fragment {
         btnFilter.setOnClickListener(v -> showFilterBottomSheet());
         tvClearFilters.setOnClickListener(v -> resetFilters());
 
-        // Swipe-to-Delete Implementation
-        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-                return false;
-            }
 
-            @Override
-            public int getSwipeDirs(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-                if (viewHolder instanceof com.example.expenseeye.adapters.ExpenseAdapter.DateHeaderViewHolder) {
-                    return 0; // Disable swipe
-                }
-                return super.getSwipeDirs(recyclerView, viewHolder);
-            }
-
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                int position = viewHolder.getAdapterPosition();
-                Expense deletedExpense = adapter.getExpenseAt(position);
-
-                if (deletedExpense != null) {
-                    // Delete from room
-                    viewModel.deleteExpense(deletedExpense);
-
-                    // Show undo snackbar
-                    Snackbar.make(rvExpenses, "Expense deleted", Snackbar.LENGTH_LONG)
-                            .setAction("UNDO", v -> viewModel.insertExpense(deletedExpense))
-                            .show();
-                }
-            }
-        }).attachToRecyclerView(rvExpenses);
 
         return view;
     }

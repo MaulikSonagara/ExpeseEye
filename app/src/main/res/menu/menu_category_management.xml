@@ -5,5 +5,7 @@
         android:id="@+id/action_reset"
         android:title="Reset Defaults"
         app:showAsAction="ifRoom"
-        android:icon="@drawable/ic_settings" />
+        android:icon="@drawable/ic_settings"
+        app:iconTint="?attr/colorOnSurface"
+        android:iconTint="?attr/colorOnSurface" />
 </menu>

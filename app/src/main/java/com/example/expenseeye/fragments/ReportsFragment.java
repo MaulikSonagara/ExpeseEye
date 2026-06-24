@@ -329,16 +329,19 @@ public class ReportsFragment extends Fragment {
             index++;
         }
 
+        int primaryColor = com.example.expenseeye.theme.ThemeManager.getColor(requireContext(), com.example.expenseeye.theme.ThemeManager.ThemeColor.PRIMARY);
+        int primarySoft = com.example.expenseeye.theme.ThemeManager.getColor(requireContext(), com.example.expenseeye.theme.ThemeManager.ThemeColor.PRIMARY_SOFT);
+
         LineDataSet dataSet = new LineDataSet(entries, "Daily Spending");
-        dataSet.setColor(Color.parseColor("#1A237E")); // Indigo line
-        dataSet.setCircleColor(Color.parseColor("#3F51B5"));
+        dataSet.setColor(primaryColor); // Dynamic theme primary line
+        dataSet.setCircleColor(primaryColor);
         dataSet.setLineWidth(3f);
         dataSet.setCircleRadius(5f);
         dataSet.setDrawCircleHole(true);
         dataSet.setValueTextSize(9f);
         dataSet.setValueTextColor(getThemeTextColor());
         dataSet.setDrawFilled(true);
-        dataSet.setFillColor(Color.parseColor("#C5CAE9"));
+        dataSet.setFillColor(primarySoft);
         dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER); // Smooth bezier curve!
 
         LineData lineData = new LineData(dataSet);

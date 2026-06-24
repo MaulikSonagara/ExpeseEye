@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -60,6 +61,8 @@ public class CategoryEditorActivity extends AppCompatActivity {
 
     private ColorPickerAdapter colorAdapter;
     private IconPickerAdapter iconAdapter;
+    private android.widget.LinearLayout layoutColorDots;
+    private android.widget.LinearLayout layoutIconDots;
 
     private int categoryId = -1;
     private boolean isEditMode = false;
@@ -68,6 +71,11 @@ public class CategoryEditorActivity extends AppCompatActivity {
     private final List<String> activeKeywords = new ArrayList<>();
     private int selectedColor = 0xFFFF5722; // Default orange
     private String selectedIcon = "ic_groceries"; // Default food icon
+
+    private String initialName = "";
+    private int initialColor = 0xFFFF5722;
+    private String initialIcon = "ic_groceries";
+    private final List<String> initialKeywords = new ArrayList<>();
 
     // Curated color list
     private final List<Integer> colorList = Arrays.asList(
@@ -131,6 +139,10 @@ public class CategoryEditorActivity extends AppCompatActivity {
         } else {
             isEditMode = false;
             toolbar.setTitle("Add Category");
+            initialName = "";
+            initialColor = selectedColor;
+            initialIcon = selectedIcon;
+            initialKeywords.clear();
             updatePreviewColorsAndIcon();
         }
 
@@ -152,6 +164,8 @@ public class CategoryEditorActivity extends AppCompatActivity {
         cgKeywords = findViewById(R.id.cg_keywords);
         btnSaveCategory = findViewById(R.id.btn_save_category);
         btnDeleteCategory = findViewById(R.id.btn_delete_category);
+        layoutColorDots = findViewById(R.id.layout_color_dots);
+        layoutIconDots = findViewById(R.id.layout_icon_dots);
     }
 
     private void setupToolbar() {
@@ -159,7 +173,7 @@ public class CategoryEditorActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        toolbar.setNavigationOnClickListener(v -> finish());
+        toolbar.setNavigationOnClickListener(v -> handleBackNavigation());
     }
 
     private void setupPreview() {
@@ -188,6 +202,7 @@ public class CategoryEditorActivity extends AppCompatActivity {
         });
         rvColors.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         rvColors.setAdapter(colorAdapter);
+        setupRecyclerViewScrollIndicator(rvColors, layoutColorDots);
     }
 
     private void setupIconPicker() {
@@ -197,6 +212,56 @@ public class CategoryEditorActivity extends AppCompatActivity {
         });
         rvIcons.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         rvIcons.setAdapter(iconAdapter);
+        setupRecyclerViewScrollIndicator(rvIcons, layoutIconDots);
+    }
+
+    private void setupRecyclerViewScrollIndicator(RecyclerView recyclerView, android.widget.LinearLayout dotsLayout) {
+        if (recyclerView == null || dotsLayout == null) return;
+        
+        // Initial state update
+        recyclerView.post(() -> {
+            int offset = recyclerView.computeHorizontalScrollOffset();
+            int extent = recyclerView.computeHorizontalScrollExtent();
+            int range = recyclerView.computeHorizontalScrollRange();
+            int maxScroll = range - extent;
+            float progress = maxScroll > 0 ? (float) offset / maxScroll : 0f;
+            updateScrollDots(dotsLayout, progress);
+        });
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView rv, int dx, int dy) {
+                super.onScrolled(rv, dx, dy);
+                int offset = rv.computeHorizontalScrollOffset();
+                int extent = rv.computeHorizontalScrollExtent();
+                int range = rv.computeHorizontalScrollRange();
+                int maxScroll = range - extent;
+                if (maxScroll > 0) {
+                    float progress = (float) offset / maxScroll;
+                    updateScrollDots(dotsLayout, progress);
+                } else {
+                    updateScrollDots(dotsLayout, 0f);
+                }
+            }
+        });
+    }
+
+    private void updateScrollDots(android.widget.LinearLayout dotsLayout, float progress) {
+        int childCount = dotsLayout.getChildCount();
+        if (childCount == 0) return;
+        float activeIndex = progress * (childCount - 1);
+        for (int i = 0; i < childCount; i++) {
+            View dot = dotsLayout.getChildAt(i);
+            float distance = Math.abs(i - activeIndex);
+            // active dot has scale 1.15, others range down to 0.75
+            float scale = 1.15f - Math.min(distance * 0.25f, 0.40f);
+            dot.setScaleX(scale);
+            dot.setScaleY(scale);
+            
+            // set active dot to full opacity, inactive to low opacity
+            float alpha = 1.0f - Math.min(distance * 0.4f, 0.6f);
+            dot.setAlpha(alpha);
+        }
     }
 
     private void updatePreviewColorsAndIcon() {
@@ -268,6 +333,12 @@ public class CategoryEditorActivity extends AppCompatActivity {
                     for (CategoryKeyword kw : keywords) {
                         addKeywordChip(kw.getKeyword());
                     }
+
+                    initialName = editingCategory.getName();
+                    initialColor = selectedColor;
+                    initialIcon = selectedIcon;
+                    initialKeywords.clear();
+                    initialKeywords.addAll(activeKeywords);
 
                     // Show delete button for all categories except the "Others" fallback category
                     if (!editingCategory.getName().equalsIgnoreCase("Others") && !editingCategory.getName().equalsIgnoreCase("Other")) {
@@ -342,5 +413,37 @@ public class CategoryEditorActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        handleBackNavigation();
+    }
+
+    private void handleBackNavigation() {
+        if (hasUnsavedChanges()) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Unsaved Changes")
+                    .setMessage("You have unsaved changes. Do you want to save them before leaving?")
+                    .setPositiveButton("Save", (dialog, which) -> saveCategory())
+                    .setNegativeButton("Discard", (dialog, which) -> finish())
+                    .setNeutralButton("Cancel", null)
+                    .show();
+        } else {
+            finish();
+        }
+    }
+
+    private boolean hasUnsavedChanges() {
+        String currentName = etCategoryName.getText().toString().trim();
+        if (!currentName.equals(initialName)) return true;
+        if (selectedColor != initialColor) return true;
+        if (!selectedIcon.equals(initialIcon)) return true;
+
+        if (activeKeywords.size() != initialKeywords.size()) return true;
+        for (String kw : activeKeywords) {
+            if (!initialKeywords.contains(kw)) return true;
+        }
+        return false;
     }
 }

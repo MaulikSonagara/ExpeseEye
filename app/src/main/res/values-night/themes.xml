@@ -1,7 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Midnight Calm -->
-    <style name="Theme.ExpenseEye.MidnightCalm" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.ExpenseEye.MidnightCalm" parent="Theme.ExpenseEye.Base">
         <item name="colorPrimary">@color/mc_d_primary</item>
         <item name="colorSecondary">@color/mc_d_secondary</item>
         <item name="android:windowBackground">@color/mc_d_background</item>
@@ -11,10 +11,15 @@
         <item name="android:textColorSecondary">@color/mc_d_text_secondary</item>
         <item name="colorOnSurface">@color/mc_d_text_primary</item>
         <item name="colorOnSurfaceVariant">@color/mc_d_text_secondary</item>
+        <item name="colorPrimaryContainer">@color/mc_d_divider</item>
+        <item name="colorOnPrimaryContainer">@color/mc_d_primary_soft</item>
+        <item name="colorSecondaryContainer">@color/mc_d_elevated</item>
+        <item name="colorOnSecondaryContainer">@color/mc_d_primary</item>
+        <item name="colorOutlineVariant">@color/mc_d_divider</item>
     </style>
 
     <!-- Forest Ledger -->
-    <style name="Theme.ExpenseEye.ForestLedger" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.ExpenseEye.ForestLedger" parent="Theme.ExpenseEye.Base">
         <item name="colorPrimary">@color/fl_d_primary</item>
         <item name="colorSecondary">@color/fl_d_secondary</item>
         <item name="android:windowBackground">@color/fl_d_background</item>
@@ -23,10 +28,15 @@
         <item name="android:textColorSecondary">@color/fl_d_text_secondary</item>
         <item name="colorOnSurface">@color/fl_d_text_primary</item>
         <item name="colorOnSurfaceVariant">@color/fl_d_text_secondary</item>
+        <item name="colorPrimaryContainer">#161D1A</item>
+        <item name="colorOnPrimaryContainer">@color/fl_d_secondary</item>
+        <item name="colorSecondaryContainer">#202A25</item>
+        <item name="colorOnSecondaryContainer">@color/fl_d_primary</item>
+        <item name="colorOutlineVariant">#202A25</item>
     </style>
 
     <!-- Minimal Sand -->
-    <style name="Theme.ExpenseEye.MinimalSand" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.ExpenseEye.MinimalSand" parent="Theme.ExpenseEye.Base">
         <item name="colorPrimary">@color/ms_d_primary</item>
         <item name="colorSecondary">@color/ms_d_secondary</item>
         <item name="android:windowBackground">@color/ms_d_background</item>
@@ -35,10 +45,15 @@
         <item name="android:textColorSecondary">@color/ms_d_text_secondary</item>
         <item name="colorOnSurface">@color/ms_d_text_primary</item>
         <item name="colorOnSurfaceVariant">@color/ms_d_text_secondary</item>
+        <item name="colorPrimaryContainer">#27272A</item>
+        <item name="colorOnPrimaryContainer">@color/ms_d_primary</item>
+        <item name="colorSecondaryContainer">#3F3F46</item>
+        <item name="colorOnSecondaryContainer">@color/ms_d_secondary</item>
+        <item name="colorOutlineVariant">#3F3F46</item>
     </style>
 
     <!-- Ocean Ledger -->
-    <style name="Theme.ExpenseEye.OceanLedger" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.ExpenseEye.OceanLedger" parent="Theme.ExpenseEye.Base">
         <item name="colorPrimary">@color/ol_d_primary</item>
         <item name="colorSecondary">@color/ol_d_secondary</item>
         <item name="android:windowBackground">@color/ol_d_background</item>
@@ -47,6 +62,11 @@
         <item name="android:textColorSecondary">@color/ol_d_text_secondary</item>
         <item name="colorOnSurface">@color/ol_d_text_primary</item>
         <item name="colorOnSurfaceVariant">@color/ol_d_text_secondary</item>
+        <item name="colorPrimaryContainer">#0A1A14</item>
+        <item name="colorOnPrimaryContainer">@color/ol_d_secondary</item>
+        <item name="colorSecondaryContainer">#142A20</item>
+        <item name="colorOnSecondaryContainer">@color/ol_d_primary</item>
+        <item name="colorOutlineVariant">#142A20</item>
     </style>
 
 </resources>

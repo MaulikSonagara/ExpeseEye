@@ -123,39 +123,115 @@
                 android:textColor="?attr/colorPrimary"
                 android:layout_marginBottom="12dp"/>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_colors"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:scrollbars="horizontal"
-                android:scrollbarSize="4dp"
-                android:scrollbarFadeDuration="0"
-                android:scrollbarThumbHorizontal="?attr/colorPrimary"
-                android:layout_marginBottom="24dp"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+             <androidx.recyclerview.widget.RecyclerView
+                 android:id="@+id/rv_colors"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:orientation="horizontal"
+                 android:requiresFadingEdge="horizontal"
+                 android:fadingEdgeLength="24dp"
+                 android:layout_marginBottom="10dp"
+                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-            <!-- Icon Picker Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Select Icon"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="?attr/colorPrimary"
-                android:layout_marginBottom="12dp"/>
+             <LinearLayout
+                 android:id="@+id/layout_color_dots"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:orientation="horizontal"
+                 android:layout_gravity="center_horizontal"
+                 android:layout_marginBottom="24dp"
+                 android:gravity="center">
+                 <View
+                     android:layout_width="8dp"
+                     android:layout_height="8dp"
+                     android:layout_margin="3dp"
+                     android:background="@drawable/bg_theme_color_dot"
+                     android:backgroundTint="?attr/colorPrimary"/>
+                 <View
+                     android:layout_width="8dp"
+                     android:layout_height="8dp"
+                     android:layout_margin="3dp"
+                     android:background="@drawable/bg_theme_color_dot"
+                     android:backgroundTint="?attr/colorPrimary"/>
+                 <View
+                     android:layout_width="8dp"
+                     android:layout_height="8dp"
+                     android:layout_margin="3dp"
+                     android:background="@drawable/bg_theme_color_dot"
+                     android:backgroundTint="?attr/colorPrimary"/>
+                 <View
+                     android:layout_width="8dp"
+                     android:layout_height="8dp"
+                     android:layout_margin="3dp"
+                     android:background="@drawable/bg_theme_color_dot"
+                     android:backgroundTint="?attr/colorPrimary"/>
+                 <View
+                     android:layout_width="8dp"
+                     android:layout_height="8dp"
+                     android:layout_margin="3dp"
+                     android:background="@drawable/bg_theme_color_dot"
+                     android:backgroundTint="?attr/colorPrimary"/>
+             </LinearLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_icons"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:scrollbars="horizontal"
-                android:scrollbarSize="4dp"
-                android:scrollbarFadeDuration="0"
-                android:scrollbarThumbHorizontal="?attr/colorPrimary"
-                android:layout_marginBottom="24dp"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+             <!-- Icon Picker Section -->
+             <TextView
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:text="Select Icon"
+                 android:textSize="14sp"
+                 android:textStyle="bold"
+                 android:textColor="?attr/colorPrimary"
+                 android:layout_marginBottom="12dp"/>
+
+             <androidx.recyclerview.widget.RecyclerView
+                 android:id="@+id/rv_icons"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:orientation="horizontal"
+                 android:requiresFadingEdge="horizontal"
+                 android:fadingEdgeLength="24dp"
+                 android:layout_marginBottom="10dp"
+                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+             <LinearLayout
+                 android:id="@+id/layout_icon_dots"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:orientation="horizontal"
+                 android:layout_gravity="center_horizontal"
+                 android:layout_marginBottom="24dp"
+                 android:gravity="center">
+                 <View
+                     android:layout_width="8dp"
+                     android:layout_height="8dp"
+                     android:layout_margin="3dp"
+                     android:background="@drawable/bg_theme_color_dot"
+                     android:backgroundTint="?attr/colorPrimary"/>
+                 <View
+                     android:layout_width="8dp"
+                     android:layout_height="8dp"
+                     android:layout_margin="3dp"
+                     android:background="@drawable/bg_theme_color_dot"
+                     android:backgroundTint="?attr/colorPrimary"/>
+                 <View
+                     android:layout_width="8dp"
+                     android:layout_height="8dp"
+                     android:layout_margin="3dp"
+                     android:background="@drawable/bg_theme_color_dot"
+                     android:backgroundTint="?attr/colorPrimary"/>
+                 <View
+                     android:layout_width="8dp"
+                     android:layout_height="8dp"
+                     android:layout_margin="3dp"
+                     android:background="@drawable/bg_theme_color_dot"
+                     android:backgroundTint="?attr/colorPrimary"/>
+                 <View
+                     android:layout_width="8dp"
+                     android:layout_height="8dp"
+                     android:layout_margin="3dp"
+                     android:background="@drawable/bg_theme_color_dot"
+                     android:backgroundTint="?attr/colorPrimary"/>
+             </LinearLayout>
 
             <!-- Keywords Section -->
             <TextView

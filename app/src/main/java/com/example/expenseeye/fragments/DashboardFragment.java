@@ -135,10 +135,8 @@ public class DashboardFragment extends Fragment {
                         getActivity().findViewById(R.id.bottom_navigation);
                 if (bottomNav != null) {
                     bottomNav.setSelectedItemId(R.id.expensesFragment);
-                    return;
                 }
             }
-            Navigation.findNavController(view).navigate(R.id.expensesFragment);
         });
 
         // FAB Quick Add action

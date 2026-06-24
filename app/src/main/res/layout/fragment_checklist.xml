@@ -90,25 +90,12 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <com.google.android.material.textfield.TextInputLayout
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_item_priority"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="12dp"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
-
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/spinner_item_priority"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Priority"
-                        android:inputType="none"
-                        android:textSize="14sp" />
-                </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_marginEnd="12dp"/>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_add_item"
