@@ -9,119 +9,132 @@
     android:clickable="true"
     android:focusable="true">
 
-    <!-- Card Container (Dialog/BottomSheet style) -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_quick_add"
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_quick_add"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_margin="24dp"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="8dp"
-        app:strokeWidth="0dp"
-        android:theme="@style/Theme.ExpenseEye">
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:clickable="true"
+        android:focusable="true">
 
-        <androidx.core.widget.NestedScrollView
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fillViewport="true">
+            android:layout_height="match_parent">
 
-            <LinearLayout
+            <!-- Card Container (Dialog/BottomSheet style) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_quick_add"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingHorizontal="24dp"
-                android:paddingTop="24dp"
-                android:paddingBottom="24dp"
-                android:background="?attr/colorSurface">
+                android:layout_gravity="center"
+                android:layout_margin="24dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="8dp"
+                app:strokeWidth="0dp"
+                android:theme="@style/Theme.ExpenseEye"
+                android:clickable="true"
+                android:focusable="true">
 
-                <!-- Header Title -->
-                <TextView
-                    android:id="@+id/tv_dialog_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Quick Add Task"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:layout_marginBottom="16dp" />
-
-                <!-- Task Title Input -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_item_title"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Task Title (e.g. Buy Milk)"
-                        android:inputType="textCapSentences"
-                        android:textSize="16sp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Quantity Input -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_item_qty"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Quantity (e.g. 2 litres, 5 pcs) [Optional]"
-                        android:inputType="textCapSentences"
-                        android:textSize="16sp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Priority RecyclerView selection -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rv_item_priority"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="24dp"/>
-
-                <!-- Save & Cancel Buttons -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="end">
+                    android:orientation="vertical"
+                    android:paddingHorizontal="24dp"
+                    android:paddingTop="24dp"
+                    android:paddingBottom="24dp"
+                    android:background="?attr/colorSurface">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_cancel"
-                        android:layout_width="wrap_content"
+                    <!-- Header Title -->
+                    <TextView
+                        android:id="@+id/tv_dialog_title"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        style="@style/Widget.Material3.Button.TextButton"
-                        android:text="Cancel"
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:layout_marginEnd="8dp"/>
+                        android:text="Quick Add Task"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:layout_marginBottom="16dp" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_save"
-                        android:layout_width="wrap_content"
+                    <!-- Task Title Input -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Add Task"
-                        app:backgroundTint="?attr/colorPrimary"
-                        android:textColor="@android:color/white"
-                        app:cornerRadius="12dp"/>
+                        android:layout_marginBottom="14dp"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_item_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Task Title (e.g. Buy Milk)"
+                            android:inputType="textCapSentences"
+                            android:textSize="16sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Quantity Input -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="14dp"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_item_qty"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Quantity (e.g. 2 litres, 5 pcs) [Optional]"
+                            android:inputType="textCapSentences"
+                            android:textSize="16sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Priority RecyclerView selection -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_item_priority"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="24dp"/>
+
+                    <!-- Save & Cancel Buttons -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="end">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_cancel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:text="Cancel"
+                            android:textColor="?android:attr/textColorSecondary"
+                            android:layout_marginEnd="8dp"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_save"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Add Task"
+                            app:backgroundTint="?attr/colorPrimary"
+                            android:textColor="@android:color/white"
+                            app:cornerRadius="12dp"/>
+                    </LinearLayout>
+
                 </LinearLayout>
 
-            </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
+            </com.google.android.material.card.MaterialCardView>
 
-    </com.google.android.material.card.MaterialCardView>
+        </FrameLayout>
+
+    </androidx.core.widget.NestedScrollView>
 
 </RelativeLayout>

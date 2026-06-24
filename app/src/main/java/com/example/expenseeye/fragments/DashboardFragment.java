@@ -35,6 +35,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import com.example.expenseeye.adapters.PaymentMethodAdapter;
+import com.example.expenseeye.utils.KeyboardFollow;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -254,8 +255,12 @@ public class DashboardFragment extends Fragment {
         if (dialog.getWindow() != null) {
             dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-            dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+            dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
         }
+        KeyboardFollow.attach(
+                dialogView.findViewById(R.id.rl_quick_add_root),
+                dialogView.findViewById(R.id.card_quick_add)
+        );
 
         TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
         EditText etAmount = dialogView.findViewById(R.id.et_amount);
@@ -410,8 +415,12 @@ public class DashboardFragment extends Fragment {
         if (dialog.getWindow() != null) {
             dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-            dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+            dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
         }
+        KeyboardFollow.attach(
+                dialogView.findViewById(R.id.rl_quick_add_root),
+                dialogView.findViewById(R.id.card_quick_add)
+        );
 
         TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
         EditText etAmount = dialogView.findViewById(R.id.et_amount);

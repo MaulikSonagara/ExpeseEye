@@ -32,6 +32,7 @@ import com.example.expenseeye.utils.ExpenseClassifier;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.expenseeye.adapters.PaymentMethodAdapter;
+import com.example.expenseeye.utils.KeyboardFollow;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -68,6 +69,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         // Bind views
         rootLayout = findViewById(R.id.rl_quick_add_root);
         cardQuickAdd = findViewById(R.id.card_quick_add);
+        KeyboardFollow.attach(rootLayout, cardQuickAdd);
         etAmount = findViewById(R.id.et_amount);
         etTitle = findViewById(R.id.et_title);
         spinnerCategory = findViewById(R.id.spinner_category);
@@ -144,6 +146,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
 
         // Root layout tap (dismiss when click outside dialog card)
         rootLayout.setOnClickListener(v -> dismissWithAnimation());
+        findViewById(R.id.scroll_quick_add).setOnClickListener(v -> dismissWithAnimation());
         cardQuickAdd.setOnClickListener(v -> {
             // Prevent clicks inside card from closing activity
         });

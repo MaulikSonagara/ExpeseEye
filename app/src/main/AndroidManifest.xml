@@ -44,7 +44,7 @@
         <activity
             android:name=".QuickAddExpenseActivity"
             android:theme="@style/Theme.ExpenseEye.TransparentActivity"
-            android:windowSoftInputMode="stateAlwaysVisible|adjustResize"
+            android:windowSoftInputMode="stateAlwaysVisible|adjustNothing"
             android:excludeFromRecents="true"
             android:exported="false" />
 
@@ -52,7 +52,7 @@
         <activity
             android:name=".QuickAddChecklistActivity"
             android:theme="@style/Theme.ExpenseEye.TransparentActivity"
-            android:windowSoftInputMode="stateAlwaysVisible|adjustResize"
+            android:windowSoftInputMode="stateAlwaysVisible|adjustNothing"
             android:excludeFromRecents="true"
             android:exported="false" />
 

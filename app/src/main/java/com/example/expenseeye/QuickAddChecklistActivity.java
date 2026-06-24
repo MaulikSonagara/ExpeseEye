@@ -17,6 +17,7 @@ import com.example.expenseeye.database.AppDatabase;
 import com.example.expenseeye.models.ChecklistItem;
 import com.example.expenseeye.repository.AppRepository;
 import com.example.expenseeye.utils.ExpenseClassifier;
+import com.example.expenseeye.utils.KeyboardFollow;
 import com.example.expenseeye.widget.WidgetProvider;
 import com.google.android.material.button.MaterialButton;
 
@@ -43,6 +44,7 @@ public class QuickAddChecklistActivity extends AppCompatActivity {
         // Bind views
         rootLayout = findViewById(R.id.rl_quick_add_root);
         cardQuickAdd = findViewById(R.id.card_quick_add);
+        KeyboardFollow.attach(rootLayout, cardQuickAdd);
         etTitle = findViewById(R.id.et_item_title);
         etQty = findViewById(R.id.et_item_qty);
         rvPriority = findViewById(R.id.rv_item_priority);
