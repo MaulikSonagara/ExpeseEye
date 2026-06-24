@@ -14,30 +14,10 @@ public class KeyboardFollow {
 
             // keyboardHeight is the distance from the bottom of the screen that the keyboard occupies
             int keyboardHeight = Math.max(imeBottom - systemBarsBottom, 0);
-            
-            if (keyboardHeight > 0) {
-                float density = rootView.getResources().getDisplayMetrics().density;
-                int gapPx = Math.round(8 * density);
 
-                // With adjustNothing, rootView height is full screen.
-                // keyboardTop is the Y coordinate of the top of the keyboard.
-                int keyboardTop = rootView.getHeight() - imeBottom;
-
-                // cardBottom is the Y coordinate of the bottom of the card in its normal centered position.
-                // We use getTop() + getHeight() which are the layout values.
-                int cardBottom = cardView.getTop() + cardView.getHeight();
-
-                // If the card's bottom is below the (keyboard top - gap), we need to move it up.
-                int overlap = cardBottom - (keyboardTop - gapPx);
-                
-                if (overlap > 0) {
-                    cardView.setTranslationY(-overlap);
-                } else {
-                    cardView.setTranslationY(0);
-                }
-            } else {
-                cardView.setTranslationY(0);
-            }
+            // Apply padding to the root view instead of translation to the card
+            // This allows NestedScrollView to handle the content properly
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), keyboardHeight);
 
             return insets;
         });
