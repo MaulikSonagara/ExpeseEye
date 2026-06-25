@@ -66,7 +66,10 @@ public class RecurringExpensesActivity extends AppCompatActivity {
             }
         });
 
-        viewModel.getEnabledCategories().observe(this, cats -> categories = cats);
+        viewModel.getEnabledCategories().observe(this, cats -> {
+            categories = cats;
+            adapter.setCategories(cats);
+        });
         viewModel.getAllPaymentMethods().observe(this, pms -> paymentMethods = pms);
 
         fab.setOnClickListener(v -> showAddEditDialog(null));

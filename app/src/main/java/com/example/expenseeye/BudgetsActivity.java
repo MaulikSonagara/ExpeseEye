@@ -70,7 +70,10 @@ public class BudgetsActivity extends AppCompatActivity {
             }
         });
 
-        viewModel.getEnabledCategories().observe(this, cats -> categories = cats);
+        viewModel.getEnabledCategories().observe(this, cats -> {
+            categories = cats;
+            adapter.setCategories(cats);
+        });
 
         fab.setOnClickListener(v -> showAddEditBudgetDialog(null));
     }

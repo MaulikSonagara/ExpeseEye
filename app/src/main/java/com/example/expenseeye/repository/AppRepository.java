@@ -380,6 +380,10 @@ public class AppRepository {
         return budgetDao.getBudgetsForMonth(month);
     }
 
+    public LiveData<Integer> getBudgetCountLive(String month) {
+        return budgetDao.getBudgetCountLive(month);
+    }
+
     public void insertBudget(Budget budget) {
         AppDatabase.databaseWriteExecutor.execute(() -> budgetDao.insert(budget));
     }
@@ -399,6 +403,10 @@ public class AppRepository {
     // Recurring Expense operations
     public LiveData<List<RecurringExpense>> getAllRecurringExpenses() {
         return recurringExpenseDao.getAllRecurringExpenses();
+    }
+
+    public LiveData<Integer> getRecurringExpenseCountLive() {
+        return recurringExpenseDao.getRecurringExpenseCountLive();
     }
 
     public void insertRecurringExpense(RecurringExpense recurringExpense) {

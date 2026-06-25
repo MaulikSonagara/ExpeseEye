@@ -12,10 +12,14 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expenseeye.R;
+import com.example.expenseeye.models.Category;
 import com.example.expenseeye.models.RecurringExpense;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class RecurringExpenseAdapter extends ListAdapter<RecurringExpense, RecurringExpenseAdapter.ViewHolder> {
 
@@ -29,6 +33,7 @@ public class RecurringExpenseAdapter extends ListAdapter<RecurringExpense, Recur
 
     private final OnItemClickListener clickListener;
     private final OnToggleListener toggleListener;
+    private final Map<String, String> categoryIconMap = new HashMap<>();
 
     public RecurringExpenseAdapter(OnItemClickListener clickListener, OnToggleListener toggleListener) {
         super(new DiffUtil.ItemCallback<RecurringExpense>() {
@@ -47,6 +52,16 @@ public class RecurringExpenseAdapter extends ListAdapter<RecurringExpense, Recur
         });
         this.clickListener = clickListener;
         this.toggleListener = toggleListener;
+    }
+
+    public void setCategories(List<Category> categories) {
+        categoryIconMap.clear();
+        if (categories != null) {
+            for (Category c : categories) {
+                categoryIconMap.put(c.getName(), c.getIconName());
+            }
+        }
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -85,6 +100,12 @@ public class RecurringExpenseAdapter extends ListAdapter<RecurringExpense, Recur
             tvDetails.setText(String.format("%s • %s", re.getFrequency(), re.getPaymentMethodName()));
             tvAmount.setText(String.format(Locale.getDefault(), "₹%.2f", re.getAmount()));
             
+            String iconName = categoryIconMap.get(re.getCategoryName());
+            if (iconName == null || iconName.isEmpty()) iconName = "ic_expenses";
+            int resId = itemView.getContext().getResources().getIdentifier(iconName, "drawable", itemView.getContext().getPackageName());
+            if (resId != 0) ivIcon.setImageResource(resId);
+            else ivIcon.setImageResource(R.drawable.ic_expenses);
+
             // Avoid listener triggering during bind
             switchEnabled.setOnCheckedChangeListener(null);
             switchEnabled.setChecked(re.isEnabled());

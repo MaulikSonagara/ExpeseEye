@@ -207,6 +207,23 @@ public class SettingsFragment extends Fragment {
             Intent intent = new Intent(getActivity(), com.example.expenseeye.RecurringExpensesActivity.class);
             startActivity(intent);
         });
+
+        // Set counts
+        TextView tvBudgetCount = view.findViewById(R.id.tv_budget_count);
+        TextView tvRecurringCount = view.findViewById(R.id.tv_recurring_count);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("MM-yyyy", Locale.getDefault());
+        String currentMonth = sdf.format(new Date());
+
+        viewModel.getBudgetCountLive(currentMonth).observe(getViewLifecycleOwner(), count -> {
+            int c = count != null ? count : 0;
+            tvBudgetCount.setText(c + " active");
+        });
+
+        viewModel.getRecurringExpenseCountLive().observe(getViewLifecycleOwner(), count -> {
+            int c = count != null ? count : 0;
+            tvRecurringCount.setText(c + " items");
+        });
     }
 
     private void showManageBudgetsDialog() {

@@ -12,11 +12,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expenseeye.R;
 import com.example.expenseeye.models.Budget;
+import com.example.expenseeye.models.Category;
 import com.example.expenseeye.theme.ThemePreferenceHelper;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.ViewHolder> {
 
@@ -25,6 +30,7 @@ public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.ViewHolder>
     }
 
     private final OnBudgetClickListener listener;
+    private final Map<String, String> categoryIconMap = new HashMap<>();
 
     public BudgetAdapter(OnBudgetClickListener listener) {
         super(new DiffUtil.ItemCallback<Budget>() {
@@ -43,6 +49,16 @@ public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.ViewHolder>
         this.listener = listener;
     }
 
+    public void setCategories(List<Category> categories) {
+        categoryIconMap.clear();
+        if (categories != null) {
+            for (Category c : categories) {
+                categoryIconMap.put(c.getName(), c.getIconName());
+            }
+        }
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -56,10 +72,12 @@ public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.ViewHolder>
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
+        private final android.widget.ImageView ivIcon;
         private final TextView tvCategory, tvMonth, tvAmount;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            ivIcon = itemView.findViewById(R.id.iv_budget_icon);
             tvCategory = itemView.findViewById(R.id.tv_budget_category);
             tvMonth = itemView.findViewById(R.id.tv_budget_month);
             tvAmount = itemView.findViewById(R.id.tv_budget_amount);
@@ -73,6 +91,12 @@ public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.ViewHolder>
         public void bind(Budget budget) {
             tvCategory.setText(budget.getCategoryName());
             
+            String iconName = categoryIconMap.get(budget.getCategoryName());
+            if (iconName == null || iconName.isEmpty()) iconName = "ic_dashboard";
+            int resId = itemView.getContext().getResources().getIdentifier(iconName, "drawable", itemView.getContext().getPackageName());
+            if (resId != 0) ivIcon.setImageResource(resId);
+            else ivIcon.setImageResource(R.drawable.ic_dashboard);
+
             // Format month string (MM-yyyy) to readable (June 2026)
             try {
                 SimpleDateFormat in = new SimpleDateFormat("MM-yyyy", Locale.getDefault());

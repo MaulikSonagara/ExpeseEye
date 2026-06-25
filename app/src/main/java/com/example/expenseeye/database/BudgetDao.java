@@ -17,6 +17,9 @@ public interface BudgetDao {
     @Query("SELECT * FROM budgets WHERE month = :month")
     LiveData<List<Budget>> getBudgetsForMonth(String month);
 
+    @Query("SELECT COUNT(*) FROM budgets WHERE month = :month")
+    LiveData<Integer> getBudgetCountLive(String month);
+
     @Query("SELECT * FROM budgets WHERE month = :month AND categoryName = :categoryName LIMIT 1")
     Budget getBudgetSync(String month, String categoryName);
 

@@ -20,6 +20,9 @@ public interface RecurringExpenseDao {
     @Query("SELECT * FROM recurring_expenses")
     LiveData<List<RecurringExpense>> getAllRecurringExpenses();
 
+    @Query("SELECT COUNT(*) FROM recurring_expenses")
+    LiveData<Integer> getRecurringExpenseCountLive();
+
     @Query("SELECT * FROM recurring_expenses WHERE isEnabled = 1")
     List<RecurringExpense> getActiveRecurringExpensesSync();
 

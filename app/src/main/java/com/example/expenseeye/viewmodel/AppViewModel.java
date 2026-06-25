@@ -229,6 +229,10 @@ public class AppViewModel extends AndroidViewModel {
         return repository.getBudgetsForMonth(month);
     }
 
+    public LiveData<Integer> getBudgetCountLive(String month) {
+        return repository.getBudgetCountLive(month);
+    }
+
     public void insertBudget(Budget budget) {
         repository.insertBudget(budget);
     }
@@ -248,6 +252,10 @@ public class AppViewModel extends AndroidViewModel {
     // Recurring Expense methods
     public LiveData<List<RecurringExpense>> getAllRecurringExpenses() {
         return repository.getAllRecurringExpenses();
+    }
+
+    public LiveData<Integer> getRecurringExpenseCountLive() {
+        return repository.getRecurringExpenseCountLive();
     }
 
     public void insertRecurringExpense(RecurringExpense re) {
