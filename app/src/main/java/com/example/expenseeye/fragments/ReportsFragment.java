@@ -252,9 +252,12 @@ public class ReportsFragment extends Fragment {
         }
 
         // Daily Average
+        com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+        String currency = prefHelper.getCurrencySymbol();
+        
         int daysCount = uniqueDays.size();
         double dailyAvg = daysCount > 0 ? (sum / daysCount) : 0;
-        tvDailyAverage.setText(String.format(Locale.getDefault(), "₹%.2f", dailyAvg));
+        tvDailyAverage.setText(String.format(Locale.getDefault(), "%s%.2f", currency, dailyAvg));
 
         // Top Category
         String topCat = "None";
@@ -265,7 +268,7 @@ public class ReportsFragment extends Fragment {
                 topCat = entry.getKey();
             }
         }
-        tvTopCategory.setText(String.format("%s (₹%.0f)", topCat, maxCatVal));
+        tvTopCategory.setText(String.format("%s (%s%.0f)", topCat, currency, maxCatVal));
     }
 
     private void renderPieChart(List<Expense> list) {

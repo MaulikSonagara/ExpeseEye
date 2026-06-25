@@ -70,6 +70,18 @@
             android:theme="@style/Theme.ExpenseEye"
             android:exported="false" />
 
+        <activity
+            android:name=".RecurringExpensesActivity"
+            android:label="Recurring Expenses"
+            android:theme="@style/Theme.ExpenseEye"
+            android:exported="false" />
+
+        <activity
+            android:name=".BudgetsActivity"
+            android:label="Monthly Budgets"
+            android:theme="@style/Theme.ExpenseEye"
+            android:exported="false" />
+
 
 
         <!-- Expense Home Screen Widget Provider -->

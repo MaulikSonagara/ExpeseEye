@@ -241,7 +241,10 @@ public class ExpenseAdapter extends ListAdapter<ExpenseAdapter.ListItem, Recycle
             titleText.setText(expense.getTitle());
             categoryText.setText(expense.getCategoryName());
             paymentMethodText.setText(expense.getPaymentMethodName());
-            amountText.setText(String.format(Locale.getDefault(), "- ₹%.2f", expense.getAmount()));
+            
+            com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(itemView.getContext());
+            String currency = prefHelper.getCurrencySymbol();
+            amountText.setText(String.format(Locale.getDefault(), "- %s%.2f", currency, expense.getAmount()));
 
             if (expense.getDescription() != null && !expense.getDescription().trim().isEmpty()) {
                 descriptionText.setText(expense.getDescription());

@@ -6,16 +6,20 @@ import androidx.lifecycle.LiveData;
 import androidx.sqlite.db.SimpleSQLiteQuery;
 
 import com.example.expenseeye.database.AppDatabase;
+import com.example.expenseeye.database.BudgetDao;
 import com.example.expenseeye.database.CategoryDao;
 import com.example.expenseeye.database.CategoryKeywordsDao;
 import com.example.expenseeye.database.ChecklistItemDao;
 import com.example.expenseeye.database.ExpenseDao;
 import com.example.expenseeye.database.PaymentMethodDao;
+import com.example.expenseeye.database.RecurringExpenseDao;
+import com.example.expenseeye.models.Budget;
 import com.example.expenseeye.models.Category;
 import com.example.expenseeye.models.CategoryKeyword;
 import com.example.expenseeye.models.ChecklistItem;
 import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.models.PaymentMethod;
+import com.example.expenseeye.models.RecurringExpense;
 import com.example.expenseeye.widget.WidgetProvider;
 
 import java.util.ArrayList;
@@ -28,6 +32,8 @@ public class AppRepository {
     private final PaymentMethodDao paymentMethodDao;
     private final ChecklistItemDao checklistItemDao;
     private final CategoryKeywordsDao categoryKeywordsDao;
+    private final BudgetDao budgetDao;
+    private final RecurringExpenseDao recurringExpenseDao;
 
     private final LiveData<List<Expense>> allExpenses;
     private final LiveData<List<Category>> allCategories;
@@ -43,6 +49,8 @@ public class AppRepository {
         paymentMethodDao = db.paymentMethodDao();
         checklistItemDao = db.checklistItemDao();
         categoryKeywordsDao = db.categoryKeywordsDao();
+        budgetDao = db.budgetDao();
+        recurringExpenseDao = db.recurringExpenseDao();
 
         allExpenses = expenseDao.getAllExpenses();
         allCategories = categoryDao.getAllCategories();
@@ -365,5 +373,43 @@ public class AppRepository {
 
     public LiveData<Integer> getPendingChecklistCountLive() {
         return checklistItemDao.getPendingCountLive();
+    }
+
+    // Budget operations
+    public LiveData<List<Budget>> getBudgetsForMonth(String month) {
+        return budgetDao.getBudgetsForMonth(month);
+    }
+
+    public void insertBudget(Budget budget) {
+        AppDatabase.databaseWriteExecutor.execute(() -> budgetDao.insert(budget));
+    }
+
+    public void updateBudget(Budget budget) {
+        AppDatabase.databaseWriteExecutor.execute(() -> budgetDao.update(budget));
+    }
+
+    public void deleteBudget(Budget budget) {
+        AppDatabase.databaseWriteExecutor.execute(() -> budgetDao.delete(budget));
+    }
+
+    public Budget getBudgetSync(String month, String category) {
+        return budgetDao.getBudgetSync(month, category);
+    }
+
+    // Recurring Expense operations
+    public LiveData<List<RecurringExpense>> getAllRecurringExpenses() {
+        return recurringExpenseDao.getAllRecurringExpenses();
+    }
+
+    public void insertRecurringExpense(RecurringExpense recurringExpense) {
+        AppDatabase.databaseWriteExecutor.execute(() -> recurringExpenseDao.insert(recurringExpense));
+    }
+
+    public void updateRecurringExpense(RecurringExpense recurringExpense) {
+        AppDatabase.databaseWriteExecutor.execute(() -> recurringExpenseDao.update(recurringExpense));
+    }
+
+    public void deleteRecurringExpense(RecurringExpense recurringExpense) {
+        AppDatabase.databaseWriteExecutor.execute(() -> recurringExpenseDao.delete(recurringExpense));
     }
 }

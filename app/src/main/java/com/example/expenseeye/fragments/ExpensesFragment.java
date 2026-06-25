@@ -145,6 +145,8 @@ public class ExpensesFragment extends Fragment {
     private void updateActiveFilterChips() {
         chipGroupActiveFilters.removeAllViews();
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yy", Locale.getDefault());
+        com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+        String currency = prefHelper.getCurrencySymbol();
 
         if (currentParams.startDate != null) {
             addFilterChip("After: " + sdf.format(currentParams.startDate), () -> {
@@ -161,14 +163,14 @@ public class ExpensesFragment extends Fragment {
         }
 
         if (currentParams.minAmount != null) {
-            addFilterChip("Min: ₹" + currentParams.minAmount, () -> {
+            addFilterChip("Min: " + currency + currentParams.minAmount, () -> {
                 currentParams.minAmount = null;
                 viewModel.updateFilters(currentParams);
             });
         }
 
         if (currentParams.maxAmount != null) {
-            addFilterChip("Max: ₹" + currentParams.maxAmount, () -> {
+            addFilterChip("Max: " + currency + currentParams.maxAmount, () -> {
                 currentParams.maxAmount = null;
                 viewModel.updateFilters(currentParams);
             });
@@ -346,26 +348,29 @@ public class ExpensesFragment extends Fragment {
         AutoCompleteTextView spinnerCategory = dialogView.findViewById(R.id.spinner_category);
 
         // Setup suggestions for title
-        List<String> suggestions = new ArrayList<>();
-        List<com.example.expenseeye.models.CategoryKeyword> kws = viewModel.getAllKeywords().getValue();
-        if (kws == null) {
-            kws = allKeywords;
-        }
-        if (kws != null) {
-            for (com.example.expenseeye.models.CategoryKeyword kw : kws) {
-                if (kw.getKeyword() != null && !kw.getKeyword().trim().isEmpty()) {
-                    String cleanKw = kw.getKeyword().trim();
-                    if (!cleanKw.isEmpty()) {
-                        cleanKw = cleanKw.substring(0, 1).toUpperCase() + cleanKw.substring(1);
-                    }
-                    if (!suggestions.contains(cleanKw)) {
-                        suggestions.add(cleanKw);
+        com.example.expenseeye.theme.ThemePreferenceHelper prefH = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+        if (prefH.isTitleSuggestionsEnabled()) {
+            List<String> suggestions = new ArrayList<>();
+            List<com.example.expenseeye.models.CategoryKeyword> kws = viewModel.getAllKeywords().getValue();
+            if (kws == null) {
+                kws = allKeywords;
+            }
+            if (kws != null) {
+                for (com.example.expenseeye.models.CategoryKeyword kw : kws) {
+                    if (kw.getKeyword() != null && !kw.getKeyword().trim().isEmpty()) {
+                        String cleanKw = kw.getKeyword().trim();
+                        if (!cleanKw.isEmpty()) {
+                            cleanKw = cleanKw.substring(0, 1).toUpperCase() + cleanKw.substring(1);
+                        }
+                        if (!suggestions.contains(cleanKw)) {
+                            suggestions.add(cleanKw);
+                        }
                     }
                 }
             }
+            ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, suggestions);
+            etTitle.setAdapter(titleAdapter);
         }
-        ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, suggestions);
-        etTitle.setAdapter(titleAdapter);
         Button btnDate = dialogView.findViewById(R.id.btn_date);
         Button btnTime = dialogView.findViewById(R.id.btn_time);
         EditText etDescription = dialogView.findViewById(R.id.et_description);
@@ -401,6 +406,29 @@ public class ExpensesFragment extends Fragment {
             viewModel.deleteExpense(expense);
             Toast.makeText(getContext(), "Expense deleted", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
+        });
+
+        // Smart Classifier Text Watcher
+        etTitle.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                com.example.expenseeye.theme.ThemePreferenceHelper ph = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+                if (!ph.isSmartClassifierEnabled()) return;
+
+                String titleText = s.toString();
+                String descText = etDescription != null ? etDescription.getText().toString() : "";
+                String classified = com.example.expenseeye.utils.ExpenseClassifier.classifyExpense(titleText + " " + descText, availableCategories, allKeywords);
+                int index = catNames.indexOf(classified);
+                if (index >= 0) {
+                    spinnerCategory.setText(classified, false);
+                }
+            }
         });
 
         SimpleDateFormat sdfDate = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());

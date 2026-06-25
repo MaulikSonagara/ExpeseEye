@@ -113,7 +113,20 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
 
             runOnUiThread(() -> {
                 setupCategorySpinner();
-                setupPaymentMethodChips();
+                
+                com.example.expenseeye.theme.ThemePreferenceHelper ph = new com.example.expenseeye.theme.ThemePreferenceHelper(this);
+                int savedId = ph.getDefaultPaymentMethodId();
+                String defaultName = "UPI";
+                if (savedId != -1) {
+                    for (PaymentMethod pm : availablePaymentMethods) {
+                        if (pm.getId() == savedId) {
+                            defaultName = pm.getName();
+                            break;
+                        }
+                    }
+                }
+                setupPaymentMethodChips(defaultName);
+
                 // Check if category was preselected from widget
                 handlePreselectedCategory();
                 // Setup suggestions for title input
@@ -131,6 +144,9 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
+                com.example.expenseeye.theme.ThemePreferenceHelper prefH = new com.example.expenseeye.theme.ThemePreferenceHelper(QuickAddExpenseActivity.this);
+                if (!prefH.isSmartClassifierEnabled()) return;
+
                 String titleText = s.toString();
                 String descText = etDescription != null ? etDescription.getText().toString() : "";
                 String classified = ExpenseClassifier.classifyExpense(titleText + " " + descText, availableCategories, allKeywords[0]);
@@ -140,6 +156,9 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
                 }
             }
         });
+
+        // Initialize with default payment method if set (will be finalized in UI thread)
+        final com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(this);
 
         // Cancel click listener
         btnCancel.setOnClickListener(v -> dismissWithAnimation());
@@ -200,7 +219,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
 
     private PaymentMethodAdapter adapterMain, adapterOther;
 
-    private void setupPaymentMethodChips() {
+    private void setupPaymentMethodChips(String defaultMethod) {
         RecyclerView rvMain = findViewById(R.id.rv_payment_main);
         android.widget.LinearLayout layoutOther = findViewById(R.id.layout_payment_other);
         RecyclerView rvOther = findViewById(R.id.rv_payment_other);
@@ -208,7 +227,15 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         List<String> mainMethods = Arrays.asList("Cash", "UPI", "Other");
         List<String> otherMethods = Arrays.asList("Debit Card", "Credit Card", "Bank Transfer", "Wallet");
 
-        adapterMain = new PaymentMethodAdapter(mainMethods, "UPI", name -> {
+        String initialMain = "UPI";
+        if (mainMethods.contains(defaultMethod)) {
+            initialMain = defaultMethod;
+        } else if (otherMethods.contains(defaultMethod)) {
+            initialMain = "Other";
+            layoutOther.setVisibility(View.VISIBLE);
+        }
+
+        adapterMain = new PaymentMethodAdapter(mainMethods, initialMain, name -> {
             if ("Other".equals(name)) {
                 layoutOther.setVisibility(View.VISIBLE);
             } else {
@@ -220,7 +247,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         rvMain.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         rvMain.setAdapter(adapterMain);
 
-        adapterOther = new PaymentMethodAdapter(otherMethods, "", name -> {
+        adapterOther = new PaymentMethodAdapter(otherMethods, otherMethods.contains(defaultMethod) ? defaultMethod : "", name -> {
             // Handled internally by adapter
         });
         rvOther.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));

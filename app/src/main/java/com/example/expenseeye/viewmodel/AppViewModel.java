@@ -8,11 +8,13 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
+import com.example.expenseeye.models.Budget;
 import com.example.expenseeye.models.Category;
 import com.example.expenseeye.models.CategoryKeyword;
 import com.example.expenseeye.models.ChecklistItem;
 import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.models.PaymentMethod;
+import com.example.expenseeye.models.RecurringExpense;
 import com.example.expenseeye.repository.AppRepository;
 
 import java.util.ArrayList;
@@ -220,5 +222,43 @@ public class AppViewModel extends AndroidViewModel {
 
     public LiveData<List<Expense>> getExpensesInRange(long start, long end) {
         return repository.getExpensesInRange(start, end);
+    }
+
+    // Budget methods
+    public LiveData<List<Budget>> getBudgetsForMonth(String month) {
+        return repository.getBudgetsForMonth(month);
+    }
+
+    public void insertBudget(Budget budget) {
+        repository.insertBudget(budget);
+    }
+
+    public void updateBudget(Budget budget) {
+        repository.updateBudget(budget);
+    }
+
+    public void deleteBudget(Budget budget) {
+        repository.deleteBudget(budget);
+    }
+
+    public Budget getBudgetSync(String month, String category) {
+        return repository.getBudgetSync(month, category);
+    }
+
+    // Recurring Expense methods
+    public LiveData<List<RecurringExpense>> getAllRecurringExpenses() {
+        return repository.getAllRecurringExpenses();
+    }
+
+    public void insertRecurringExpense(RecurringExpense re) {
+        repository.insertRecurringExpense(re);
+    }
+
+    public void updateRecurringExpense(RecurringExpense re) {
+        repository.updateRecurringExpense(re);
+    }
+
+    public void deleteRecurringExpense(RecurringExpense re) {
+        repository.deleteRecurringExpense(re);
     }
 }

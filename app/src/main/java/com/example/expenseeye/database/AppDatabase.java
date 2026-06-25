@@ -10,22 +10,26 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import com.example.expenseeye.models.Budget;
 import com.example.expenseeye.models.Category;
 import com.example.expenseeye.models.CategoryKeyword;
 import com.example.expenseeye.models.ChecklistItem;
 import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.models.PaymentMethod;
+import com.example.expenseeye.models.RecurringExpense;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {Expense.class, Category.class, PaymentMethod.class, ChecklistItem.class, CategoryKeyword.class}, version = 3, exportSchema = false)
+@Database(entities = {Expense.class, Category.class, PaymentMethod.class, ChecklistItem.class, CategoryKeyword.class, Budget.class, RecurringExpense.class}, version = 4, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract ExpenseDao expenseDao();
     public abstract CategoryDao categoryDao();
     public abstract PaymentMethodDao paymentMethodDao();
     public abstract ChecklistItemDao checklistItemDao();
     public abstract CategoryKeywordsDao categoryKeywordsDao();
+    public abstract BudgetDao budgetDao();
+    public abstract RecurringExpenseDao recurringExpenseDao();
 
     private static volatile AppDatabase INSTANCE;
     private static final int NUMBER_OF_THREADS = 4;
@@ -120,13 +124,38 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    public static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // Create budgets table
+            database.execSQL("CREATE TABLE IF NOT EXISTS budgets (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "amount REAL NOT NULL, " +
+                    "categoryName TEXT, " +
+                    "month TEXT)");
+
+            // Create recurring_expenses table
+            database.execSQL("CREATE TABLE IF NOT EXISTS recurring_expenses (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "title TEXT, " +
+                    "amount REAL NOT NULL, " +
+                    "categoryId INTEGER NOT NULL, " +
+                    "categoryName TEXT, " +
+                    "paymentMethodId INTEGER NOT NULL, " +
+                    "paymentMethodName TEXT, " +
+                    "frequency TEXT, " +
+                    "lastLoggedTimestamp INTEGER NOT NULL, " +
+                    "isEnabled INTEGER NOT NULL)");
+        }
+    };
+
     public static AppDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "expense_eye_database")
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                             .addCallback(sRoomDatabaseCallback)
                             .build();
                 }

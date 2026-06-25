@@ -3,4 +3,5 @@
     <string name="splash_logo_description">ExpenseEye logo</string>
     <string name="splash_tagline">Track Spending • Organize Shopping</string>
     <string name="splash_status_loading">Setting up your ledger</string>
+    <string name="dashboard_tagline">Your Daily Expense Assistant</string>
 </resources>

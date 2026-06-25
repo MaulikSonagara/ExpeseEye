@@ -26,9 +26,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expenseeye.R;
 import com.example.expenseeye.adapters.ExpenseAdapter;
+import com.example.expenseeye.models.Budget;
 import com.example.expenseeye.models.Category;
 import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.models.PaymentMethod;
+import com.example.expenseeye.theme.ThemePreferenceHelper;
 import com.example.expenseeye.utils.ExpenseClassifier;
 import com.example.expenseeye.viewmodel.AppViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -50,6 +52,8 @@ public class DashboardFragment extends Fragment {
     private AppViewModel viewModel;
     private ExpenseAdapter adapter;
     private TextView tvMonthTotal, tvTodayTotal, tvWeekTotal, tvYearTotal, tvComparison, tvNoExpenses;
+    private android.widget.LinearLayout layoutBudgetContainer;
+    private View tvBudgetHeader, cardBudgetContainer;
     private RecyclerView rvRecentExpenses;
     private List<Category> availableCategories = new ArrayList<>();
     private List<PaymentMethod> availablePaymentMethods = new ArrayList<>();
@@ -71,6 +75,9 @@ public class DashboardFragment extends Fragment {
         tvComparison = view.findViewById(R.id.tv_comparison);
         tvNoExpenses = view.findViewById(R.id.tv_no_expenses);
         rvRecentExpenses = view.findViewById(R.id.rv_recent_expenses);
+        layoutBudgetContainer = view.findViewById(R.id.layout_budget_container);
+        tvBudgetHeader = view.findViewById(R.id.tv_budget_header);
+        cardBudgetContainer = view.findViewById(R.id.card_budget_container);
         FloatingActionButton fabAddExpense = view.findViewById(R.id.fab_add_expense);
         TextView btnSeeAll = view.findViewById(R.id.btn_see_all);
 
@@ -122,6 +129,7 @@ public class DashboardFragment extends Fragment {
 
                 // Calculate statistics
                 calculateTotals(expenses);
+                updateBudgetSection(expenses);
             } else {
                 tvNoExpenses.setVisibility(View.VISIBLE);
                 rvRecentExpenses.setVisibility(View.GONE);
@@ -155,6 +163,7 @@ public class DashboardFragment extends Fragment {
     }
 
     private void calculateTotals(List<Expense> expenses) {
+        // ... (existing code)
         double todayTotal = 0;
         double weekTotal = 0;
         double monthTotal = 0;
@@ -218,25 +227,90 @@ public class DashboardFragment extends Fragment {
             }
         }
 
-        tvTodayTotal.setText(String.format(Locale.getDefault(), "₹%.2f", todayTotal));
-        tvWeekTotal.setText(String.format(Locale.getDefault(), "₹%.2f", weekTotal));
-        tvMonthTotal.setText(String.format(Locale.getDefault(), "₹%.2f", monthTotal));
-        tvYearTotal.setText(String.format(Locale.getDefault(), "₹%.2f", yearTotal));
+        com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+        String currency = prefHelper.getCurrencySymbol();
+
+        tvTodayTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currency, todayTotal));
+        tvWeekTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currency, weekTotal));
+        tvMonthTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currency, monthTotal));
+        tvYearTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currency, yearTotal));
 
         // Comparison text
         if (lastMonthTotal > 0) {
             double difference = monthTotal - lastMonthTotal;
             if (difference > 0) {
-                tvComparison.setText(String.format(Locale.getDefault(), "Spent ₹%.2f more than last month (₹%.2f)", difference, lastMonthTotal));
+                tvComparison.setText(String.format(Locale.getDefault(), "Spent %s%.2f more than last month (%s%.2f)", currency, difference, currency, lastMonthTotal));
                 tvComparison.setTextColor(Color.parseColor("#FFCDD2"));
             } else {
-                tvComparison.setText(String.format(Locale.getDefault(), "Saved ₹%.2f compared to last month (₹%.2f)", Math.abs(difference), lastMonthTotal));
+                tvComparison.setText(String.format(Locale.getDefault(), "Saved %s%.2f compared to last month (%s%.2f)", currency, Math.abs(difference), currency, lastMonthTotal));
                 tvComparison.setTextColor(Color.parseColor("#C8E6C9"));
             }
         } else {
             tvComparison.setText("First month logging data. Keep it up!");
             tvComparison.setTextColor(Color.parseColor("#E8EAF6"));
         }
+    }
+
+    private void updateBudgetSection(List<Expense> expenses) {
+        SimpleDateFormat sdf = new SimpleDateFormat("MM-yyyy", Locale.getDefault());
+        String currentMonth = sdf.format(new Date());
+
+        viewModel.getBudgetsForMonth(currentMonth).observe(getViewLifecycleOwner(), budgets -> {
+            layoutBudgetContainer.removeAllViews();
+            if (budgets == null || budgets.isEmpty()) {
+                tvBudgetHeader.setVisibility(View.GONE);
+                cardBudgetContainer.setVisibility(View.GONE);
+                return;
+            }
+
+            tvBudgetHeader.setVisibility(View.VISIBLE);
+            cardBudgetContainer.setVisibility(View.VISIBLE);
+            
+            ThemePreferenceHelper prefHelper = new ThemePreferenceHelper(requireContext());
+            String currency = prefHelper.getCurrencySymbol();
+            
+            Calendar calMonth = Calendar.getInstance();
+            calMonth.set(Calendar.DAY_OF_MONTH, 1);
+            calMonth.set(Calendar.HOUR_OF_DAY, 0);
+            long monthStart = calMonth.getTimeInMillis();
+
+            for (Budget b : budgets) {
+                View budgetView = getLayoutInflater().inflate(R.layout.item_dashboard_budget, layoutBudgetContainer, false);
+                
+                TextView tvLabel = budgetView.findViewById(R.id.tv_budget_label);
+                TextView tvPercent = budgetView.findViewById(R.id.tv_budget_percent);
+                com.google.android.material.progressindicator.LinearProgressIndicator progress = budgetView.findViewById(R.id.progress_budget);
+                TextView tvRemaining = budgetView.findViewById(R.id.tv_budget_remaining);
+
+                tvLabel.setText(b.getCategoryName().toUpperCase() + " BUDGET");
+
+                double totalSpent = 0;
+                for (Expense e : expenses) {
+                    if (e.getTimestamp() >= monthStart) {
+                        if ("Overall".equalsIgnoreCase(b.getCategoryName()) || 
+                            b.getCategoryName().equalsIgnoreCase(e.getCategoryName())) {
+                            totalSpent += e.getAmount();
+                        }
+                    }
+                }
+
+                double budgetAmount = b.getAmount();
+                int percent = budgetAmount > 0 ? (int) ((totalSpent / budgetAmount) * 100) : 0;
+                progress.setProgress(Math.min(percent, 100));
+                tvPercent.setText(percent + "%");
+
+                double remaining = budgetAmount - totalSpent;
+                if (remaining >= 0) {
+                    tvRemaining.setText(String.format(Locale.getDefault(), "%s%.2f remaining", currency, remaining));
+                    tvRemaining.setTextColor(Color.parseColor("#C5CAE9"));
+                } else {
+                    tvRemaining.setText(String.format(Locale.getDefault(), "%s%.2f over budget!", currency, Math.abs(remaining)));
+                    tvRemaining.setTextColor(Color.parseColor("#FFCDD2"));
+                }
+
+                layoutBudgetContainer.addView(budgetView);
+            }
+        });
     }
 
     private boolean isSameDay(long ts1, long ts2) {
@@ -315,7 +389,18 @@ public class DashboardFragment extends Fragment {
         spinnerCategory.setAdapter(catAdapter);
 
         // Populate Payment Method Chips
-        setupPaymentMethodChipsForDialog(dialogView, null);
+        com.example.expenseeye.theme.ThemePreferenceHelper ph = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+        int savedPmId = ph.getDefaultPaymentMethodId();
+        String initialPm = null;
+        if (savedPmId != -1) {
+            for (PaymentMethod pm : availablePaymentMethods) {
+                if (pm.getId() == savedPmId) {
+                    initialPm = pm.getName();
+                    break;
+                }
+            }
+        }
+        setupPaymentMethodChipsForDialog(dialogView, initialPm);
 
         // Smart Classifier Text Watcher
         final List<Category> finalActiveCats = activeCats;
@@ -328,6 +413,9 @@ public class DashboardFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
+                com.example.expenseeye.theme.ThemePreferenceHelper prefH = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+                if (!prefH.isSmartClassifierEnabled()) return;
+
                 String titleText = s.toString();
                 String descText = etDescription != null ? etDescription.getText().toString() : "";
                 List<com.example.expenseeye.models.CategoryKeyword> kws = viewModel.getAllKeywords().getValue();

@@ -8,6 +8,9 @@ public class ThemePreferenceHelper {
     private static final String KEY_THEME = "selected_theme_v2";
     private static final String KEY_MODE = "selected_mode_v2";
     private static final String KEY_SUGGESTIONS = "title_suggestions_enabled";
+    private static final String KEY_CURRENCY = "currency_symbol";
+    private static final String KEY_DEFAULT_PAYMENT = "default_payment_method";
+    private static final String KEY_SMART_CLASSIFIER = "smart_classifier_enabled";
 
     public static final String THEME_MIDNIGHT = "Midnight Calm";
     public static final String THEME_FOREST = "Forest Ledger";
@@ -49,5 +52,29 @@ public class ThemePreferenceHelper {
 
     public boolean isTitleSuggestionsEnabled() {
         return prefs.getBoolean(KEY_SUGGESTIONS, true);
+    }
+
+    public void setCurrencySymbol(String symbol) {
+        prefs.edit().putString(KEY_CURRENCY, symbol).apply();
+    }
+
+    public String getCurrencySymbol() {
+        return prefs.getString(KEY_CURRENCY, "₹");
+    }
+
+    public void setDefaultPaymentMethodId(int id) {
+        prefs.edit().putInt(KEY_DEFAULT_PAYMENT, id).apply();
+    }
+
+    public int getDefaultPaymentMethodId() {
+        return prefs.getInt(KEY_DEFAULT_PAYMENT, -1);
+    }
+
+    public void setSmartClassifierEnabled(boolean enabled) {
+        prefs.edit().putBoolean(KEY_SMART_CLASSIFIER, enabled).apply();
+    }
+
+    public boolean isSmartClassifierEnabled() {
+        return prefs.getBoolean(KEY_SMART_CLASSIFIER, true);
     }
 }

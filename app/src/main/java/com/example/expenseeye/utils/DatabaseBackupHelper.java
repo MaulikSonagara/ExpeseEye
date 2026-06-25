@@ -35,7 +35,27 @@ public class DatabaseBackupHelper {
         return false;
     }
 
-    public static boolean validateBackupFile(Context context, Uri sourceUri) {
+    public static class ValidationResult {
+        public final boolean isValid;
+        public final String errorMessage;
+        public final int version;
+
+        public ValidationResult(boolean isValid, String errorMessage, int version) {
+            this.isValid = isValid;
+            this.errorMessage = errorMessage;
+            this.version = version;
+        }
+
+        public static ValidationResult valid(int version) {
+            return new ValidationResult(true, null, version);
+        }
+
+        public static ValidationResult invalid(String message) {
+            return new ValidationResult(false, message, -1);
+        }
+    }
+
+    public static ValidationResult validateBackupFile(Context context, Uri sourceUri) {
         File tempFile = new File(context.getCacheDir(), "temp_restore.db");
         if (tempFile.exists()) {
             tempFile.delete();
@@ -43,7 +63,7 @@ public class DatabaseBackupHelper {
 
         try (InputStream in = context.getContentResolver().openInputStream(sourceUri);
              OutputStream out = new FileOutputStream(tempFile)) {
-            if (in == null) return false;
+            if (in == null) return ValidationResult.invalid("Unable to open backup file");
             byte[] buffer = new byte[8192];
             int read;
             while ((read = in.read(buffer)) != -1) {
@@ -52,18 +72,29 @@ public class DatabaseBackupHelper {
             
             // Try opening with SQLiteDatabase to validate
             try (SQLiteDatabase db = SQLiteDatabase.openDatabase(tempFile.getPath(), null, SQLiteDatabase.OPEN_READONLY)) {
-                // Check if standard table "expenses" exists
-                android.database.Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='expenses'", null);
-                boolean hasExpensesTable = cursor != null && cursor.moveToFirst();
-                if (cursor != null) cursor.close();
-                return hasExpensesTable;
+                // Check for essential tables
+                boolean hasExpenses = false;
+                boolean hasCategories = false;
+                
+                try (android.database.Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('expenses', 'categories')", null)) {
+                    while (cursor != null && cursor.moveToNext()) {
+                        String tableName = cursor.getString(0);
+                        if ("expenses".equals(tableName)) hasExpenses = true;
+                        if ("categories".equals(tableName)) hasCategories = true;
+                    }
+                }
+
+                if (!hasExpenses || !hasCategories) {
+                    return ValidationResult.invalid("Required data tables (expenses/categories) are missing in backup");
+                }
+
+                int version = db.getVersion();
+                return ValidationResult.valid(version);
             } catch (Exception e) {
-                e.printStackTrace();
-                return false;
+                return ValidationResult.invalid("File is not a valid SQLite database or is corrupted");
             }
         } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+            return ValidationResult.invalid("IO Error: " + e.getMessage());
         } finally {
             if (tempFile.exists()) {
                 tempFile.delete();

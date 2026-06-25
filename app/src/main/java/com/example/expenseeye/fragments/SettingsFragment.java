@@ -14,6 +14,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -29,7 +31,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.expenseeye.R;
 import com.example.expenseeye.adapters.ThemeSelectionAdapter;
 import com.example.expenseeye.database.AppDatabase;
+import com.example.expenseeye.models.Budget;
+import com.example.expenseeye.models.Category;
 import com.example.expenseeye.models.Expense;
+import com.example.expenseeye.models.PaymentMethod;
 import com.example.expenseeye.theme.ThemePreferenceHelper;
 import com.example.expenseeye.utils.DatabaseBackupHelper;
 import com.example.expenseeye.utils.ExportHelper;
@@ -126,7 +131,168 @@ public class SettingsFragment extends Fragment {
 
         setupThemeSelection(view);
         setupModeSwitch(view);
+        setupEnhancedSettings(view);
         setupActionButtons(view);
+    }
+
+    private void setupEnhancedSettings(View view) {
+        // Smart Classifier
+        MaterialSwitch switchSmart = view.findViewById(R.id.switch_smart_classifier);
+        if (switchSmart != null) {
+            switchSmart.setChecked(themeHelper.isSmartClassifierEnabled());
+            switchSmart.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                themeHelper.setSmartClassifierEnabled(isChecked);
+            });
+        }
+
+        // Currency Symbol
+        AutoCompleteTextView spinnerCurrency = view.findViewById(R.id.spinner_currency);
+        if (spinnerCurrency != null) {
+            String[] currencies = {"₹", "$", "€", "£", "¥", "₩", "₽"};
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, currencies);
+            spinnerCurrency.setAdapter(adapter);
+            spinnerCurrency.setText(themeHelper.getCurrencySymbol(), false);
+            spinnerCurrency.setOnClickListener(v -> spinnerCurrency.showDropDown());
+            spinnerCurrency.setOnItemClickListener((parent, view1, position, id) -> {
+                themeHelper.setCurrencySymbol(currencies[position]);
+                // Toast to inform user it requires refresh for some parts
+                Toast.makeText(getContext(), "Currency updated! Restart app to apply everywhere.", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        // Default Payment Method
+        AutoCompleteTextView spinnerPayment = view.findViewById(R.id.spinner_default_payment);
+        if (spinnerPayment != null) {
+            viewModel.getAllPaymentMethods().observe(getViewLifecycleOwner(), pms -> {
+                if (pms == null || pms.isEmpty()) return;
+                
+                List<String> names = new ArrayList<>();
+                names.add("None (Auto)");
+                for (PaymentMethod pm : pms) {
+                    names.add(pm.getName());
+                }
+                
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, names);
+                spinnerPayment.setAdapter(adapter);
+                
+                int savedId = themeHelper.getDefaultPaymentMethodId();
+                String currentName = "None (Auto)";
+                if (savedId != -1) {
+                    for (PaymentMethod pm : pms) {
+                        if (pm.getId() == savedId) {
+                            currentName = pm.getName();
+                            break;
+                        }
+                    }
+                }
+                spinnerPayment.setText(currentName, false);
+                spinnerPayment.setOnClickListener(v -> spinnerPayment.showDropDown());
+                
+                spinnerPayment.setOnItemClickListener((parent, view1, position, id) -> {
+                    if (position == 0) {
+                        themeHelper.setDefaultPaymentMethodId(-1);
+                    } else {
+                        themeHelper.setDefaultPaymentMethodId(pms.get(position - 1).getId());
+                    }
+                });
+            });
+        }
+
+        // Budgeting & Recurring Button Actions
+        view.findViewById(R.id.btn_manage_budgets).setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), com.example.expenseeye.BudgetsActivity.class);
+            startActivity(intent);
+        });
+        view.findViewById(R.id.btn_manage_recurring).setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), com.example.expenseeye.RecurringExpensesActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    private void showManageBudgetsDialog() {
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_manage_budgets, null);
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .setTitle("Monthly Budgets")
+                .setPositiveButton("Close", null)
+                .create();
+
+        EditText etAmount = dialogView.findViewById(R.id.et_budget_amount);
+        AutoCompleteTextView spinnerCategory = dialogView.findViewById(R.id.spinner_budget_category);
+        com.google.android.material.button.MaterialButton btnSave = dialogView.findViewById(R.id.btn_save_budget);
+        com.google.android.material.button.MaterialButton btnDelete = dialogView.findViewById(R.id.btn_delete_budget);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("MM-yyyy", Locale.getDefault());
+        String currentMonth = sdf.format(new Date());
+
+        // Setup categories
+        viewModel.getEnabledCategories().observe(getViewLifecycleOwner(), cats -> {
+            List<String> names = new ArrayList<>();
+            names.add("Overall");
+            for (Category c : cats) names.add(c.getName());
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, names);
+            spinnerCategory.setAdapter(adapter);
+            spinnerCategory.setText("Overall", false);
+            
+            // Initial load of overall budget
+            loadBudgetForCategory("Overall", currentMonth, etAmount);
+        });
+
+        spinnerCategory.setOnItemClickListener((parent, view, position, id) -> {
+            String selected = parent.getItemAtPosition(position).toString();
+            loadBudgetForCategory(selected, currentMonth, etAmount);
+        });
+
+        btnSave.setOnClickListener(v -> {
+            String amtStr = etAmount.getText().toString();
+            if (amtStr.isEmpty()) return;
+            
+            double amount = Double.parseDouble(amtStr);
+            String cat = spinnerCategory.getText().toString();
+            
+            new Thread(() -> {
+                Budget existing = viewModel.getBudgetSync(currentMonth, cat);
+                if (existing != null) {
+                    existing.setAmount(amount);
+                    viewModel.updateBudget(existing);
+                } else {
+                    viewModel.insertBudget(new Budget(amount, cat, currentMonth));
+                }
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Budget saved!", Toast.LENGTH_SHORT).show());
+                }
+            }).start();
+        });
+
+        btnDelete.setOnClickListener(v -> {
+            String cat = spinnerCategory.getText().toString();
+            new Thread(() -> {
+                Budget existing = viewModel.getBudgetSync(currentMonth, cat);
+                if (existing != null) {
+                    viewModel.deleteBudget(existing);
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            etAmount.setText("");
+                            Toast.makeText(getContext(), "Budget deleted", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+            }).start();
+        });
+
+        dialog.show();
+    }
+
+    private void loadBudgetForCategory(String category, String month, EditText etAmount) {
+        new Thread(() -> {
+            Budget b = viewModel.getBudgetSync(month, category);
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    if (b != null) etAmount.setText(String.valueOf(b.getAmount()));
+                    else etAmount.setText("");
+                });
+            }
+        }).start();
     }
 
     private void setupThemeSelection(View view) {
@@ -713,20 +879,20 @@ public class SettingsFragment extends Fragment {
         }).start();
     }
 
-    // --- Database Restore ---
+    // --- Database Restoration ---
     private void performRestore(Uri sourceUri) {
         new Thread(() -> {
             // 1. Validate file before restoring
-            boolean isValid = DatabaseBackupHelper.validateBackupFile(requireContext(), sourceUri);
-            if (!isValid) {
-                showToastOnMainThread("Invalid backup file. Restore aborted to prevent crashes.");
+            DatabaseBackupHelper.ValidationResult result = DatabaseBackupHelper.validateBackupFile(requireContext(), sourceUri);
+            if (!result.isValid) {
+                showToastOnMainThread("Restore failed: " + result.errorMessage);
                 return;
             }
 
             // 2. Perform safe restore
             boolean success = DatabaseBackupHelper.restoreDatabase(requireContext(), sourceUri);
             if (success) {
-                showToastOnMainThread("Database restored successfully! Restarting app...");
+                showToastOnMainThread("Database restored (v" + result.version + ") successfully! Restarting app...");
                 
                 // Restart app on main thread to apply changes cleanly
                 if (getActivity() != null) {

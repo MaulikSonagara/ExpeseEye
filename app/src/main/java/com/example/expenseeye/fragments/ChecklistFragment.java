@@ -79,6 +79,10 @@ public class ChecklistFragment extends Fragment {
                     );
                     updated.setId(item.getId());
                     viewModel.updateChecklistItem(updated);
+
+                    if (isChecked) {
+                        showLogAsExpenseDialog(item);
+                    }
                 }
             }
 
@@ -123,7 +127,11 @@ public class ChecklistFragment extends Fragment {
             }
 
             // Auto-categorize based on title
-            String category = ExpenseClassifier.classifyChecklistItem(title);
+            com.example.expenseeye.theme.ThemePreferenceHelper prefH = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+            String category = "Other";
+            if (prefH.isSmartClassifierEnabled()) {
+                category = ExpenseClassifier.classifyChecklistItem(title);
+            }
 
             ChecklistItem item = new ChecklistItem(title, category, qty, priority, false);
             viewModel.insertChecklistItem(item);
@@ -132,7 +140,7 @@ public class ChecklistFragment extends Fragment {
             etTitle.setText("");
             etQty.setText("");
             priorityAdapter.setSelectedPriority(priorities[0]);
-            Toast.makeText(getContext(), "Item added: Classified as " + category, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Item added" + (prefH.isSmartClassifierEnabled() ? ": Classified as " + category : ""), Toast.LENGTH_SHORT).show();
         });
 
         return view;
@@ -167,5 +175,68 @@ public class ChecklistFragment extends Fragment {
         }
 
         adapter.submitList(filtered);
+    }
+
+    private void showLogAsExpenseDialog(com.example.expenseeye.models.ChecklistItem item) {
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Log as Expense?")
+                .setMessage("Do you want to log '" + item.getTitle() + "' as an expense?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    showAddExpenseDialog(item);
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void showAddExpenseDialog(com.example.expenseeye.models.ChecklistItem item) {
+        // Find existing categories to match
+        viewModel.getEnabledCategories().observe(getViewLifecycleOwner(), categories -> {
+            if (categories == null || categories.isEmpty()) return;
+
+            // Simple classification: if item category name matches a system category
+            String catName = item.getCategory();
+            int catId = categories.get(0).getId();
+            for (com.example.expenseeye.models.Category c : categories) {
+                if (c.getName().equalsIgnoreCase(catName)) {
+                    catId = c.getId();
+                    catName = c.getName();
+                    break;
+                }
+            }
+
+            final int finalCatId = catId;
+            final String finalCatName = catName;
+
+            // For simplicity, launch Dashboard to show add dialog or show a simplified one here.
+            // Let's implement a quick log with default values.
+            com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+            int defaultPmId = prefHelper.getDefaultPaymentMethodId();
+
+            new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Enter Amount for " + item.getTitle())
+                    .setView(R.layout.dialog_quick_amount)
+                    .setPositiveButton("Log", (dialog, which) -> {
+                        androidx.appcompat.app.AlertDialog d = (androidx.appcompat.app.AlertDialog) dialog;
+                        EditText etAmount = d.findViewById(R.id.et_quick_amount);
+                        if (etAmount != null && !etAmount.getText().toString().isEmpty()) {
+                            double amount = Double.parseDouble(etAmount.getText().toString());
+                            
+                            com.example.expenseeye.models.Expense expense = new com.example.expenseeye.models.Expense(
+                                    item.getTitle(),
+                                    item.getQuantity() != null && !item.getQuantity().isEmpty() ? "Qty: " + item.getQuantity() : "",
+                                    amount,
+                                    System.currentTimeMillis(),
+                                    finalCatId,
+                                    finalCatName,
+                                    defaultPmId,
+                                    "Cash" // Will be updated by Repository/Classifier if possible, or leave as default
+                            );
+                            viewModel.insertExpense(expense);
+                            Toast.makeText(getContext(), "Expense logged!", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
     }
 }
