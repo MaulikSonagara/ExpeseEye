@@ -21,8 +21,9 @@ import com.example.expenseeye.models.RecurringExpense;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {Expense.class, Category.class, PaymentMethod.class, ChecklistItem.class, CategoryKeyword.class, Budget.class, RecurringExpense.class}, version = 4, exportSchema = false)
+@Database(entities = {Expense.class, Category.class, PaymentMethod.class, ChecklistItem.class, CategoryKeyword.class, Budget.class, RecurringExpense.class}, version = AppDatabase.DATABASE_VERSION, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
+    public static final int DATABASE_VERSION = 4;
     public abstract ExpenseDao expenseDao();
     public abstract CategoryDao categoryDao();
     public abstract PaymentMethodDao paymentMethodDao();
@@ -155,6 +156,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "expense_eye_database")
+                            .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
                             .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                             .addCallback(sRoomDatabaseCallback)
                             .build();

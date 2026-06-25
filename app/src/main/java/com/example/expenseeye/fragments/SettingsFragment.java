@@ -133,15 +133,43 @@ public class SettingsFragment extends Fragment {
         setupModeSwitch(view);
         setupEnhancedSettings(view);
         setupActionButtons(view);
+        setupVersionInfo(view);
     }
 
     private void setupEnhancedSettings(View view) {
-        // Smart Classifier
-        MaterialSwitch switchSmart = view.findViewById(R.id.switch_smart_classifier);
-        if (switchSmart != null) {
-            switchSmart.setChecked(themeHelper.isSmartClassifierEnabled());
-            switchSmart.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        // Expense Title Suggestions
+        MaterialSwitch switchExpenseSuggestions = view.findViewById(R.id.switch_expense_title_suggestions);
+        if (switchExpenseSuggestions != null) {
+            switchExpenseSuggestions.setChecked(themeHelper.isTitleSuggestionsEnabled());
+            switchExpenseSuggestions.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                themeHelper.setTitleSuggestionsEnabled(isChecked);
+            });
+        }
+
+        // Expense Smart Classifier
+        MaterialSwitch switchExpenseSmart = view.findViewById(R.id.switch_expense_smart_classifier);
+        if (switchExpenseSmart != null) {
+            switchExpenseSmart.setChecked(themeHelper.isSmartClassifierEnabled());
+            switchExpenseSmart.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 themeHelper.setSmartClassifierEnabled(isChecked);
+            });
+        }
+
+        // Checklist Title Suggestions
+        MaterialSwitch switchChecklistSuggestions = view.findViewById(R.id.switch_checklist_title_suggestions);
+        if (switchChecklistSuggestions != null) {
+            switchChecklistSuggestions.setChecked(themeHelper.isChecklistTitleSuggestionsEnabled());
+            switchChecklistSuggestions.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                themeHelper.setChecklistTitleSuggestionsEnabled(isChecked);
+            });
+        }
+
+        // Checklist Smart Classifier
+        MaterialSwitch switchChecklistSmart = view.findViewById(R.id.switch_checklist_smart_classifier);
+        if (switchChecklistSmart != null) {
+            switchChecklistSmart.setChecked(themeHelper.isChecklistSmartClassifierEnabled());
+            switchChecklistSmart.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                themeHelper.setChecklistSmartClassifierEnabled(isChecked);
             });
         }
 
@@ -409,12 +437,6 @@ public class SettingsFragment extends Fragment {
             themeHelper.setMode(isChecked ? ThemePreferenceHelper.MODE_DARK : ThemePreferenceHelper.MODE_LIGHT);
             requireActivity().recreate();
         });
-
-        MaterialSwitch switchSuggestions = view.findViewById(R.id.switch_title_suggestions);
-        switchSuggestions.setChecked(themeHelper.isTitleSuggestionsEnabled());
-        switchSuggestions.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            themeHelper.setTitleSuggestionsEnabled(isChecked);
-        });
     }
 
     private void setupActionButtons(View view) {
@@ -441,6 +463,27 @@ public class SettingsFragment extends Fragment {
             Intent intent = new Intent(getActivity(), com.example.expenseeye.CategoryManagementActivity.class);
             startActivity(intent);
         });
+    }
+
+    private void setupVersionInfo(View view) {
+        TextView tvVersion = view.findViewById(R.id.tv_app_version);
+        if (tvVersion != null) {
+            try {
+                Context context = requireContext();
+                android.content.pm.PackageInfo packageInfo = context.getPackageManager()
+                        .getPackageInfo(context.getPackageName(), 0);
+                String versionName = packageInfo.versionName;
+                long versionCode;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    versionCode = packageInfo.getLongVersionCode();
+                } else {
+                    versionCode = packageInfo.versionCode;
+                }
+                tvVersion.setText("Version " + versionName + " (" + versionCode + ")");
+            } catch (PackageManager.NameNotFoundException e) {
+                tvVersion.setText("Version 1.0.0");
+            }
+        }
     }
 
     // --- PDF Export Flow ---
@@ -886,34 +929,69 @@ public class SettingsFragment extends Fragment {
 
     // --- Database Backup ---
     private void performBackup(Uri targetUri) {
+        androidx.appcompat.app.AlertDialog progressDialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Backing up data")
+                .setMessage("Please wait while we secure your data...")
+                .setCancelable(false)
+                .show();
+
         new Thread(() -> {
             boolean success = DatabaseBackupHelper.backupDatabase(requireContext(), targetUri);
-            if (success) {
-                showToastOnMainThread("Database backup created successfully!");
-            } else {
-                showToastOnMainThread("Database backup failed.");
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    if (success) {
+                        Toast.makeText(getContext(), "Database backup created successfully!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getContext(), "Database backup failed.", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         }).start();
     }
 
     // --- Database Restoration ---
     private void performRestore(Uri sourceUri) {
+        androidx.appcompat.app.AlertDialog progressDialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Restoring data")
+                .setMessage("Processing backup file. Please do not close the app...")
+                .setCancelable(false)
+                .show();
+
         new Thread(() -> {
             // 1. Validate file before restoring
             DatabaseBackupHelper.ValidationResult result = DatabaseBackupHelper.validateBackupFile(requireContext(), sourceUri);
+            
+            if (getActivity() == null) return;
+            
             if (!result.isValid) {
-                showToastOnMainThread("Restore failed: " + result.errorMessage);
+                getActivity().runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    showToastOnMainThread("Restore failed: " + result.errorMessage);
+                });
+                return;
+            }
+
+            if (result.version > com.example.expenseeye.database.AppDatabase.DATABASE_VERSION) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        showToastOnMainThread("Restore failed: Backup file is from a newer version of the app (v" + result.version + "). Please update the app.");
+                    });
+                }
                 return;
             }
 
             // 2. Perform safe restore
             boolean success = DatabaseBackupHelper.restoreDatabase(requireContext(), sourceUri);
-            if (success) {
-                showToastOnMainThread("Database restored (v" + result.version + ") successfully! Restarting app...");
-                
-                // Restart app on main thread to apply changes cleanly
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
+            
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    if (success) {
+                        showToastOnMainThread("Database restored (v" + result.version + ") successfully! Restarting app...");
+                        
+                        // Restart app on main thread to apply changes cleanly
                         Intent intent = getActivity().getPackageManager().getLaunchIntentForPackage(getActivity().getPackageName());
                         if (intent != null) {
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -921,10 +999,10 @@ public class SettingsFragment extends Fragment {
                         }
                         getActivity().finishAffinity();
                         System.exit(0);
-                    });
-                }
-            } else {
-                showToastOnMainThread("Database restore failed.");
+                    } else {
+                        showToastOnMainThread("Database restore failed.");
+                    }
+                });
             }
         }).start();
     }

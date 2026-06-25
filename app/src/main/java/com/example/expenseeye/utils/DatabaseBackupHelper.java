@@ -14,10 +14,22 @@ import java.io.OutputStream;
 public class DatabaseBackupHelper {
 
     public static boolean backupDatabase(Context context, Uri targetUri) {
-        // Force close database connection to flush memory to disk and reset instance
-        AppDatabase.destroyInstance();
+        try {
+            AppDatabase db = AppDatabase.getDatabase(context);
+            // Force a full checkpoint to merge WAL content into the main DB file
+            // This ensures NO data is left behind in -wal or -shm files.
+            try (android.database.Cursor cursor = db.getOpenHelper().getWritableDatabase().query("PRAGMA wal_checkpoint(FULL)", null)) {
+                if (cursor != null) {
+                    cursor.moveToFirst();
+                }
+            }
+            // Close the database to release file locks
+            AppDatabase.destroyInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         File dbFile = context.getDatabasePath("expense_eye_database");
-        
         if (dbFile.exists()) {
             try (InputStream in = new FileInputStream(dbFile);
                  OutputStream out = context.getContentResolver().openOutputStream(targetUri)) {
@@ -117,6 +129,11 @@ public class DatabaseBackupHelper {
         if (walFile.exists()) walFile.delete();
         File shmFile = new File(dbFile.getPath() + "-shm");
         if (shmFile.exists()) shmFile.delete();
+
+        File parent = dbFile.getParentFile();
+        if (parent != null && !parent.exists()) {
+            parent.mkdirs();
+        }
 
         try (InputStream in = context.getContentResolver().openInputStream(sourceUri);
              OutputStream out = new FileOutputStream(dbFile)) {

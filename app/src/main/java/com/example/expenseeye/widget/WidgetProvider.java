@@ -71,9 +71,19 @@ public class WidgetProvider extends AppWidgetProvider {
                     AppDatabase db = AppDatabase.getDatabase(context);
                     com.example.expenseeye.models.ChecklistItem item = db.checklistItemDao().getItemByIdSync(itemId);
                     if (item != null) {
-                        item.setCompleted(!item.isCompleted());
+                        boolean willBeCompleted = !item.isCompleted();
+                        item.setCompleted(willBeCompleted);
                         db.checklistItemDao().update(item);
                         updateAllWidgets(context);
+
+                        if (willBeCompleted) {
+                            Intent addExpenseIntent = new Intent(context, QuickAddExpenseActivity.class);
+                            addExpenseIntent.putExtra(QuickAddExpenseActivity.EXTRA_CATEGORY, item.getCategory());
+                            addExpenseIntent.putExtra("extra_title", item.getTitle());
+                            addExpenseIntent.putExtra("extra_description", item.getQuantity() != null && !item.getQuantity().isEmpty() ? "Qty: " + item.getQuantity() : "");
+                            addExpenseIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            context.startActivity(addExpenseIntent);
+                        }
                     }
                 });
             }

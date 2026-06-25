@@ -11,6 +11,8 @@ public class ThemePreferenceHelper {
     private static final String KEY_CURRENCY = "currency_symbol";
     private static final String KEY_DEFAULT_PAYMENT = "default_payment_method";
     private static final String KEY_SMART_CLASSIFIER = "smart_classifier_enabled";
+    private static final String KEY_CHECKLIST_SUGGESTIONS = "checklist_suggestions_enabled";
+    private static final String KEY_CHECKLIST_SMART_CLASSIFIER = "checklist_classifier_enabled";
 
     public static final String THEME_MIDNIGHT = "Midnight Calm";
     public static final String THEME_FOREST = "Forest Ledger";
@@ -76,5 +78,21 @@ public class ThemePreferenceHelper {
 
     public boolean isSmartClassifierEnabled() {
         return prefs.getBoolean(KEY_SMART_CLASSIFIER, true);
+    }
+
+    public void setChecklistTitleSuggestionsEnabled(boolean enabled) {
+        prefs.edit().putBoolean(KEY_CHECKLIST_SUGGESTIONS, enabled).apply();
+    }
+
+    public boolean isChecklistTitleSuggestionsEnabled() {
+        return prefs.getBoolean(KEY_CHECKLIST_SUGGESTIONS, true);
+    }
+
+    public void setChecklistSmartClassifierEnabled(boolean enabled) {
+        prefs.edit().putBoolean(KEY_CHECKLIST_SMART_CLASSIFIER, enabled).apply();
+    }
+
+    public boolean isChecklistSmartClassifierEnabled() {
+        return prefs.getBoolean(KEY_CHECKLIST_SMART_CLASSIFIER, true);
     }
 }

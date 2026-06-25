@@ -370,6 +370,8 @@ public class ExpensesFragment extends Fragment {
             }
             ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, suggestions);
             etTitle.setAdapter(titleAdapter);
+        } else {
+            etTitle.setAdapter(null);
         }
         Button btnDate = dialogView.findViewById(R.id.btn_date);
         Button btnTime = dialogView.findViewById(R.id.btn_time);

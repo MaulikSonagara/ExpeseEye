@@ -159,10 +159,10 @@
                     android:layout_marginVertical="16dp"/>
 
                 <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/switch_title_suggestions"
+                    android:id="@+id/switch_expense_title_suggestions"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Title Suggestions"
+                    android:text="Expense Title Suggestions"
                     android:textSize="15sp"
                     android:textStyle="bold"
                     android:textColor="?android:attr/textColorPrimary" />
@@ -174,10 +174,40 @@
                     android:layout_marginVertical="16dp"/>
 
                 <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/switch_smart_classifier"
+                    android:id="@+id/switch_expense_smart_classifier"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Smart Classifier"
+                    android:text="Expense Smart Classifier"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorPrimary" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant"
+                    android:layout_marginVertical="16dp"/>
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/switch_checklist_title_suggestions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Checklist Title Suggestions"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorPrimary" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant"
+                    android:layout_marginVertical="16dp"/>
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/switch_checklist_smart_classifier"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Checklist Smart Classifier"
                     android:textSize="15sp"
                     android:textStyle="bold"
                     android:textColor="?android:attr/textColorPrimary" />
@@ -378,7 +408,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="100dp"
+            android:layout_marginBottom="24dp"
             app:cardCornerRadius="20dp"
             app:cardElevation="0dp"
             app:strokeWidth="1dp"
@@ -432,6 +462,17 @@
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/tv_app_version"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Version 1.0.0"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:alpha="0.6"
+            android:layout_marginBottom="100dp"/>
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

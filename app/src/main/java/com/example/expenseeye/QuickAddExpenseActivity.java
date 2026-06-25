@@ -44,6 +44,8 @@ import java.util.Locale;
 public class QuickAddExpenseActivity extends AppCompatActivity {
 
     public static final String EXTRA_CATEGORY = "extra_category";
+    public static final String EXTRA_TITLE = "extra_title";
+    public static final String EXTRA_DESCRIPTION = "extra_description";
 
     private AppRepository repository;
     private Calendar selectedDateTime = Calendar.getInstance();
@@ -129,6 +131,8 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
 
                 // Check if category was preselected from widget
                 handlePreselectedCategory();
+                // Check if title or description was preselected from widget
+                handlePreselectedTitleAndDescription();
                 // Setup suggestions for title input
                 setupTitleAutocomplete(suggestions);
             });
@@ -211,6 +215,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
     private void setupTitleAutocomplete(List<String> suggestions) {
         com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(this);
         if (!prefHelper.isTitleSuggestionsEnabled()) {
+            etTitle.setAdapter(null);
             return;
         }
         ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, suggestions);
@@ -279,6 +284,17 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
             if (index >= 0) {
                 spinnerCategory.setText(categoryNames.get(index), false);
             }
+        }
+    }
+
+    private void handlePreselectedTitleAndDescription() {
+        String preSelectedTitle = getIntent().getStringExtra(EXTRA_TITLE);
+        if (preSelectedTitle != null && !preSelectedTitle.isEmpty()) {
+            etTitle.setText(preSelectedTitle);
+        }
+        String preSelectedDesc = getIntent().getStringExtra(EXTRA_DESCRIPTION);
+        if (preSelectedDesc != null && !preSelectedDesc.isEmpty()) {
+            etDescription.setText(preSelectedDesc);
         }
     }
 

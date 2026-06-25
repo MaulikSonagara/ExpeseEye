@@ -26,7 +26,9 @@ public class QuickAddChecklistActivity extends AppCompatActivity {
     private AppRepository repository;
     private RelativeLayout rootLayout;
     private CardView cardQuickAdd;
-    private EditText etTitle, etQty;
+    private AutoCompleteTextView etTitle;
+    private EditText etQty;
+    private AutoCompleteTextView spinnerCategory;
     private androidx.recyclerview.widget.RecyclerView rvPriority;
     private com.example.expenseeye.adapters.PrioritySelectionAdapter priorityAdapter;
     private MaterialButton btnCancel, btnSave;
@@ -47,6 +49,7 @@ public class QuickAddChecklistActivity extends AppCompatActivity {
         KeyboardFollow.attach(rootLayout, cardQuickAdd);
         etTitle = findViewById(R.id.et_item_title);
         etQty = findViewById(R.id.et_item_qty);
+        spinnerCategory = findViewById(R.id.spinner_item_category);
         rvPriority = findViewById(R.id.rv_item_priority);
         btnCancel = findViewById(R.id.btn_cancel);
         btnSave = findViewById(R.id.btn_save);
@@ -58,6 +61,59 @@ public class QuickAddChecklistActivity extends AppCompatActivity {
         rvPriority.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(this, androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false));
         priorityAdapter = new com.example.expenseeye.adapters.PrioritySelectionAdapter(java.util.Arrays.asList(priorities), priorities[0], null);
         rvPriority.setAdapter(priorityAdapter);
+
+        // Setup Category Spinner and Title Suggestions
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            java.util.List<com.example.expenseeye.models.Category> cats = repository.getEnabledCategoriesSync();
+            java.util.List<com.example.expenseeye.models.CategoryKeyword> kws = repository.getAllKeywordsSync();
+            java.util.List<String> names = new java.util.ArrayList<>();
+            for (com.example.expenseeye.models.Category c : cats) names.add(c.getName());
+            
+            java.util.List<String> suggestions = new java.util.ArrayList<>();
+            if (kws != null) {
+                for (com.example.expenseeye.models.CategoryKeyword kw : kws) {
+                    if (kw.getKeyword() != null && !kw.getKeyword().trim().isEmpty()) {
+                        String cleanKw = kw.getKeyword().trim();
+                        if (!cleanKw.isEmpty()) {
+                            cleanKw = cleanKw.substring(0, 1).toUpperCase() + cleanKw.substring(1);
+                        }
+                        if (!suggestions.contains(cleanKw)) {
+                            suggestions.add(cleanKw);
+                        }
+                    }
+                }
+            }
+
+            runOnUiThread(() -> {
+                ArrayAdapter<String> catAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, names);
+                spinnerCategory.setAdapter(catAdapter);
+                spinnerCategory.setText("Groceries", false);
+
+                // Setup suggestions for title input
+                com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(this);
+                if (prefHelper.isChecklistTitleSuggestionsEnabled()) {
+                    ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, suggestions);
+                    etTitle.setAdapter(titleAdapter);
+                } else {
+                    etTitle.setAdapter(null);
+                }
+
+                // Smart Classifier
+                etTitle.addTextChangedListener(new android.text.TextWatcher() {
+                    @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                    @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                    @Override public void afterTextChanged(android.text.Editable s) {
+                        com.example.expenseeye.theme.ThemePreferenceHelper ph = new com.example.expenseeye.theme.ThemePreferenceHelper(QuickAddChecklistActivity.this);
+                        if (!ph.isChecklistSmartClassifierEnabled()) return;
+                        
+                        String classified = ExpenseClassifier.classifyExpense(s.toString(), cats, kws);
+                        if (names.contains(classified)) {
+                            spinnerCategory.setText(classified, false);
+                        }
+                    }
+                });
+            });
+        });
 
         // Cancel click listener
         btnCancel.setOnClickListener(v -> dismissWithAnimation());
@@ -123,6 +179,7 @@ public class QuickAddChecklistActivity extends AppCompatActivity {
     private void saveChecklistItem() {
         String titleStr = etTitle.getText().toString().trim();
         String qtyStr = etQty.getText().toString().trim();
+        String categoryStr = spinnerCategory.getText().toString().trim();
         String priorityStr = priorityAdapter.getSelectedPriority();
 
         if (titleStr.isEmpty()) {
@@ -130,16 +187,18 @@ public class QuickAddChecklistActivity extends AppCompatActivity {
             return;
         }
 
-        // Auto-categorize based on title
-        String category = ExpenseClassifier.classifyChecklistItem(titleStr);
+        if (categoryStr.isEmpty()) {
+            categoryStr = "Other";
+        }
 
-        ChecklistItem newItem = new ChecklistItem(titleStr, category, qtyStr, priorityStr, false);
+        ChecklistItem newItem = new ChecklistItem(titleStr, categoryStr, qtyStr, priorityStr, false);
 
         // Save to DB in background
+        String finalCategoryStr = categoryStr;
         AppDatabase.databaseWriteExecutor.execute(() -> {
             repository.insertChecklistItem(newItem);
             runOnUiThread(() -> {
-                Toast.makeText(this, "Task added: Classified as " + category, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Task added: " + titleStr, Toast.LENGTH_SHORT).show();
                 // Update all widgets
                 WidgetProvider.updateAllWidgets(this);
                 dismissWithAnimation();

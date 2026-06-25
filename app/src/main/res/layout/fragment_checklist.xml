@@ -53,12 +53,14 @@
                     app:boxCornerRadiusBottomEnd="12dp"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
-                    <com.google.android.material.textfield.TextInputEditText
+                    <AutoCompleteTextView
                         android:id="@+id/et_item_title"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
                         android:hint="Item Name (e.g. Soap)"
                         android:inputType="textCapSentences"
+                        android:completionThreshold="1"
                         android:textSize="14sp"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -82,6 +84,26 @@
                         android:textSize="14sp"/>
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
+
+            <!-- Category Selector -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                <AutoCompleteTextView
+                    android:id="@+id/spinner_item_category"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Category"
+                    android:inputType="none"
+                    android:textSize="14sp"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Priority Selector + Save Button -->
             <LinearLayout

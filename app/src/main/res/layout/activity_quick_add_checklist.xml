@@ -56,7 +56,6 @@
                         android:textColor="?android:attr/textColorPrimary"
                         android:layout_marginBottom="16dp" />
 
-                    <!-- Task Title Input -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -67,12 +66,14 @@
                         app:boxCornerRadiusBottomEnd="12dp"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
-                        <com.google.android.material.textfield.TextInputEditText
+                        <AutoCompleteTextView
                             android:id="@+id/et_item_title"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
                             android:hint="Task Title (e.g. Buy Milk)"
                             android:inputType="textCapSentences"
+                            android:completionThreshold="1"
                             android:textSize="16sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -94,6 +95,26 @@
                             android:hint="Quantity (e.g. 2 litres, 5 pcs) [Optional]"
                             android:inputType="textCapSentences"
                             android:textSize="16sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Category Selector -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="14dp"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/spinner_item_category"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Category"
+                            android:inputType="none"
+                            android:textSize="16sp"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- Priority RecyclerView selection -->
