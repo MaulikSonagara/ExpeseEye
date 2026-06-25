@@ -19,7 +19,7 @@ import com.example.expenseeye.models.PaymentMethod;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {Expense.class, Category.class, PaymentMethod.class, ChecklistItem.class, CategoryKeyword.class}, version = 2, exportSchema = false)
+@Database(entities = {Expense.class, Category.class, PaymentMethod.class, ChecklistItem.class, CategoryKeyword.class}, version = 3, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract ExpenseDao expenseDao();
     public abstract CategoryDao categoryDao();
@@ -34,29 +34,20 @@ public abstract class AppDatabase extends RoomDatabase {
     public static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
-            // 1. Add is_enabled column to categories
+            // ... (keep existing migration code)
             database.execSQL("ALTER TABLE categories ADD COLUMN is_enabled INTEGER NOT NULL DEFAULT 1");
-            
-            // 2. Add created_at column to categories
             database.execSQL("ALTER TABLE categories ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0");
-            
-            // 3. Create the category_keywords table
             database.execSQL("CREATE TABLE IF NOT EXISTS category_keywords (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
                     "category_id INTEGER NOT NULL, " +
                     "keyword TEXT, " +
                     "FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE CASCADE)");
-                    
-            // 4. Update the created_at to current timestamp for existing rows
             database.execSQL("UPDATE categories SET created_at = " + System.currentTimeMillis());
-            
-            // 5. Merge legacy Water Bill, Electricity, and Gas into Bills category
-            // First, create the Bills category if it doesn't exist (configured as default system category)
-            database.execSQL("INSERT OR IGNORE INTO categories (name, icon_name, color, isDefault, is_enabled, created_at) " +
+            database.execSQL("INSERT OR IGNORE INTO categories (name, iconName, color, isDefault, is_enabled, created_at) " +
                     "VALUES ('Bills', 'ic_bills', -26624, 1, 1, 0)");
             
             // Ensure existing Bills category is marked as default system category
-            database.execSQL("UPDATE categories SET icon_name = 'ic_bills', color = -26624, isDefault = 1 WHERE name = 'Bills'");
+            database.execSQL("UPDATE categories SET iconName = 'ic_bills', color = -26624, isDefault = 1 WHERE name = 'Bills'");
 
             // Migrate all expenses in Water Bill, Electricity, Gas to Bills
             database.execSQL("UPDATE expenses SET category_name = 'Bills' " +
@@ -66,19 +57,18 @@ public abstract class AppDatabase extends RoomDatabase {
             database.execSQL("DELETE FROM categories WHERE name IN ('Electricity', 'Water Bill', 'Gas')");
 
             // 6. Rename Groceries to Food and configure as default system category
-            database.execSQL("UPDATE categories SET name = 'Food', icon_name = 'ic_food', color = -26368, isDefault = 1 " +
+            database.execSQL("UPDATE categories SET name = 'Food', iconName = 'ic_food', color = -26368, isDefault = 1 " +
                     "WHERE name = 'Groceries'");
             database.execSQL("UPDATE expenses SET category_name = 'Food' WHERE category_name = 'Groceries'");
 
             // Ensure Food exists and is configured as default system category
-            database.execSQL("INSERT OR IGNORE INTO categories (name, icon_name, color, isDefault, is_enabled, created_at) " +
+            database.execSQL("INSERT OR IGNORE INTO categories (name, iconName, color, isDefault, is_enabled, created_at) " +
                     "VALUES ('Food', 'ic_food', -26368, 1, 1, 0)");
-            database.execSQL("UPDATE categories SET icon_name = 'ic_food', color = -26368, isDefault = 1 WHERE name = 'Food'");
+            database.execSQL("UPDATE categories SET iconName = 'ic_food', color = -26368, isDefault = 1 WHERE name = 'Food'");
 
             // Ensure Travel is configured as default system category
-            database.execSQL("UPDATE categories SET icon_name = 'ic_travel', color = -12601712, isDefault = 1 WHERE name = 'Travel'");
+            database.execSQL("UPDATE categories SET iconName = 'ic_travel', color = -12601712, isDefault = 1 WHERE name = 'Travel'");
             
-            // 7. Prepopulate category keywords for standard categories if they exist
             String[] defaultNames = {"Food", "Travel", "Shopping", "Bills", "Health", "Entertainment", "Salary", "Investment", "Education", "Others"};
             String[][] defaultKeywords = {
                 {"food", "breakfast", "lunch", "dinner", "nasta", "nashta", "samosa", "kachori", "fafda", "jalebi", "chai", "tea", "coffee", "cafe", "pizza", "burger", "sandwich", "dosa", "idli", "vada", "pav bhaji", "vadapav", "bhel", "panipuri", "maggi", "ramen", "groceries", "swiggy", "zomato", "restaurant", "hotel", "bakery", "snacks", "juice", "cold drink"},
@@ -102,13 +92,41 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    public static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // 1. Create new categories
+            database.execSQL("INSERT OR IGNORE INTO categories (name, iconName, color, isDefault, is_enabled, created_at) " +
+                    "VALUES ('Groceries', 'ic_groceries', -12601712, 1, 1, " + System.currentTimeMillis() + ")");
+            database.execSQL("INSERT OR IGNORE INTO categories (name, iconName, color, isDefault, is_enabled, created_at) " +
+                    "VALUES ('Fruit & Veggies', 'ic_food', -7587114, 1, 1, " + System.currentTimeMillis() + ")");
+
+            // 2. Remove "groceries" and "grocery shopping" from existing categories
+            database.execSQL("DELETE FROM category_keywords WHERE keyword IN ('groceries', 'grocery shopping')");
+
+            // 3. Add keywords for Groceries
+            String[] groceriesKws = {"grocery", "groceries", "kirana", "milk", "bread", "rice", "atta", "flour", "dal", "pulses", "sugar", "salt", "oil", "spices", "masala", "biscuit", "snacks", "chocolate", "tea", "coffee", "maggi", "noodles", "ketchup", "sauce", "paneer", "curd", "butter", "cheese", "eggs", "frozen food", "detergent", "soap", "shampoo", "cleaning", "household", "tissue", "toilet paper", "dishwash", "scrubber", "pocha", "cleaner", "sanitizer", "toothpaste", "toothbrush", "washing powder", "surf", "liquid soap", "dry fruits", "pickle", "jam", "honey", "cereal", "oats"};
+            for (String kw : groceriesKws) {
+                database.execSQL("INSERT INTO category_keywords (category_id, keyword) " +
+                        "SELECT id, '" + kw.replace("'", "''") + "' FROM categories WHERE name = 'Groceries'");
+            }
+
+            // 4. Add keywords for Fruit & Veggies
+            String[] veggiesKws = {"fruit", "fruits", "vegetable", "vegetables", "sabji", "sabzi", "bhaji", "veg", "mandi", "market", "apple", "banana", "mango", "orange", "grapes", "watermelon", "papaya", "pineapple", "guava", "pomegranate", "chikoo", "kiwi", "coconut", "lemon", "tomato", "potato", "onion", "garlic", "ginger", "carrot", "cabbage", "cauliflower", "broccoli", "spinach", "palak", "methi", "coriander", "capsicum", "cucumber", "brinjal", "eggplant", "peas", "beans", "beetroot", "radish", "chili", "green chili", "pumpkin", "bottle gourd", "ladyfinger", "okra"};
+            for (String kw : veggiesKws) {
+                database.execSQL("INSERT INTO category_keywords (category_id, keyword) " +
+                        "SELECT id, '" + kw.replace("'", "''") + "' FROM categories WHERE name = 'Fruit & Veggies'");
+            }
+        }
+    };
+
     public static AppDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "expense_eye_database")
-                            .addMigrations(MIGRATION_1_2)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                             .addCallback(sRoomDatabaseCallback)
                             .build();
                 }
@@ -134,14 +152,16 @@ public abstract class AppDatabase extends RoomDatabase {
                 CategoryDao catDao = INSTANCE.categoryDao();
                 CategoryKeywordsDao keyDao = INSTANCE.categoryKeywordsDao();
 
-                String[] defaultNames = {"Food", "Travel", "Shopping", "Bills", "Health", "Entertainment", "Salary", "Investment", "Education", "Others"};
-                String[] defaultIcons = {"ic_food", "ic_travel", "ic_shopping", "ic_bills", "ic_medical", "ic_entertainment", "ic_bank", "ic_card", "ic_education", "ic_other"};
-                String[] defaultColors = {"#FF5722", "#4CAF50", "#E91E63", "#FF9800", "#009688", "#9C27B0", "#2196F3", "#3F51B5", "#795548", "#9E9E9E"};
+                String[] defaultNames = {"Groceries", "Fruit & Veggies", "Food", "Travel", "Shopping", "Bills", "Health", "Entertainment", "Salary", "Investment", "Education", "Others"};
+                String[] defaultIcons = {"ic_groceries", "ic_food", "ic_food", "ic_travel", "ic_shopping", "ic_bills", "ic_medical", "ic_entertainment", "ic_bank", "ic_card", "ic_education", "ic_other"};
+                String[] defaultColors = {"#4CAF50", "#8BC34A", "#FF5722", "#4CAF50", "#E91E63", "#FF9800", "#009688", "#9C27B0", "#2196F3", "#3F51B5", "#795548", "#9E9E9E"};
 
                 String[][] defaultKeywords = {
-                    {"food", "breakfast", "lunch", "dinner", "nasta", "nashta", "samosa", "kachori", "fafda", "jalebi", "chai", "tea", "coffee", "cafe", "pizza", "burger", "sandwich", "dosa", "idli", "vada", "pav bhaji", "vadapav", "bhel", "panipuri", "maggi", "ramen", "groceries", "swiggy", "zomato", "restaurant", "hotel", "bakery", "snacks", "juice", "cold drink"},
+                    {"grocery", "groceries", "kirana", "milk", "bread", "rice", "atta", "flour", "dal", "pulses", "sugar", "salt", "oil", "spices", "masala", "biscuit", "snacks", "chocolate", "tea", "coffee", "maggi", "noodles", "ketchup", "sauce", "paneer", "curd", "butter", "cheese", "eggs", "frozen food", "detergent", "soap", "shampoo", "cleaning", "household", "tissue", "toilet paper", "dishwash", "scrubber", "pocha", "cleaner", "sanitizer", "toothpaste", "toothbrush", "washing powder", "surf", "liquid soap", "dry fruits", "pickle", "jam", "honey", "cereal", "oats"},
+                    {"fruit", "fruits", "vegetable", "vegetables", "sabji", "sabzi", "bhaji", "veg", "mandi", "market", "apple", "banana", "mango", "orange", "grapes", "watermelon", "papaya", "pineapple", "guava", "pomegranate", "chikoo", "kiwi", "coconut", "lemon", "tomato", "potato", "onion", "garlic", "ginger", "carrot", "cabbage", "cauliflower", "broccoli", "spinach", "palak", "methi", "coriander", "capsicum", "cucumber", "brinjal", "eggplant", "peas", "beans", "beetroot", "radish", "chili", "green chili", "pumpkin", "bottle gourd", "ladyfinger", "okra"},
+                    {"food", "breakfast", "lunch", "dinner", "nasta", "nashta", "samosa", "kachori", "fafda", "jalebi", "chai", "tea", "coffee", "cafe", "pizza", "burger", "sandwich", "dosa", "idli", "vada", "pav bhaji", "vadapav", "bhel", "panipuri", "maggi", "ramen", "swiggy", "zomato", "restaurant", "hotel", "bakery", "snacks", "juice", "cold drink"},
                     {"travel", "trip", "fuel", "petrol", "diesel", "cng", "uber", "ola", "auto", "taxi", "bus", "train", "flight", "booking", "hotel", "hostel", "vacation", "holiday", "toll", "parking", "luggage", "ticket"},
-                    {"shopping", "clothes", "shoes", "fashion", "amazon", "flipkart", "myntra", "ajio", "meesho", "accessories", "electronics", "gadget", "mobile", "laptop", "watch", "gift", "furniture", "home decor", "grocery shopping"},
+                    {"shopping", "clothes", "shoes", "fashion", "amazon", "flipkart", "myntra", "ajio", "meesho", "accessories", "electronics", "gadget", "mobile", "laptop", "watch", "gift", "furniture", "home decor"},
                     {"electricity", "light bill", "power bill", "gas bill", "water bill", "internet", "wifi", "broadband", "recharge", "mobile bill", "postpaid", "prepaid", "dth", "cable", "rent", "emi", "subscription", "netflix", "hotstar", "prime", "spotify", "maintenance", "society bill"},
                     {"doctor", "hospital", "clinic", "medicine", "pharmacy", "medical", "tablet", "injection", "surgery", "test", "blood test", "checkup", "dentist", "eye care", "health insurance", "gym", "protein", "supplement"},
                     {"movie", "cinema", "game", "gaming", "steam", "psn", "xbox", "netflix", "hotstar", "amazon prime", "spotify", "party", "club", "concert", "event", "picnic", "amusement park", "cricket match"},

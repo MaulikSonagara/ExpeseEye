@@ -268,26 +268,29 @@ public class DashboardFragment extends Fragment {
         AutoCompleteTextView spinnerCategory = dialogView.findViewById(R.id.spinner_category);
 
         // Setup suggestions for title
-        List<String> suggestions = new ArrayList<>();
-        List<com.example.expenseeye.models.CategoryKeyword> kws = viewModel.getAllKeywords().getValue();
-        if (kws == null) {
-            kws = allKeywords;
-        }
-        if (kws != null) {
-            for (com.example.expenseeye.models.CategoryKeyword kw : kws) {
-                if (kw.getKeyword() != null && !kw.getKeyword().trim().isEmpty()) {
-                    String cleanKw = kw.getKeyword().trim();
-                    if (!cleanKw.isEmpty()) {
-                        cleanKw = cleanKw.substring(0, 1).toUpperCase() + cleanKw.substring(1);
-                    }
-                    if (!suggestions.contains(cleanKw)) {
-                        suggestions.add(cleanKw);
+        com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+        if (prefHelper.isTitleSuggestionsEnabled()) {
+            List<String> suggestions = new ArrayList<>();
+            List<com.example.expenseeye.models.CategoryKeyword> kws = viewModel.getAllKeywords().getValue();
+            if (kws == null) {
+                kws = allKeywords;
+            }
+            if (kws != null) {
+                for (com.example.expenseeye.models.CategoryKeyword kw : kws) {
+                    if (kw.getKeyword() != null && !kw.getKeyword().trim().isEmpty()) {
+                        String cleanKw = kw.getKeyword().trim();
+                        if (!cleanKw.isEmpty()) {
+                            cleanKw = cleanKw.substring(0, 1).toUpperCase() + cleanKw.substring(1);
+                        }
+                        if (!suggestions.contains(cleanKw)) {
+                            suggestions.add(cleanKw);
+                        }
                     }
                 }
             }
+            ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, suggestions);
+            etTitle.setAdapter(titleAdapter);
         }
-        ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, suggestions);
-        etTitle.setAdapter(titleAdapter);
         Button btnDate = dialogView.findViewById(R.id.btn_date);
         Button btnTime = dialogView.findViewById(R.id.btn_time);
         EditText etDescription = dialogView.findViewById(R.id.et_description);
@@ -428,26 +431,29 @@ public class DashboardFragment extends Fragment {
         AutoCompleteTextView spinnerCategory = dialogView.findViewById(R.id.spinner_category);
 
         // Setup suggestions for title
-        List<String> suggestions = new ArrayList<>();
-        List<com.example.expenseeye.models.CategoryKeyword> kws = viewModel.getAllKeywords().getValue();
-        if (kws == null) {
-            kws = allKeywords;
-        }
-        if (kws != null) {
-            for (com.example.expenseeye.models.CategoryKeyword kw : kws) {
-                if (kw.getKeyword() != null && !kw.getKeyword().trim().isEmpty()) {
-                    String cleanKw = kw.getKeyword().trim();
-                    if (!cleanKw.isEmpty()) {
-                        cleanKw = cleanKw.substring(0, 1).toUpperCase() + cleanKw.substring(1);
-                    }
-                    if (!suggestions.contains(cleanKw)) {
-                        suggestions.add(cleanKw);
+        com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+        if (prefHelper.isTitleSuggestionsEnabled()) {
+            List<String> suggestions = new ArrayList<>();
+            List<com.example.expenseeye.models.CategoryKeyword> kws = viewModel.getAllKeywords().getValue();
+            if (kws == null) {
+                kws = allKeywords;
+            }
+            if (kws != null) {
+                for (com.example.expenseeye.models.CategoryKeyword kw : kws) {
+                    if (kw.getKeyword() != null && !kw.getKeyword().trim().isEmpty()) {
+                        String cleanKw = kw.getKeyword().trim();
+                        if (!cleanKw.isEmpty()) {
+                            cleanKw = cleanKw.substring(0, 1).toUpperCase() + cleanKw.substring(1);
+                        }
+                        if (!suggestions.contains(cleanKw)) {
+                            suggestions.add(cleanKw);
+                        }
                     }
                 }
             }
+            ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, suggestions);
+            etTitle.setAdapter(titleAdapter);
         }
-        ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, suggestions);
-        etTitle.setAdapter(titleAdapter);
         Button btnDate = dialogView.findViewById(R.id.btn_date);
         Button btnTime = dialogView.findViewById(R.id.btn_time);
         EditText etDescription = dialogView.findViewById(R.id.et_description);

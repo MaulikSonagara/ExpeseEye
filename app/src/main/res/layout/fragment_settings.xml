@@ -59,11 +59,45 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:scrollbars="horizontal"
-                    android:fadeScrollbars="false"
+                    android:requiresFadingEdge="horizontal"
+                    android:fadingEdgeLength="24dp"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                     tools:listitem="@layout/item_theme_preview"
-                    android:layout_marginBottom="16dp"/>
+                    android:layout_marginBottom="10dp"/>
+
+                <LinearLayout
+                    android:id="@+id/layout_theme_dots"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center">
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:layout_margin="3dp"
+                        android:background="@drawable/bg_theme_color_dot"
+                        android:backgroundTint="?attr/colorPrimary"/>
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:layout_margin="3dp"
+                        android:background="@drawable/bg_theme_color_dot"
+                        android:backgroundTint="?attr/colorPrimary"/>
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:layout_margin="3dp"
+                        android:background="@drawable/bg_theme_color_dot"
+                        android:backgroundTint="?attr/colorPrimary"/>
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:layout_margin="3dp"
+                        android:background="@drawable/bg_theme_color_dot"
+                        android:backgroundTint="?attr/colorPrimary"/>
+                </LinearLayout>
 
                 <View
                     android:layout_width="match_parent"
@@ -76,6 +110,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Dark Mode"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorPrimary" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant"
+                    android:layout_marginVertical="16dp"/>
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/switch_title_suggestions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Title Suggestions"
                     android:textSize="15sp"
                     android:textStyle="bold"
                     android:textColor="?android:attr/textColorPrimary" />

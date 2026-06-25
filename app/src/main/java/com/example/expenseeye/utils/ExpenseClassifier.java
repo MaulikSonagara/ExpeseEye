@@ -69,7 +69,13 @@ public class ExpenseClassifier {
         if (title == null) return "Other";
         String lowerTitle = title.toLowerCase(Locale.ROOT);
 
-        if (containsAny(lowerTitle, "milk", "vegetables", "rice", "bread", "grocery", "groceries", "fruits", "oil", "food", "egg", "chicken", "meat", "lunch", "dinner", "restaurant", "cafe", "snacks")) {
+        if (containsAny(lowerTitle, "grocery", "groceries", "kirana", "milk", "bread", "rice", "atta", "flour", "dal", "pulses", "sugar", "salt", "oil", "spices", "masala", "biscuit", "snacks", "chocolate", "tea", "coffee", "maggi", "noodles", "ketchup", "sauce", "paneer", "curd", "butter", "cheese", "eggs", "frozen food", "detergent", "soap", "shampoo", "cleaning", "household", "tissue", "toilet paper", "dishwash", "scrubber", "pocha", "cleaner", "sanitizer", "toothpaste", "toothbrush", "washing powder", "surf", "liquid soap", "dry fruits", "pickle", "jam", "honey", "cereal", "oats")) {
+            return "Groceries";
+        }
+        if (containsAny(lowerTitle, "fruit", "fruits", "vegetable", "vegetables", "sabji", "sabzi", "bhaji", "veg", "mandi", "market", "apple", "banana", "mango", "orange", "grapes", "watermelon", "papaya", "pineapple", "guava", "pomegranate", "chikoo", "kiwi", "coconut", "lemon", "tomato", "potato", "onion", "garlic", "ginger", "carrot", "cabbage", "cauliflower", "broccoli", "spinach", "palak", "methi", "coriander", "capsicum", "cucumber", "brinjal", "eggplant", "peas", "beans", "beetroot", "radish", "chili", "green chili", "pumpkin", "bottle gourd", "ladyfinger", "okra")) {
+            return "Fruit & Veggies";
+        }
+        if (containsAny(lowerTitle, "food", "breakfast", "lunch", "dinner", "nasta", "nashta", "samosa", "kachori", "fafda", "jalebi", "chai", "pizza", "burger", "sandwich", "dosa", "idli", "vada", "pav bhaji", "vadapav", "bhel", "panipuri", "swiggy", "zomato", "restaurant", "hotel", "bakery", "juice", "cold drink")) {
             return "Food";
         }
         if (containsAny(lowerTitle, "electricity", "light bill", "power bill", "current bill", "water", "gas", "rent", "internet", "wifi", "broadband", "recharge", "bill")) {
@@ -107,7 +113,7 @@ public class ExpenseClassifier {
         if (containsAny(lowerTitle, "milk", "cheese", "paneer", "butter", "curd", "yogurt", "dairy", "cream")) {
             return "Dairy";
         }
-        if (containsAny(lowerTitle, "rice", "wheat", "dal", "flour", "sugar", "salt", "oil", "groceries", "grocery", "spices", "tea", "coffee")) {
+        if (containsAny(lowerTitle, "rice", "wheat", "dal", "flour", "sugar", "salt", "oil", "spices", "tea", "coffee")) {
             return "Grocery";
         }
         if (containsAny(lowerTitle, "toothpaste", "brush", "soap", "shampoo", "detergent", "face wash", "body wash", "lotion", "comb", "oil")) {

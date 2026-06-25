@@ -131,6 +131,7 @@ public class SettingsFragment extends Fragment {
 
     private void setupThemeSelection(View view) {
         RecyclerView rvThemes = view.findViewById(R.id.rv_themes);
+        android.widget.LinearLayout layoutThemeDots = view.findViewById(R.id.layout_theme_dots);
         List<String> themes = Arrays.asList(
                 ThemePreferenceHelper.THEME_MIDNIGHT,
                 ThemePreferenceHelper.THEME_FOREST,
@@ -145,6 +146,7 @@ public class SettingsFragment extends Fragment {
 
         rvThemes.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         rvThemes.setAdapter(adapter);
+        setupRecyclerViewScrollIndicator(rvThemes, layoutThemeDots);
 
         // Disallow ViewPager2 from intercepting touch events when interacting with the themes recycler view
         rvThemes.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
@@ -167,6 +169,55 @@ public class SettingsFragment extends Fragment {
         });
     }
 
+    private void setupRecyclerViewScrollIndicator(RecyclerView recyclerView, android.widget.LinearLayout dotsLayout) {
+        if (recyclerView == null || dotsLayout == null) return;
+        
+        // Initial state update
+        recyclerView.post(() -> {
+            int offset = recyclerView.computeHorizontalScrollOffset();
+            int extent = recyclerView.computeHorizontalScrollExtent();
+            int range = recyclerView.computeHorizontalScrollRange();
+            int maxScroll = range - extent;
+            float progress = maxScroll > 0 ? (float) offset / maxScroll : 0f;
+            updateScrollDots(dotsLayout, progress);
+        });
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView rv, int dx, int dy) {
+                super.onScrolled(rv, dx, dy);
+                int offset = rv.computeHorizontalScrollOffset();
+                int extent = rv.computeHorizontalScrollExtent();
+                int range = rv.computeHorizontalScrollRange();
+                int maxScroll = range - extent;
+                if (maxScroll > 0) {
+                    float progress = (float) offset / maxScroll;
+                    updateScrollDots(dotsLayout, progress);
+                } else {
+                    updateScrollDots(dotsLayout, 0f);
+                }
+            }
+        });
+    }
+
+    private void updateScrollDots(android.widget.LinearLayout dotsLayout, float progress) {
+        int childCount = dotsLayout.getChildCount();
+        if (childCount == 0) return;
+        float activeIndex = progress * (childCount - 1);
+        for (int i = 0; i < childCount; i++) {
+            View dot = dotsLayout.getChildAt(i);
+            float distance = Math.abs(i - activeIndex);
+            // active dot has scale 1.15, others range down to 0.75
+            float scale = 1.15f - Math.min(distance * 0.25f, 0.40f);
+            dot.setScaleX(scale);
+            dot.setScaleY(scale);
+            
+            // set active dot to full opacity, inactive to low opacity
+            float alpha = 1.0f - Math.min(distance * 0.4f, 0.6f);
+            dot.setAlpha(alpha);
+        }
+    }
+
     private void setupModeSwitch(View view) {
         MaterialSwitch switchDark = view.findViewById(R.id.switch_dark_mode);
         switchDark.setChecked(themeHelper.isDarkMode());
@@ -174,6 +225,12 @@ public class SettingsFragment extends Fragment {
         switchDark.setOnCheckedChangeListener((buttonView, isChecked) -> {
             themeHelper.setMode(isChecked ? ThemePreferenceHelper.MODE_DARK : ThemePreferenceHelper.MODE_LIGHT);
             requireActivity().recreate();
+        });
+
+        MaterialSwitch switchSuggestions = view.findViewById(R.id.switch_title_suggestions);
+        switchSuggestions.setChecked(themeHelper.isTitleSuggestionsEnabled());
+        switchSuggestions.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            themeHelper.setTitleSuggestionsEnabled(isChecked);
         });
     }
 

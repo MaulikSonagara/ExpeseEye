@@ -7,6 +7,7 @@ public class ThemePreferenceHelper {
     private static final String PREF_NAME = "ExpenseEyePrefs";
     private static final String KEY_THEME = "selected_theme_v2";
     private static final String KEY_MODE = "selected_mode_v2";
+    private static final String KEY_SUGGESTIONS = "title_suggestions_enabled";
 
     public static final String THEME_MIDNIGHT = "Midnight Calm";
     public static final String THEME_FOREST = "Forest Ledger";
@@ -40,5 +41,13 @@ public class ThemePreferenceHelper {
 
     public boolean isDarkMode() {
         return MODE_DARK.equalsIgnoreCase(getMode());
+    }
+
+    public void setTitleSuggestionsEnabled(boolean enabled) {
+        prefs.edit().putBoolean(KEY_SUGGESTIONS, enabled).apply();
+    }
+
+    public boolean isTitleSuggestionsEnabled() {
+        return prefs.getBoolean(KEY_SUGGESTIONS, true);
     }
 }

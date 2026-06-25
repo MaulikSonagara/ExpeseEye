@@ -190,6 +190,10 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
     }
 
     private void setupTitleAutocomplete(List<String> suggestions) {
+        com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(this);
+        if (!prefHelper.isTitleSuggestionsEnabled()) {
+            return;
+        }
         ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, suggestions);
         etTitle.setAdapter(titleAdapter);
     }
