@@ -56,6 +56,15 @@
                 android:text="Monthly • UPI"
                 android:textSize="12sp"
                 android:textColor="?android:attr/textColorSecondary" />
+
+            <TextView
+                android:id="@+id/tv_due_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Due: 25-06-2026 20:00"
+                android:textSize="11sp"
+                android:textColor="?attr/colorPrimary"
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
         <LinearLayout

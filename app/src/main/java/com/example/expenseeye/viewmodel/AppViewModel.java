@@ -14,7 +14,7 @@ import com.example.expenseeye.models.CategoryKeyword;
 import com.example.expenseeye.models.ChecklistItem;
 import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.models.PaymentMethod;
-import com.example.expenseeye.models.RecurringExpense;
+import com.example.expenseeye.models.ReminderExpense;
 import com.example.expenseeye.repository.AppRepository;
 
 import java.util.ArrayList;
@@ -249,24 +249,24 @@ public class AppViewModel extends AndroidViewModel {
         return repository.getBudgetSync(month, category);
     }
 
-    // Recurring Expense methods
-    public LiveData<List<RecurringExpense>> getAllRecurringExpenses() {
-        return repository.getAllRecurringExpenses();
+    // Reminder Expense methods
+    public LiveData<List<ReminderExpense>> getAllReminderExpenses() {
+        return repository.getAllReminderExpenses();
     }
 
-    public LiveData<Integer> getRecurringExpenseCountLive() {
-        return repository.getRecurringExpenseCountLive();
+    public LiveData<Integer> getReminderExpenseCountLive() {
+        return repository.getReminderExpenseCountLive();
     }
 
-    public void insertRecurringExpense(RecurringExpense re) {
-        repository.insertRecurringExpense(re);
+    public void insertReminderExpense(ReminderExpense re) {
+        repository.insertReminderExpense(re);
     }
 
-    public void updateRecurringExpense(RecurringExpense re) {
-        repository.updateRecurringExpense(re);
+    public void updateReminderExpense(ReminderExpense re) {
+        repository.updateReminderExpense(re);
     }
 
-    public void deleteRecurringExpense(RecurringExpense re) {
-        repository.deleteRecurringExpense(re);
+    public void deleteReminderExpense(ReminderExpense re) {
+        repository.deleteReminderExpense(re);
     }
 }

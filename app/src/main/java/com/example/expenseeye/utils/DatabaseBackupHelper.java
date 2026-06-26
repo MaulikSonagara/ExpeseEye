@@ -1,5 +1,6 @@
 package com.example.expenseeye.utils;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -150,5 +151,122 @@ public class DatabaseBackupHelper {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public static boolean mergeDatabase(Context context, Uri sourceUri) {
+        // 1. Copy backup to temp file for reading
+        File tempFile = new File(context.getCacheDir(), "merge_source.db");
+        try (InputStream in = context.getContentResolver().openInputStream(sourceUri);
+             OutputStream out = new FileOutputStream(tempFile)) {
+            if (in == null) return false;
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        // 2. Perform merge using raw SQLite on the background thread
+        try (SQLiteDatabase sourceDb = SQLiteDatabase.openDatabase(tempFile.getPath(), null, SQLiteDatabase.OPEN_READONLY)) {
+            AppDatabase targetRoomDb = AppDatabase.getDatabase(context);
+            // We use targetRoomDb.getOpenHelper().getWritableDatabase() to get a SupportSQLiteDatabase
+            androidx.sqlite.db.SupportSQLiteDatabase targetDb = targetRoomDb.getOpenHelper().getWritableDatabase();
+
+            targetDb.beginTransaction();
+            try {
+                // Merge Categories (Insert or Ignore)
+                try (android.database.Cursor cursor = sourceDb.query("categories", null, null, null, null, null, null)) {
+                    while (cursor.moveToNext()) {
+                        ContentValues values = new ContentValues();
+                        values.put("name", cursor.getString(cursor.getColumnIndexOrThrow("name")));
+                        values.put("iconName", cursor.getString(cursor.getColumnIndexOrThrow("iconName")));
+                        values.put("color", cursor.getInt(cursor.getColumnIndexOrThrow("color")));
+                        values.put("isDefault", cursor.getInt(cursor.getColumnIndexOrThrow("isDefault")));
+                        values.put("is_enabled", cursor.getInt(cursor.getColumnIndexOrThrow("is_enabled")));
+                        values.put("created_at", cursor.getLong(cursor.getColumnIndexOrThrow("created_at")));
+                        targetDb.insert("categories", SQLiteDatabase.CONFLICT_IGNORE, values);
+                    }
+                }
+
+                // Merge Payment Methods
+                try (android.database.Cursor cursor = sourceDb.query("payment_methods", null, null, null, null, null, null)) {
+                    while (cursor.moveToNext()) {
+                        ContentValues values = new ContentValues();
+                        values.put("name", cursor.getString(cursor.getColumnIndexOrThrow("name")));
+                        values.put("isEnabled", cursor.getInt(cursor.getColumnIndexOrThrow("isEnabled")));
+                        targetDb.insert("payment_methods", SQLiteDatabase.CONFLICT_IGNORE, values);
+                    }
+                }
+
+                // Merge Expenses
+                try (android.database.Cursor cursor = sourceDb.query("expenses", null, null, null, null, null, null)) {
+                    while (cursor.moveToNext()) {
+                        ContentValues values = new ContentValues();
+                        values.put("title", cursor.getString(cursor.getColumnIndexOrThrow("title")));
+                        values.put("description", cursor.getString(cursor.getColumnIndexOrThrow("description")));
+                        values.put("amount", cursor.getDouble(cursor.getColumnIndexOrThrow("amount")));
+                        values.put("timestamp", cursor.getLong(cursor.getColumnIndexOrThrow("timestamp")));
+                        values.put("categoryId", cursor.getInt(cursor.getColumnIndexOrThrow("categoryId")));
+                        values.put("categoryName", cursor.getString(cursor.getColumnIndexOrThrow("categoryName")));
+                        values.put("paymentMethodId", cursor.getInt(cursor.getColumnIndexOrThrow("paymentMethodId")));
+                        values.put("paymentMethodName", cursor.getString(cursor.getColumnIndexOrThrow("paymentMethodName")));
+                        // Handle 'type' if it exists in source
+                        int typeIndex = cursor.getColumnIndex("type");
+                        if (typeIndex != -1) {
+                            values.put("type", cursor.getInt(typeIndex));
+                        }
+                        targetDb.insert("expenses", SQLiteDatabase.CONFLICT_IGNORE, values);
+                    }
+                }
+
+                // Merge Budgets
+                try (android.database.Cursor cursor = sourceDb.query("budgets", null, null, null, null, null, null)) {
+                    while (cursor.moveToNext()) {
+                        ContentValues values = new ContentValues();
+                        values.put("amount", cursor.getDouble(cursor.getColumnIndexOrThrow("amount")));
+                        values.put("categoryName", cursor.getString(cursor.getColumnIndexOrThrow("categoryName")));
+                        values.put("month", cursor.getString(cursor.getColumnIndexOrThrow("month")));
+                        targetDb.insert("budgets", SQLiteDatabase.CONFLICT_IGNORE, values);
+                    }
+                }
+
+                // Merge Reminder Expenses
+                try (android.database.Cursor cursor = sourceDb.query("reminder_expenses", null, null, null, null, null, null)) {
+                    while (cursor.moveToNext()) {
+                        ContentValues values = new ContentValues();
+                        values.put("title", cursor.getString(cursor.getColumnIndexOrThrow("title")));
+                        values.put("amount", cursor.getDouble(cursor.getColumnIndexOrThrow("amount")));
+                        values.put("categoryId", cursor.getInt(cursor.getColumnIndexOrThrow("categoryId")));
+                        values.put("categoryName", cursor.getString(cursor.getColumnIndexOrThrow("categoryName")));
+                        values.put("paymentMethodId", cursor.getInt(cursor.getColumnIndexOrThrow("paymentMethodId")));
+                        values.put("paymentMethodName", cursor.getString(cursor.getColumnIndexOrThrow("paymentMethodName")));
+                        values.put("frequency", cursor.getString(cursor.getColumnIndexOrThrow("frequency")));
+                        values.put("lastLoggedTimestamp", cursor.getLong(cursor.getColumnIndexOrThrow("lastLoggedTimestamp")));
+                        values.put("nextDueTimestamp", cursor.getLong(cursor.getColumnIndexOrThrow("nextDueTimestamp")));
+                        values.put("isEnabled", cursor.getInt(cursor.getColumnIndexOrThrow("isEnabled")));
+                        int typeIndex = cursor.getColumnIndex("type");
+                        if (typeIndex != -1) {
+                            values.put("type", cursor.getInt(typeIndex));
+                        }
+                        targetDb.insert("reminder_expenses", SQLiteDatabase.CONFLICT_IGNORE, values);
+                    }
+                }
+                
+                targetDb.setTransactionSuccessful();
+            } finally {
+                targetDb.endTransaction();
+            }
+
+            com.example.expenseeye.widget.WidgetProvider.updateAllWidgets(context);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (tempFile.exists()) tempFile.delete();
+        }
     }
 }

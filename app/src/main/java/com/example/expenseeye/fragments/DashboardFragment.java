@@ -2,6 +2,7 @@ package com.example.expenseeye.fragments;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
@@ -13,6 +14,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.AutoCompleteTextView;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -151,7 +154,33 @@ public class DashboardFragment extends Fragment {
         // FAB Quick Add action
         fabAddExpense.setOnClickListener(v -> showAddExpenseBottomSheet());
 
+        // Hamburger Menu action
+        ImageButton btnMenu = view.findViewById(R.id.btn_hamburger_menu);
+        if (btnMenu != null) {
+            btnMenu.setOnClickListener(this::showHamburgerMenu);
+        }
+
         return view;
+    }
+
+    private void showHamburgerMenu(View v) {
+        PopupMenu popup = new PopupMenu(requireContext(), v);
+        popup.getMenu().add(0, 1, 0, "Monthly Budgets");
+        popup.getMenu().add(0, 2, 1, "Reminder Expenses");
+        
+        popup.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == 1) {
+                Intent intent = new Intent(getActivity(), com.example.expenseeye.BudgetsActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (item.getItemId() == 2) {
+                Intent intent = new Intent(getActivity(), com.example.expenseeye.ReminderExpensesActivity.class);
+                startActivity(intent);
+                return true;
+            }
+            return false;
+        });
+        popup.show();
     }
 
     private void resetDashboardTotals() {
@@ -490,7 +519,7 @@ public class DashboardFragment extends Fragment {
 
             Expense newExpense = new Expense(
                     titleStr, desc, amount, selectedDateTime.getTimeInMillis(),
-                    catId, category, pmId, payment
+                    catId, category, pmId, payment, 0
             );
 
             viewModel.insertExpense(newExpense);
@@ -661,6 +690,7 @@ public class DashboardFragment extends Fragment {
             expense.setPaymentMethodId(pmId);
             expense.setPaymentMethodName(payment);
             expense.setDescription(desc);
+            expense.setType(0);
 
             viewModel.updateExpense(expense);
             Toast.makeText(getContext(), "Expense updated", Toast.LENGTH_SHORT).show();

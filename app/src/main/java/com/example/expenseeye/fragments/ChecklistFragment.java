@@ -76,6 +76,10 @@ public class ChecklistFragment extends Fragment {
         priorityAdapter = new com.example.expenseeye.adapters.PrioritySelectionAdapter(java.util.Arrays.asList(priorities), priorities[0], null);
         rvPriority.setAdapter(priorityAdapter);
 
+        com.example.expenseeye.theme.ThemePreferenceHelper ph = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+        boolean initialShopping = ph.isShoppingModeEnabled();
+        switchShopping.setChecked(initialShopping);
+
         // Setup Recycler
         rvChecklist.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new ChecklistAdapter(new ChecklistAdapter.OnChecklistItemClickListener() {
@@ -92,7 +96,7 @@ public class ChecklistFragment extends Fragment {
                     updated.setId(item.getId());
                     viewModel.updateChecklistItem(updated);
 
-                    if (isChecked) {
+                    if (isChecked && !switchShopping.isChecked()) {
                         showLogAsExpenseDialog(item);
                     }
                 }
@@ -104,6 +108,7 @@ public class ChecklistFragment extends Fragment {
                 Toast.makeText(getContext(), "Item deleted", Toast.LENGTH_SHORT).show();
             }
         });
+        adapter.setShoppingMode(initialShopping);
         rvChecklist.setAdapter(adapter);
 
         viewModel = new ViewModelProvider(this).get(AppViewModel.class);
@@ -175,6 +180,7 @@ public class ChecklistFragment extends Fragment {
 
         // Shopping Mode Toggle logic
         switchShopping.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            ph.setShoppingModeEnabled(isChecked);
             adapter.setShoppingMode(isChecked);
             if (isChecked) {
                 Toast.makeText(getContext(), "Shopping Mode Active!", Toast.LENGTH_SHORT).show();
@@ -448,7 +454,7 @@ public class ChecklistFragment extends Fragment {
 
             com.example.expenseeye.models.Expense newExpense = new com.example.expenseeye.models.Expense(
                     titleStr, desc, amount, selectedDateTime.getTimeInMillis(),
-                    catId, category, pmId, payment
+                    catId, category, pmId, payment, 0
             );
 
             viewModel.insertExpense(newExpense);

@@ -17,15 +17,35 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- App Title / Header -->
-            <TextView
+            <!-- App Title / Header with Hamburger Menu -->
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="ExpenseEye"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:textColor="?android:attr/textColorPrimary"
-                android:layout_marginTop="8dp"/>
+                android:layout_marginTop="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:text="ExpenseEye"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btn_hamburger_menu"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Menu"
+                    android:padding="12dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_menu"
+                    app:tint="?attr/colorPrimary" />
+            </RelativeLayout>
 
             <TextView
                 android:layout_width="match_parent"

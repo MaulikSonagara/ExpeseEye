@@ -77,12 +77,15 @@ public class WidgetProvider extends AppWidgetProvider {
                         updateAllWidgets(context);
 
                         if (willBeCompleted) {
-                            Intent addExpenseIntent = new Intent(context, QuickAddExpenseActivity.class);
-                            addExpenseIntent.putExtra(QuickAddExpenseActivity.EXTRA_CATEGORY, item.getCategory());
-                            addExpenseIntent.putExtra("extra_title", item.getTitle());
-                            addExpenseIntent.putExtra("extra_description", item.getQuantity() != null && !item.getQuantity().isEmpty() ? "Qty: " + item.getQuantity() : "");
-                            addExpenseIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            context.startActivity(addExpenseIntent);
+                            com.example.expenseeye.theme.ThemePreferenceHelper ph = new com.example.expenseeye.theme.ThemePreferenceHelper(context);
+                            if (!ph.isShoppingModeEnabled()) {
+                                Intent addExpenseIntent = new Intent(context, QuickAddExpenseActivity.class);
+                                addExpenseIntent.putExtra(QuickAddExpenseActivity.EXTRA_CATEGORY, item.getCategory());
+                                addExpenseIntent.putExtra("extra_title", item.getTitle());
+                                addExpenseIntent.putExtra("extra_description", item.getQuantity() != null && !item.getQuantity().isEmpty() ? "Qty: " + item.getQuantity() : "");
+                                addExpenseIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                context.startActivity(addExpenseIntent);
+                            }
                         }
                     }
                 });

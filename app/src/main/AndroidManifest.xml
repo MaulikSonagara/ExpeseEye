@@ -71,8 +71,14 @@
             android:exported="false" />
 
         <activity
-            android:name=".RecurringExpensesActivity"
-            android:label="Recurring Expenses"
+            android:name=".ReminderExpensesActivity"
+            android:label="Reminder Expenses"
+            android:theme="@style/Theme.ExpenseEye"
+            android:exported="false" />
+
+        <activity
+            android:name=".SmartFeaturesActivity"
+            android:label="Smart Features"
             android:theme="@style/Theme.ExpenseEye"
             android:exported="false" />
 

@@ -16,21 +16,21 @@ import com.example.expenseeye.models.CategoryKeyword;
 import com.example.expenseeye.models.ChecklistItem;
 import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.models.PaymentMethod;
-import com.example.expenseeye.models.RecurringExpense;
+import com.example.expenseeye.models.ReminderExpense;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {Expense.class, Category.class, PaymentMethod.class, ChecklistItem.class, CategoryKeyword.class, Budget.class, RecurringExpense.class}, version = AppDatabase.DATABASE_VERSION, exportSchema = false)
+@Database(entities = {Expense.class, Category.class, PaymentMethod.class, ChecklistItem.class, CategoryKeyword.class, Budget.class, ReminderExpense.class}, version = AppDatabase.DATABASE_VERSION, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
-    public static final int DATABASE_VERSION = 4;
+    public static final int DATABASE_VERSION = 6;
     public abstract ExpenseDao expenseDao();
     public abstract CategoryDao categoryDao();
     public abstract PaymentMethodDao paymentMethodDao();
     public abstract ChecklistItemDao checklistItemDao();
     public abstract CategoryKeywordsDao categoryKeywordsDao();
     public abstract BudgetDao budgetDao();
-    public abstract RecurringExpenseDao recurringExpenseDao();
+    public abstract ReminderExpenseDao reminderExpenseDao();
 
     private static volatile AppDatabase INSTANCE;
     private static final int NUMBER_OF_THREADS = 4;
@@ -150,6 +150,52 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    public static final Migration MIGRATION_4_5 = new Migration(4, 5) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE recurring_expenses RENAME TO reminder_expenses");
+            database.execSQL("ALTER TABLE reminder_expenses ADD COLUMN nextDueTimestamp INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+
+    public static final Migration MIGRATION_5_6 = new Migration(5, 6) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // Check if recurring_expenses table exists
+            android.database.Cursor cursor = database.query("SELECT name FROM sqlite_master WHERE type='table' AND name='recurring_expenses'");
+            boolean hasRecurring = cursor != null && cursor.moveToFirst();
+            if (cursor != null) {
+                cursor.close();
+            }
+            if (hasRecurring) {
+                database.execSQL("ALTER TABLE recurring_expenses RENAME TO reminder_expenses");
+            }
+
+            // Check if nextDueTimestamp column exists in reminder_expenses
+            android.database.Cursor colCursor = database.query("PRAGMA table_info(reminder_expenses)");
+            boolean hasNextDue = false;
+            if (colCursor != null) {
+                int nameIndex = colCursor.getColumnIndex("name");
+                if (nameIndex != -1) {
+                    while (colCursor.moveToNext()) {
+                        if ("nextDueTimestamp".equals(colCursor.getString(nameIndex))) {
+                            hasNextDue = true;
+                            break;
+                        }
+                    }
+                }
+                colCursor.close();
+            }
+            if (!hasNextDue) {
+                database.execSQL("ALTER TABLE reminder_expenses ADD COLUMN nextDueTimestamp INTEGER NOT NULL DEFAULT 0");
+            }
+
+            // Ensure 'type' column exists in expenses and reminder_expenses
+            database.execSQL("ALTER TABLE expenses ADD COLUMN type INTEGER NOT NULL DEFAULT 0");
+            database.execSQL("ALTER TABLE reminder_expenses ADD COLUMN type INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+
     public static AppDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
@@ -157,7 +203,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "expense_eye_database")
                             .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                             .addCallback(sRoomDatabaseCallback)
                             .build();
                 }

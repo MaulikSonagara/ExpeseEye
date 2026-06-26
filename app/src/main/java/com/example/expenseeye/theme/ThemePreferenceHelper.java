@@ -95,4 +95,12 @@ public class ThemePreferenceHelper {
     public boolean isChecklistSmartClassifierEnabled() {
         return prefs.getBoolean(KEY_CHECKLIST_SMART_CLASSIFIER, true);
     }
+
+    public void setShoppingModeEnabled(boolean enabled) {
+        prefs.edit().putBoolean("shopping_mode_enabled", enabled).apply();
+    }
+
+    public boolean isShoppingModeEnabled() {
+        return prefs.getBoolean("shopping_mode_enabled", false);
+    }
 }

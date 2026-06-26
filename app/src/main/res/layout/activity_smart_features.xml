@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/windowBackground"
+    android:fitsSystemWindows="true">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="?attr/homeAsUpIndicator"
+            app:title="Smart Features"
+            app:titleTextColor="?attr/colorOnSurface" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Suggestions &amp; Classification"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary"
+                android:layout_marginBottom="12dp"/>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="?attr/colorOutlineVariant">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Expense Title Suggestions -->
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_expense_title_suggestions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Expense Title Suggestions"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="?android:attr/textColorPrimary" />
+                    
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Suggest previous titles as you type a new expense."
+                        android:textSize="12sp"
+                        android:textColor="?android:attr/textColorSecondary" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?attr/colorOutlineVariant"
+                        android:layout_marginVertical="16dp"/>
+
+                    <!-- Expense Smart Classifier -->
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_expense_smart_classifier"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Expense Smart Classifier"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="?android:attr/textColorPrimary" />
+                    
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Auto-categorize expense using matching keywords."
+                        android:textSize="12sp"
+                        android:textColor="?android:attr/textColorSecondary" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?attr/colorOutlineVariant"
+                        android:layout_marginVertical="16dp"/>
+
+                    <!-- Checklist Title Suggestions -->
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_checklist_title_suggestions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Checklist Title Suggestions"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="?android:attr/textColorPrimary" />
+                    
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Suggest items for checklists based on previous history."
+                        android:textSize="12sp"
+                        android:textColor="?android:attr/textColorSecondary" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?attr/colorOutlineVariant"
+                        android:layout_marginVertical="16dp"/>
+
+                    <!-- Checklist Smart Classifier -->
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_checklist_smart_classifier"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Checklist Smart Classifier"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="?android:attr/textColorPrimary" />
+                    
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Auto-categorize checklist items as you type."
+                        android:textSize="12sp"
+                        android:textColor="?android:attr/textColorSecondary" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

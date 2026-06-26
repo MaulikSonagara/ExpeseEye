@@ -17,21 +17,21 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="Recurring Expenses"
+            app:title="Reminder Expenses"
             app:navigationIcon="?attr/homeAsUpIndicator" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_recurring_expenses"
+        android:id="@+id/rv_reminder_expenses"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:padding="16dp"
         android:clipToPadding="false"
-        tools:listitem="@layout/item_recurring_expense" />
+        tools:listitem="@layout/item_reminder_expense" />
 
     <LinearLayout
-        android:id="@+id/layout_empty_recurring"
+        android:id="@+id/layout_empty_reminder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
@@ -49,13 +49,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="No recurring expenses set."
+            android:text="No reminder expenses set."
             android:textColor="?android:attr/textColorSecondary"
             android:textSize="16sp" />
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_add_recurring"
+        android:id="@+id/fab_add_reminder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"

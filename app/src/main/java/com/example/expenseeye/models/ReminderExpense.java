@@ -3,8 +3,8 @@ package com.example.expenseeye.models;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "recurring_expenses")
-public class RecurringExpense {
+@Entity(tableName = "reminder_expenses")
+public class ReminderExpense {
     @PrimaryKey(autoGenerate = true)
     private int id;
     private String title;
@@ -15,9 +15,12 @@ public class RecurringExpense {
     private String paymentMethodName;
     private String frequency; // "DAILY", "WEEKLY", "MONTHLY"
     private long lastLoggedTimestamp;
+    private long nextDueTimestamp;
+    @androidx.room.ColumnInfo(name = "type", defaultValue = "0")
+    private int type; // 0 for Expense, 1 for Income
     private boolean isEnabled;
 
-    public RecurringExpense(String title, double amount, int categoryId, String categoryName, int paymentMethodId, String paymentMethodName, String frequency, boolean isEnabled) {
+    public ReminderExpense(String title, double amount, int categoryId, String categoryName, int paymentMethodId, String paymentMethodName, String frequency, long nextDueTimestamp, boolean isEnabled, int type) {
         this.title = title;
         this.amount = amount;
         this.categoryId = categoryId;
@@ -25,7 +28,9 @@ public class RecurringExpense {
         this.paymentMethodId = paymentMethodId;
         this.paymentMethodName = paymentMethodName;
         this.frequency = frequency;
+        this.nextDueTimestamp = nextDueTimestamp;
         this.isEnabled = isEnabled;
+        this.type = type;
         this.lastLoggedTimestamp = 0;
     }
 
@@ -101,11 +106,27 @@ public class RecurringExpense {
         this.lastLoggedTimestamp = lastLoggedTimestamp;
     }
 
+    public long getNextDueTimestamp() {
+        return nextDueTimestamp;
+    }
+
+    public void setNextDueTimestamp(long nextDueTimestamp) {
+        this.nextDueTimestamp = nextDueTimestamp;
+    }
+
     public boolean isEnabled() {
         return isEnabled;
     }
 
     public void setEnabled(boolean enabled) {
-        isEnabled = enabled;
+        this.isEnabled = enabled;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
     }
 }

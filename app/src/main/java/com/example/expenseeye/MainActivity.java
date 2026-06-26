@@ -22,6 +22,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Run reminder checker engine
+        com.example.expenseeye.utils.ReminderEngine.checkAndProcessReminders(this);
+
         ViewPager2 viewPager = findViewById(R.id.view_pager);
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
 

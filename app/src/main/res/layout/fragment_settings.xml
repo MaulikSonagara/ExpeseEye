@@ -116,11 +116,11 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Category Management Section -->
+        <!-- Personalization Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Categories"
+            android:text="Personalization"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="?attr/colorPrimary"
@@ -158,59 +158,16 @@
                     android:background="?attr/colorOutlineVariant"
                     android:layout_marginVertical="16dp"/>
 
-                <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/switch_expense_title_suggestions"
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_smart_features"
+                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Expense Title Suggestions"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="?attr/colorOutlineVariant"
-                    android:layout_marginVertical="16dp"/>
-
-                <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/switch_expense_smart_classifier"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Expense Smart Classifier"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="?attr/colorOutlineVariant"
-                    android:layout_marginVertical="16dp"/>
-
-                <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/switch_checklist_title_suggestions"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Checklist Title Suggestions"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="?attr/colorOutlineVariant"
-                    android:layout_marginVertical="16dp"/>
-
-                <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/switch_checklist_smart_classifier"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Checklist Smart Classifier"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="?android:attr/textColorPrimary" />
+                    android:text="Smart Features"
+                    android:gravity="start|center_vertical"
+                    app:icon="@drawable/ic_settings"
+                    android:padding="16dp"
+                    android:layout_margin="-12dp"/>
 
                 <View
                     android:layout_width="match_parent"
@@ -309,89 +266,6 @@
                             app:drawableTint="?attr/colorPrimary" />
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Tools & Data Section -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Budgeting &amp; Recurring"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorPrimary"
-            android:layout_marginBottom="12dp"/>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="0dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="?attr/colorOutlineVariant">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="4dp">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_manage_budgets"
-                        style="@style/Widget.Material3.Button.TextButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Set Monthly Budgets"
-                        android:gravity="start|center_vertical"
-                        app:icon="@drawable/ic_dashboard"
-                        android:padding="16dp"/>
-
-                    <TextView
-                        android:id="@+id/tv_budget_count"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="16dp"
-                        android:text="0 active"
-                        android:textSize="12sp"
-                        android:textColor="?attr/colorPrimary"
-                        android:textStyle="bold"
-                        android:alpha="0.8" />
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_manage_recurring"
-                        style="@style/Widget.Material3.Button.TextButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Recurring Expenses"
-                        android:gravity="start|center_vertical"
-                        app:icon="@android:drawable/ic_menu_recent_history"
-                        android:padding="16dp"/>
-
-                    <TextView
-                        android:id="@+id/tv_recurring_count"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="16dp"
-                        android:text="0 items"
-                        android:textSize="12sp"
-                        android:textColor="?attr/colorPrimary"
-                        android:textStyle="bold"
-                        android:alpha="0.8" />
-                </RelativeLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

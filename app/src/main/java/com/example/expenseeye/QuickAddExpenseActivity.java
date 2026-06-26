@@ -390,7 +390,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
 
         Expense newExpense = new Expense(
                 titleStr, desc, amount, selectedDateTime.getTimeInMillis(),
-                catId, category, pmId, payment
+                catId, category, pmId, payment, 0
         );
 
         // Save to DB in background

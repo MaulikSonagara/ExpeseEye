@@ -137,42 +137,6 @@ public class SettingsFragment extends Fragment {
     }
 
     private void setupEnhancedSettings(View view) {
-        // Expense Title Suggestions
-        MaterialSwitch switchExpenseSuggestions = view.findViewById(R.id.switch_expense_title_suggestions);
-        if (switchExpenseSuggestions != null) {
-            switchExpenseSuggestions.setChecked(themeHelper.isTitleSuggestionsEnabled());
-            switchExpenseSuggestions.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                themeHelper.setTitleSuggestionsEnabled(isChecked);
-            });
-        }
-
-        // Expense Smart Classifier
-        MaterialSwitch switchExpenseSmart = view.findViewById(R.id.switch_expense_smart_classifier);
-        if (switchExpenseSmart != null) {
-            switchExpenseSmart.setChecked(themeHelper.isSmartClassifierEnabled());
-            switchExpenseSmart.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                themeHelper.setSmartClassifierEnabled(isChecked);
-            });
-        }
-
-        // Checklist Title Suggestions
-        MaterialSwitch switchChecklistSuggestions = view.findViewById(R.id.switch_checklist_title_suggestions);
-        if (switchChecklistSuggestions != null) {
-            switchChecklistSuggestions.setChecked(themeHelper.isChecklistTitleSuggestionsEnabled());
-            switchChecklistSuggestions.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                themeHelper.setChecklistTitleSuggestionsEnabled(isChecked);
-            });
-        }
-
-        // Checklist Smart Classifier
-        MaterialSwitch switchChecklistSmart = view.findViewById(R.id.switch_checklist_smart_classifier);
-        if (switchChecklistSmart != null) {
-            switchChecklistSmart.setChecked(themeHelper.isChecklistSmartClassifierEnabled());
-            switchChecklistSmart.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                themeHelper.setChecklistSmartClassifierEnabled(isChecked);
-            });
-        }
-
         // Currency Symbol
         AutoCompleteTextView spinnerCurrency = view.findViewById(R.id.spinner_currency);
         if (spinnerCurrency != null) {
@@ -225,33 +189,6 @@ public class SettingsFragment extends Fragment {
                 });
             });
         }
-
-        // Budgeting & Recurring Button Actions
-        view.findViewById(R.id.btn_manage_budgets).setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), com.example.expenseeye.BudgetsActivity.class);
-            startActivity(intent);
-        });
-        view.findViewById(R.id.btn_manage_recurring).setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), com.example.expenseeye.RecurringExpensesActivity.class);
-            startActivity(intent);
-        });
-
-        // Set counts
-        TextView tvBudgetCount = view.findViewById(R.id.tv_budget_count);
-        TextView tvRecurringCount = view.findViewById(R.id.tv_recurring_count);
-
-        SimpleDateFormat sdf = new SimpleDateFormat("MM-yyyy", Locale.getDefault());
-        String currentMonth = sdf.format(new Date());
-
-        viewModel.getBudgetCountLive(currentMonth).observe(getViewLifecycleOwner(), count -> {
-            int c = count != null ? count : 0;
-            tvBudgetCount.setText(c + " active");
-        });
-
-        viewModel.getRecurringExpenseCountLive().observe(getViewLifecycleOwner(), count -> {
-            int c = count != null ? count : 0;
-            tvRecurringCount.setText(c + " items");
-        });
     }
 
     private void showManageBudgetsDialog() {
@@ -461,6 +398,11 @@ public class SettingsFragment extends Fragment {
 
         view.findViewById(R.id.btn_manage_categories).setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), com.example.expenseeye.CategoryManagementActivity.class);
+            startActivity(intent);
+        });
+
+        view.findViewById(R.id.btn_smart_features).setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), com.example.expenseeye.SmartFeaturesActivity.class);
             startActivity(intent);
         });
     }
@@ -982,25 +924,60 @@ public class SettingsFragment extends Fragment {
                 return;
             }
 
-            // 2. Perform safe restore
-            boolean success = DatabaseBackupHelper.restoreDatabase(requireContext(), sourceUri);
-            
+            // 2. Perform safe restore - Show dialog for Merge vs Overwrite
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                            .setTitle("Restore Database")
+                            .setMessage("Do you want to merge the backup with your current data or overwrite it completely?")
+                            .setPositiveButton("Merge", (dialog, which) -> {
+                                startRestoreProcess(sourceUri, true, result.version);
+                            })
+                            .setNegativeButton("Overwrite", (dialog, which) -> {
+                                startRestoreProcess(sourceUri, false, result.version);
+                            })
+                            .setNeutralButton("Cancel", null)
+                            .show();
+                });
+            }
+        }).start();
+    }
+
+    private void startRestoreProcess(Uri sourceUri, boolean isMerge, int backupVersion) {
+        androidx.appcompat.app.AlertDialog progressDialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle(isMerge ? "Merging data" : "Restoring data")
+                .setMessage("Please wait...")
+                .setCancelable(false)
+                .show();
+
+        new Thread(() -> {
+            boolean success;
+            if (isMerge) {
+                success = DatabaseBackupHelper.mergeDatabase(requireContext(), sourceUri);
+            } else {
+                success = DatabaseBackupHelper.restoreDatabase(requireContext(), sourceUri);
+            }
+
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     progressDialog.dismiss();
                     if (success) {
-                        showToastOnMainThread("Database restored (v" + result.version + ") successfully! Restarting app...");
-                        
-                        // Restart app on main thread to apply changes cleanly
-                        Intent intent = getActivity().getPackageManager().getLaunchIntentForPackage(getActivity().getPackageName());
-                        if (intent != null) {
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
+                        String msg = isMerge ? "Database merged successfully!" : "Database restored (v" + backupVersion + ") successfully! Restarting app...";
+                        showToastOnMainThread(msg);
+
+                        if (!isMerge) {
+                            // Restart app to apply clean restore
+                            Intent intent = getActivity().getPackageManager().getLaunchIntentForPackage(getActivity().getPackageName());
+                            if (intent != null) {
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                            }
+                            getActivity().finishAffinity();
+                            System.exit(0);
                         }
-                        getActivity().finishAffinity();
-                        System.exit(0);
                     } else {
-                        showToastOnMainThread("Database restore failed.");
+                        showToastOnMainThread(isMerge ? "Database merge failed." : "Database restore failed.");
                     }
                 });
             }
