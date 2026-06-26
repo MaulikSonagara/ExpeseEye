@@ -3,6 +3,7 @@ package com.example.expenseeye.utils;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import com.example.expenseeye.database.AppDatabase;
 import com.example.expenseeye.models.ReminderExpense;
@@ -13,8 +14,11 @@ import java.util.List;
  * Reschedules all active alarms after a device reboot.
  */
 public class BootReceiver extends BroadcastReceiver {
+    private static final String TAG = "BootReceiver";
+
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.d(TAG, "Device Boot Received! Action: " + intent.getAction());
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
             // Reschedule all active reminders
             AppDatabase.databaseWriteExecutor.execute(() -> {

@@ -15,6 +15,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
 
+    <!-- Contacts Permission -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -99,8 +102,20 @@
             android:exported="false" />
 
         <activity
+            android:name=".BorrowOweActivity"
+            android:label="Borrow &amp; Owe"
+            android:theme="@style/Theme.ExpenseEye"
+            android:exported="false" />
+
+        <activity
             android:name=".BudgetsActivity"
             android:label="Monthly Budgets"
+            android:theme="@style/Theme.ExpenseEye"
+            android:exported="false" />
+
+        <activity
+            android:name=".BorrowOweDetailsActivity"
+            android:label="Transaction Details"
             android:theme="@style/Theme.ExpenseEye"
             android:exported="false" />
 

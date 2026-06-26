@@ -254,6 +254,59 @@ public class DatabaseBackupHelper {
                         targetDb.insert("reminder_expenses", SQLiteDatabase.CONFLICT_IGNORE, values);
                     }
                 }
+
+                // Merge Borrow & Owe
+                java.util.Map<Long, Long> borrowOweIdMap = new java.util.HashMap<>();
+                boolean hasBorrowOwe = false;
+                try (android.database.Cursor checkCursor = sourceDb.rawQuery("SELECT DISTINCT tbl_name FROM sqlite_master WHERE tbl_name = 'borrow_owe'", null)) {
+                    if (checkCursor != null && checkCursor.getCount() > 0) {
+                        hasBorrowOwe = true;
+                    }
+                }
+                if (hasBorrowOwe) {
+                    try (android.database.Cursor cursor = sourceDb.query("borrow_owe", null, null, null, null, null, null)) {
+                        while (cursor.moveToNext()) {
+                            long oldId = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
+                            ContentValues values = new ContentValues();
+                            values.put("personName", cursor.getString(cursor.getColumnIndexOrThrow("personName")));
+                            values.put("amount", cursor.getDouble(cursor.getColumnIndexOrThrow("amount")));
+                            values.put("isBorrow", cursor.getInt(cursor.getColumnIndexOrThrow("isBorrow")));
+                            values.put("description", cursor.getString(cursor.getColumnIndexOrThrow("description")));
+                            values.put("timestamp", cursor.getLong(cursor.getColumnIndexOrThrow("timestamp")));
+                            values.put("dueTimestamp", cursor.getLong(cursor.getColumnIndexOrThrow("dueTimestamp")));
+                            values.put("isSettled", cursor.getInt(cursor.getColumnIndexOrThrow("isSettled")));
+                            values.put("wasAddedAsExpense", cursor.getInt(cursor.getColumnIndexOrThrow("wasAddedAsExpense")));
+                            long newId = targetDb.insert("borrow_owe", SQLiteDatabase.CONFLICT_IGNORE, values);
+                            if (newId != -1) {
+                                borrowOweIdMap.put(oldId, newId);
+                            }
+                        }
+                    }
+                }
+
+                // Merge Borrow & Owe Payments
+                boolean hasBorrowOwePayments = false;
+                try (android.database.Cursor checkCursor = sourceDb.rawQuery("SELECT DISTINCT tbl_name FROM sqlite_master WHERE tbl_name = 'borrow_owe_payments'", null)) {
+                    if (checkCursor != null && checkCursor.getCount() > 0) {
+                        hasBorrowOwePayments = true;
+                    }
+                }
+                if (hasBorrowOwePayments) {
+                    try (android.database.Cursor cursor = sourceDb.query("borrow_owe_payments", null, null, null, null, null, null)) {
+                        while (cursor.moveToNext()) {
+                            long oldBorrowOweId = cursor.getLong(cursor.getColumnIndexOrThrow("borrowOweId"));
+                            if (borrowOweIdMap.containsKey(oldBorrowOweId)) {
+                                long newBorrowOweId = borrowOweIdMap.get(oldBorrowOweId);
+                                ContentValues values = new ContentValues();
+                                values.put("borrowOweId", newBorrowOweId);
+                                values.put("amountPaid", cursor.getDouble(cursor.getColumnIndexOrThrow("amountPaid")));
+                                values.put("timestamp", cursor.getLong(cursor.getColumnIndexOrThrow("timestamp")));
+                                values.put("note", cursor.getString(cursor.getColumnIndexOrThrow("note")));
+                                targetDb.insert("borrow_owe_payments", SQLiteDatabase.CONFLICT_IGNORE, values);
+                            }
+                        }
+                    }
+                }
                 
                 targetDb.setTransactionSuccessful();
             } finally {

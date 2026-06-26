@@ -451,6 +451,17 @@ public class SettingsFragment extends Fragment {
             restoreLauncher.launch(intent);
         });
 
+        view.findViewById(R.id.btn_test_notification).setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Scheduling test notification for 5 seconds...", Toast.LENGTH_SHORT).show();
+            com.example.expenseeye.utils.AlarmScheduler.scheduleOneTime(
+                    requireContext(),
+                    8888,
+                    "Test Notification",
+                    "It works! The notification system is correctly configured.",
+                    System.currentTimeMillis() + 5000
+            );
+        });
+
         view.findViewById(R.id.btn_manage_categories).setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), com.example.expenseeye.CategoryManagementActivity.class);
             startActivity(intent);

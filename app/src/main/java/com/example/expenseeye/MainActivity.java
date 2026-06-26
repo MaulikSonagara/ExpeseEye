@@ -3,6 +3,8 @@ package com.example.expenseeye;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -39,6 +41,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Handle Android 12+ Exact Alarm Permission
         checkExactAlarmPermission();
+
+        // Handle Battery Optimization
+        checkBatteryOptimization();
 
         // Run reminder checker engine
         com.example.expenseeye.utils.ReminderEngine.checkAndProcessReminders(this);
@@ -139,6 +144,23 @@ public class MainActivity extends AppCompatActivity {
                             AlarmScheduler.requestExactAlarmPermission(this);
                         })
                         .setNegativeButton("Maybe Later", null)
+                        .show();
+            }
+        }
+    }
+
+    private void checkBatteryOptimization() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                new MaterialAlertDialogBuilder(this)
+                        .setTitle("Optimization Detected")
+                        .setMessage("To ensure reminders work reliably in the background, please disable battery optimization for ExpenseEye.")
+                        .setPositiveButton("Fix Now", (dialog, which) -> {
+                            Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                            startActivity(intent);
+                        })
+                        .setNegativeButton("Skip", null)
                         .show();
             }
         }

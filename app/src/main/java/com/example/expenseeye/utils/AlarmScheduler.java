@@ -10,13 +10,16 @@ import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Locale;
 
 /**
  * Utility class to schedule and cancel alarms for reminders.
  */
 public class AlarmScheduler {
     private static final String TAG = "AlarmScheduler";
+    private static final SimpleDateFormat debugFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
 
     /**
      * Checks if the app can schedule exact alarms.
@@ -52,7 +55,7 @@ public class AlarmScheduler {
      * @param timeInMillis Exact time to trigger the alarm
      */
     public static void scheduleOneTime(Context context, int id, String title, String message, long timeInMillis) {
-        Log.d(TAG, "Scheduling OneTime alarm: ID=" + id + ", Title=" + title + ", Time=" + timeInMillis);
+        Log.d(TAG, "Scheduling OneTime alarm: ID=" + id + ", Title=" + title + ", Time=" + debugFormat.format(timeInMillis));
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (alarmManager == null) return;
 
@@ -76,40 +79,24 @@ public class AlarmScheduler {
 
     /**
      * Schedules a daily repeating reminder at a specific time.
-     * 
-     * @param context Context
-     * @param id Unique ID for the alarm
-     * @param title Title for the notification
-     * @param message Message for the notification
-     * @param hour Hour of day (0-23)
-     * @param minute Minute (0-59)
+     * Uses exact alarms and manual rescheduling for maximum reliability.
      */
     public static void scheduleDaily(Context context, int id, String title, String message, int hour, int minute) {
         Log.d(TAG, "Scheduling Daily alarm: ID=" + id + ", Time=" + hour + ":" + minute);
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        if (alarmManager == null) return;
-
+        
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, hour);
         calendar.set(Calendar.MINUTE, minute);
         calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
 
         // If time has already passed today, schedule for tomorrow
         if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
             calendar.add(Calendar.DAY_OF_YEAR, 1);
         }
 
-        Intent intent = createIntent(context, id, title, message);
-        PendingIntent pendingIntent = createPendingIntent(context, id, intent);
-
-        // Note: setRepeating is not exact on modern Android versions. 
-        // For production, consider using WorkManager or rescheduling exact alarms individually.
-        alarmManager.setRepeating(
-                AlarmManager.RTC_WAKEUP,
-                calendar.getTimeInMillis(),
-                AlarmManager.INTERVAL_DAY,
-                pendingIntent
-        );
+        // Use scheduleOneTime to handle exact alarm permission and logic
+        scheduleOneTime(context, id, title, message, calendar.getTimeInMillis());
     }
 
     /**

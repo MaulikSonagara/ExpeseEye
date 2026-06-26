@@ -103,10 +103,13 @@ public class NotificationHelper {
 
         try {
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+            if (!notificationManager.areNotificationsEnabled()) {
+                Log.w(TAG, "Notifications are disabled for this app!");
+            }
             notificationManager.notify(id, builder.build());
-        } catch (SecurityException e) {
-            // Permission not granted on Android 13+
-            e.printStackTrace();
+            Log.d(TAG, "Notification sent to system: ID=" + id);
+        } catch (Exception e) {
+            Log.e(TAG, "Error showing notification", e);
         }
     }
 }

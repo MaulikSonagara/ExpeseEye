@@ -61,6 +61,8 @@ public class DashboardFragment extends Fragment {
     private List<Category> availableCategories = new ArrayList<>();
     private List<PaymentMethod> availablePaymentMethods = new ArrayList<>();
     private List<com.example.expenseeye.models.CategoryKeyword> allKeywords = new ArrayList<>();
+    private List<Expense> currentExpenses = new ArrayList<>();
+    private List<Budget> currentBudgets = new ArrayList<>();
 
     // Variables for picker in BottomSheet dialog
     private Calendar selectedDateTime = Calendar.getInstance();
@@ -84,6 +86,17 @@ public class DashboardFragment extends Fragment {
         FloatingActionButton fabAddExpense = view.findViewById(R.id.fab_add_expense);
         TextView btnSeeAll = view.findViewById(R.id.btn_see_all);
 
+        final TextView tvDashOwe = view.findViewById(R.id.tv_dash_owe);
+        final TextView tvDashOwed = view.findViewById(R.id.tv_dash_owed);
+        View cardDashboardBorrowOwe = view.findViewById(R.id.card_dashboard_borrow_owe);
+        com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+        final String currencySymbol = prefHelper.getCurrencySymbol();
+
+        cardDashboardBorrowOwe.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), com.example.expenseeye.BorrowOweActivity.class);
+            startActivity(intent);
+        });
+
         // Set up recycler view
         rvRecentExpenses.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new ExpenseAdapter(this::showEditExpenseBottomSheet);
@@ -91,6 +104,17 @@ public class DashboardFragment extends Fragment {
 
         // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(AppViewModel.class);
+
+        // Observe Borrow/Owe stats
+        viewModel.getTotalOwedToOthers().observe(getViewLifecycleOwner(), owe -> {
+            double val = owe != null ? owe : 0.0;
+            tvDashOwe.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, val));
+        });
+
+        viewModel.getTotalOwedToMe().observe(getViewLifecycleOwner(), owed -> {
+            double val = owed != null ? owed : 0.0;
+            tvDashOwed.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, val));
+        });
 
         // Observe Categories & PaymentMethods for spinners cache
         viewModel.getAllCategories().observe(getViewLifecycleOwner(), categories -> {
@@ -120,23 +144,36 @@ public class DashboardFragment extends Fragment {
             }
         });
 
-        // Observe all expenses to calculate totals and list recent
+        // Observe all expenses to calculate totals, list recent, and update budget
         viewModel.getAllExpenses().observe(getViewLifecycleOwner(), expenses -> {
-            if (expenses != null && !expenses.isEmpty()) {
-                tvNoExpenses.setVisibility(View.GONE);
-                rvRecentExpenses.setVisibility(View.VISIBLE);
+            if (expenses != null) {
+                currentExpenses = expenses;
+                if (!expenses.isEmpty()) {
+                    tvNoExpenses.setVisibility(View.GONE);
+                    rvRecentExpenses.setVisibility(View.VISIBLE);
 
-                // Show only up to 5 recent expenses
-                List<Expense> recent = expenses.size() > 5 ? expenses.subList(0, 5) : expenses;
-                adapter.submitExpenseList(recent);
+                    // Show only up to 5 recent expenses
+                    List<Expense> recent = expenses.size() > 5 ? expenses.subList(0, 5) : expenses;
+                    adapter.submitExpenseList(recent);
 
-                // Calculate statistics
-                calculateTotals(expenses);
-                updateBudgetSection(expenses);
-            } else {
-                tvNoExpenses.setVisibility(View.VISIBLE);
-                rvRecentExpenses.setVisibility(View.GONE);
-                resetDashboardTotals();
+                    // Calculate statistics
+                    calculateTotals(expenses);
+                } else {
+                    tvNoExpenses.setVisibility(View.VISIBLE);
+                    rvRecentExpenses.setVisibility(View.GONE);
+                    resetDashboardTotals();
+                }
+                refreshBudgetSection();
+            }
+        });
+
+        // Observe Budgets for the current month independently
+        SimpleDateFormat sdf = new SimpleDateFormat("MM-yyyy", Locale.getDefault());
+        String currentMonth = sdf.format(new Date());
+        viewModel.getBudgetsForMonth(currentMonth).observe(getViewLifecycleOwner(), budgets -> {
+            if (budgets != null) {
+                currentBudgets = budgets;
+                refreshBudgetSection();
             }
         });
 
@@ -167,6 +204,7 @@ public class DashboardFragment extends Fragment {
         PopupMenu popup = new PopupMenu(requireContext(), v);
         popup.getMenu().add(0, 1, 0, "Monthly Budgets");
         popup.getMenu().add(0, 2, 1, "Reminder Expenses");
+        popup.getMenu().add(0, 3, 2, "Borrow & Owe");
         
         popup.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == 1) {
@@ -175,6 +213,10 @@ public class DashboardFragment extends Fragment {
                 return true;
             } else if (item.getItemId() == 2) {
                 Intent intent = new Intent(getActivity(), com.example.expenseeye.ReminderExpensesActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (item.getItemId() == 3) {
+                Intent intent = new Intent(getActivity(), com.example.expenseeye.BorrowOweActivity.class);
                 startActivity(intent);
                 return true;
             }
@@ -280,66 +322,64 @@ public class DashboardFragment extends Fragment {
         }
     }
 
-    private void updateBudgetSection(List<Expense> expenses) {
-        SimpleDateFormat sdf = new SimpleDateFormat("MM-yyyy", Locale.getDefault());
-        String currentMonth = sdf.format(new Date());
+    private void refreshBudgetSection() {
+        layoutBudgetContainer.removeAllViews();
+        if (currentBudgets == null || currentBudgets.isEmpty()) {
+            tvBudgetHeader.setVisibility(View.GONE);
+            cardBudgetContainer.setVisibility(View.GONE);
+            return;
+        }
 
-        viewModel.getBudgetsForMonth(currentMonth).observe(getViewLifecycleOwner(), budgets -> {
-            layoutBudgetContainer.removeAllViews();
-            if (budgets == null || budgets.isEmpty()) {
-                tvBudgetHeader.setVisibility(View.GONE);
-                cardBudgetContainer.setVisibility(View.GONE);
-                return;
-            }
+        tvBudgetHeader.setVisibility(View.VISIBLE);
+        cardBudgetContainer.setVisibility(View.VISIBLE);
+        
+        ThemePreferenceHelper prefHelper = new ThemePreferenceHelper(requireContext());
+        String currency = prefHelper.getCurrencySymbol();
+        
+        Calendar calMonth = Calendar.getInstance();
+        calMonth.set(Calendar.DAY_OF_MONTH, 1);
+        calMonth.set(Calendar.HOUR_OF_DAY, 0);
+        calMonth.set(Calendar.MINUTE, 0);
+        calMonth.set(Calendar.SECOND, 0);
+        calMonth.set(Calendar.MILLISECOND, 0);
+        long monthStart = calMonth.getTimeInMillis();
 
-            tvBudgetHeader.setVisibility(View.VISIBLE);
-            cardBudgetContainer.setVisibility(View.VISIBLE);
+        for (Budget b : currentBudgets) {
+            View budgetView = getLayoutInflater().inflate(R.layout.item_dashboard_budget, layoutBudgetContainer, false);
             
-            ThemePreferenceHelper prefHelper = new ThemePreferenceHelper(requireContext());
-            String currency = prefHelper.getCurrencySymbol();
-            
-            Calendar calMonth = Calendar.getInstance();
-            calMonth.set(Calendar.DAY_OF_MONTH, 1);
-            calMonth.set(Calendar.HOUR_OF_DAY, 0);
-            long monthStart = calMonth.getTimeInMillis();
+            TextView tvLabel = budgetView.findViewById(R.id.tv_budget_label);
+            TextView tvPercent = budgetView.findViewById(R.id.tv_budget_percent);
+            com.google.android.material.progressindicator.LinearProgressIndicator progress = budgetView.findViewById(R.id.progress_budget);
+            TextView tvRemaining = budgetView.findViewById(R.id.tv_budget_remaining);
 
-            for (Budget b : budgets) {
-                View budgetView = getLayoutInflater().inflate(R.layout.item_dashboard_budget, layoutBudgetContainer, false);
-                
-                TextView tvLabel = budgetView.findViewById(R.id.tv_budget_label);
-                TextView tvPercent = budgetView.findViewById(R.id.tv_budget_percent);
-                com.google.android.material.progressindicator.LinearProgressIndicator progress = budgetView.findViewById(R.id.progress_budget);
-                TextView tvRemaining = budgetView.findViewById(R.id.tv_budget_remaining);
+            tvLabel.setText(b.getCategoryName().toUpperCase() + " BUDGET");
 
-                tvLabel.setText(b.getCategoryName().toUpperCase() + " BUDGET");
-
-                double totalSpent = 0;
-                for (Expense e : expenses) {
-                    if (e.getTimestamp() >= monthStart) {
-                        if ("Overall".equalsIgnoreCase(b.getCategoryName()) || 
-                            b.getCategoryName().equalsIgnoreCase(e.getCategoryName())) {
-                            totalSpent += e.getAmount();
-                        }
+            double totalSpent = 0;
+            for (Expense e : currentExpenses) {
+                if (e.getTimestamp() >= monthStart) {
+                    if ("Overall".equalsIgnoreCase(b.getCategoryName()) || 
+                        b.getCategoryName().equalsIgnoreCase(e.getCategoryName())) {
+                        totalSpent += e.getAmount();
                     }
                 }
-
-                double budgetAmount = b.getAmount();
-                int percent = budgetAmount > 0 ? (int) ((totalSpent / budgetAmount) * 100) : 0;
-                progress.setProgress(Math.min(percent, 100));
-                tvPercent.setText(percent + "%");
-
-                double remaining = budgetAmount - totalSpent;
-                if (remaining >= 0) {
-                    tvRemaining.setText(String.format(Locale.getDefault(), "%s%.2f remaining", currency, remaining));
-                    tvRemaining.setTextColor(Color.parseColor("#C5CAE9"));
-                } else {
-                    tvRemaining.setText(String.format(Locale.getDefault(), "%s%.2f over budget!", currency, Math.abs(remaining)));
-                    tvRemaining.setTextColor(Color.parseColor("#FFCDD2"));
-                }
-
-                layoutBudgetContainer.addView(budgetView);
             }
-        });
+
+            double budgetAmount = b.getAmount();
+            int percent = budgetAmount > 0 ? (int) ((totalSpent / budgetAmount) * 100) : 0;
+            progress.setProgress(Math.min(percent, 100));
+            tvPercent.setText(percent + "%");
+
+            double remaining = budgetAmount - totalSpent;
+            if (remaining >= 0) {
+                tvRemaining.setText(String.format(Locale.getDefault(), "%s%.2f remaining", currency, remaining));
+                tvRemaining.setTextColor(Color.parseColor("#C5CAE9"));
+            } else {
+                tvRemaining.setText(String.format(Locale.getDefault(), "%s%.2f over budget!", currency, Math.abs(remaining)));
+                tvRemaining.setTextColor(Color.parseColor("#FFCDD2"));
+            }
+
+            layoutBudgetContainer.addView(budgetView);
+        }
     }
 
     private boolean isSameDay(long ts1, long ts2) {

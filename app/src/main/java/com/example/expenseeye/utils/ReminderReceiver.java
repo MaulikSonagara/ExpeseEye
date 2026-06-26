@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import com.example.expenseeye.theme.ThemePreferenceHelper;
+
 /**
  * BroadcastReceiver to catch scheduled alarms and trigger notifications.
  */
@@ -32,5 +34,26 @@ public class ReminderReceiver extends BroadcastReceiver {
 
         // Trigger the notification
         NotificationHelper.showNotification(context, id, title, message, channelId);
+
+        // Handle Rescheduling for Daily Log Reminder (ID 9999)
+        if (id == 9999) {
+            ThemePreferenceHelper themeHelper = new ThemePreferenceHelper(context);
+            if (themeHelper.isDailyReminderEnabled()) {
+                String time = themeHelper.getDailyReminderTime();
+                String[] parts = time.split(":");
+                int hour = Integer.parseInt(parts[0]);
+                int minute = Integer.parseInt(parts[1]);
+
+                AlarmScheduler.scheduleDaily(
+                        context,
+                        9999,
+                        title,
+                        message,
+                        hour,
+                        minute
+                );
+                Log.d(TAG, "Rescheduled Daily Log Reminder for tomorrow.");
+            }
+        }
     }
 }

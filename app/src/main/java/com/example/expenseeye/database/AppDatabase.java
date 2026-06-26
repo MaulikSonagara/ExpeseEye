@@ -17,13 +17,15 @@ import com.example.expenseeye.models.ChecklistItem;
 import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.models.PaymentMethod;
 import com.example.expenseeye.models.ReminderExpense;
+import com.example.expenseeye.models.BorrowOwe;
+import com.example.expenseeye.models.BorrowOwePayment;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {Expense.class, Category.class, PaymentMethod.class, ChecklistItem.class, CategoryKeyword.class, Budget.class, ReminderExpense.class}, version = AppDatabase.DATABASE_VERSION, exportSchema = false)
+@Database(entities = {Expense.class, Category.class, PaymentMethod.class, ChecklistItem.class, CategoryKeyword.class, Budget.class, ReminderExpense.class, BorrowOwe.class, BorrowOwePayment.class}, version = AppDatabase.DATABASE_VERSION, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
-    public static final int DATABASE_VERSION = 6;
+    public static final int DATABASE_VERSION = 8;
     public abstract ExpenseDao expenseDao();
     public abstract CategoryDao categoryDao();
     public abstract PaymentMethodDao paymentMethodDao();
@@ -31,6 +33,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract CategoryKeywordsDao categoryKeywordsDao();
     public abstract BudgetDao budgetDao();
     public abstract ReminderExpenseDao reminderExpenseDao();
+    public abstract BorrowOweDao borrowOweDao();
+    public abstract BorrowOwePaymentDao borrowOwePaymentDao();
 
     private static volatile AppDatabase INSTANCE;
     private static final int NUMBER_OF_THREADS = 4;
@@ -196,6 +200,36 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    public static final Migration MIGRATION_6_7 = new Migration(6, 7) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS `borrow_owe` (" +
+                    "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`personName` TEXT, " +
+                    "`amount` REAL NOT NULL, " +
+                    "`isBorrow` INTEGER NOT NULL, " +
+                    "`description` TEXT, " +
+                    "`timestamp` INTEGER NOT NULL, " +
+                    "`dueTimestamp` INTEGER NOT NULL, " +
+                    "`isSettled` INTEGER NOT NULL, " +
+                    "`wasAddedAsExpense` INTEGER NOT NULL)");
+        }
+    };
+
+    public static final Migration MIGRATION_7_8 = new Migration(7, 8) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS `borrow_owe_payments` (" +
+                    "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`borrowOweId` INTEGER NOT NULL, " +
+                    "`amountPaid` REAL NOT NULL, " +
+                    "`timestamp` INTEGER NOT NULL, " +
+                    "`note` TEXT, " +
+                    "FOREIGN KEY(`borrowOweId`) REFERENCES `borrow_owe`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_borrow_owe_payments_borrowOweId` ON `borrow_owe_payments` (`borrowOweId`)");
+        }
+    };
+
     public static AppDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
@@ -203,7 +237,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "expense_eye_database")
                             .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                             .addCallback(sRoomDatabaseCallback)
                             .build();
                 }

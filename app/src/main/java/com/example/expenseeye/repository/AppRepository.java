@@ -20,6 +20,10 @@ import com.example.expenseeye.models.ChecklistItem;
 import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.models.PaymentMethod;
 import com.example.expenseeye.models.ReminderExpense;
+import com.example.expenseeye.models.BorrowOwe;
+import com.example.expenseeye.models.BorrowOwePayment;
+import com.example.expenseeye.database.BorrowOweDao;
+import com.example.expenseeye.database.BorrowOwePaymentDao;
 import com.example.expenseeye.utils.AlarmScheduler;
 import com.example.expenseeye.widget.WidgetProvider;
 
@@ -41,6 +45,9 @@ public class AppRepository {
     private final LiveData<List<PaymentMethod>> allPaymentMethods;
     private final LiveData<List<ChecklistItem>> allChecklistItems;
     private final LiveData<List<CategoryKeyword>> allKeywords;
+    private final BorrowOweDao borrowOweDao;
+    private final LiveData<List<BorrowOwe>> allBorrowOwes;
+    private final BorrowOwePaymentDao borrowOwePaymentDao;
 
     public AppRepository(Application application) {
         this.context = application.getApplicationContext();
@@ -58,6 +65,9 @@ public class AppRepository {
         allPaymentMethods = paymentMethodDao.getAllPaymentMethods();
         allChecklistItems = checklistItemDao.getAllChecklistItems();
         allKeywords = categoryKeywordsDao.getAllKeywords();
+        borrowOweDao = db.borrowOweDao();
+        allBorrowOwes = borrowOweDao.getAllItems();
+        borrowOwePaymentDao = db.borrowOwePaymentDao();
     }
 
     // Expense operations
@@ -449,5 +459,51 @@ public class AppRepository {
             reminderExpenseDao.delete(reminderExpense);
             AlarmScheduler.cancelAlarm(context, reminderExpense.getId());
         });
+    }
+
+    // Borrow/Owe operations
+    public LiveData<List<BorrowOwe>> getAllBorrowOwes() {
+        return allBorrowOwes;
+    }
+
+    public LiveData<Double> getTotalOwedToOthers() {
+        return borrowOweDao.getTotalOwedToOthers();
+    }
+
+    public LiveData<Double> getTotalOwedToMe() {
+        return borrowOweDao.getTotalOwedToMe();
+    }
+
+    public void insertBorrowOwe(BorrowOwe item) {
+        AppDatabase.databaseWriteExecutor.execute(() -> borrowOweDao.insert(item));
+    }
+
+    public void updateBorrowOwe(BorrowOwe item) {
+        AppDatabase.databaseWriteExecutor.execute(() -> borrowOweDao.update(item));
+    }
+
+    public void deleteBorrowOwe(BorrowOwe item) {
+        AppDatabase.databaseWriteExecutor.execute(() -> borrowOweDao.delete(item));
+    }
+
+    public LiveData<BorrowOwe> getBorrowOweById(long id) {
+        return borrowOweDao.getItemById(id);
+    }
+
+    // Borrow/Owe Payment operations
+    public LiveData<List<BorrowOwePayment>> getPaymentsForBorrowOwe(long borrowOweId) {
+        return borrowOwePaymentDao.getPaymentsForBorrowOwe(borrowOweId);
+    }
+
+    public LiveData<Double> getTotalPaidForBorrowOwe(long borrowOweId) {
+        return borrowOwePaymentDao.getTotalPaidForBorrowOwe(borrowOweId);
+    }
+
+    public void insertBorrowOwePayment(BorrowOwePayment payment) {
+        AppDatabase.databaseWriteExecutor.execute(() -> borrowOwePaymentDao.insert(payment));
+    }
+
+    public void deleteBorrowOwePayment(BorrowOwePayment payment) {
+        AppDatabase.databaseWriteExecutor.execute(() -> borrowOwePaymentDao.delete(payment));
     }
 }

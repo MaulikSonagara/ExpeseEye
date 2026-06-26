@@ -15,6 +15,8 @@ import com.example.expenseeye.models.ChecklistItem;
 import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.models.PaymentMethod;
 import com.example.expenseeye.models.ReminderExpense;
+import com.example.expenseeye.models.BorrowOwe;
+import com.example.expenseeye.models.BorrowOwePayment;
 import com.example.expenseeye.repository.AppRepository;
 
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ public class AppViewModel extends AndroidViewModel {
     private final LiveData<List<ChecklistItem>> allChecklistItems;
     private final LiveData<List<CategoryKeyword>> allKeywords;
     private final LiveData<Integer> pendingChecklistCount;
+    private final LiveData<List<BorrowOwe>> allBorrowOwes;
 
     // Filter states
     public static class FilterParams {
@@ -54,6 +57,7 @@ public class AppViewModel extends AndroidViewModel {
         allChecklistItems = repository.getAllChecklistItems();
         allKeywords = repository.getAllKeywords();
         pendingChecklistCount = repository.getPendingChecklistCountLive();
+        allBorrowOwes = repository.getAllBorrowOwes();
 
         // Reactive filter switchmap
         filteredExpenses = Transformations.switchMap(filterParams, params ->
@@ -268,5 +272,51 @@ public class AppViewModel extends AndroidViewModel {
 
     public void deleteReminderExpense(ReminderExpense re) {
         repository.deleteReminderExpense(re);
+    }
+
+    // Borrow/Owe methods
+    public LiveData<List<BorrowOwe>> getAllBorrowOwes() {
+        return allBorrowOwes;
+    }
+
+    public LiveData<Double> getTotalOwedToOthers() {
+        return repository.getTotalOwedToOthers();
+    }
+
+    public LiveData<Double> getTotalOwedToMe() {
+        return repository.getTotalOwedToMe();
+    }
+
+    public void insertBorrowOwe(BorrowOwe item) {
+        repository.insertBorrowOwe(item);
+    }
+
+    public void updateBorrowOwe(BorrowOwe item) {
+        repository.updateBorrowOwe(item);
+    }
+
+    public void deleteBorrowOwe(BorrowOwe item) {
+        repository.deleteBorrowOwe(item);
+    }
+
+    public LiveData<BorrowOwe> getBorrowOweById(long id) {
+        return repository.getBorrowOweById(id);
+    }
+
+    // Borrow/Owe Payment methods
+    public LiveData<List<BorrowOwePayment>> getPaymentsForBorrowOwe(long borrowOweId) {
+        return repository.getPaymentsForBorrowOwe(borrowOweId);
+    }
+
+    public LiveData<Double> getTotalPaidForBorrowOwe(long borrowOweId) {
+        return repository.getTotalPaidForBorrowOwe(borrowOweId);
+    }
+
+    public void insertBorrowOwePayment(BorrowOwePayment payment) {
+        repository.insertBorrowOwePayment(payment);
+    }
+
+    public void deleteBorrowOwePayment(BorrowOwePayment payment) {
+        repository.deleteBorrowOwePayment(payment);
     }
 }
