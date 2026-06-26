@@ -13,6 +13,8 @@ public class ThemePreferenceHelper {
     private static final String KEY_SMART_CLASSIFIER = "smart_classifier_enabled";
     private static final String KEY_CHECKLIST_SUGGESTIONS = "checklist_suggestions_enabled";
     private static final String KEY_CHECKLIST_SMART_CLASSIFIER = "checklist_classifier_enabled";
+    private static final String KEY_DAILY_REMINDER = "daily_reminder_enabled";
+    private static final String KEY_DAILY_REMINDER_TIME = "daily_reminder_time";
 
     public static final String THEME_MIDNIGHT = "Midnight Calm";
     public static final String THEME_FOREST = "Forest Ledger";
@@ -102,5 +104,21 @@ public class ThemePreferenceHelper {
 
     public boolean isShoppingModeEnabled() {
         return prefs.getBoolean("shopping_mode_enabled", false);
+    }
+
+    public void setDailyReminderEnabled(boolean enabled) {
+        prefs.edit().putBoolean(KEY_DAILY_REMINDER, enabled).apply();
+    }
+
+    public boolean isDailyReminderEnabled() {
+        return prefs.getBoolean(KEY_DAILY_REMINDER, false);
+    }
+
+    public void setDailyReminderTime(String time) {
+        prefs.edit().putString(KEY_DAILY_REMINDER_TIME, time).apply();
+    }
+
+    public String getDailyReminderTime() {
+        return prefs.getString(KEY_DAILY_REMINDER_TIME, "21:00");
     }
 }

@@ -20,6 +20,7 @@ import com.example.expenseeye.models.ChecklistItem;
 import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.models.PaymentMethod;
 import com.example.expenseeye.models.ReminderExpense;
+import com.example.expenseeye.utils.AlarmScheduler;
 import com.example.expenseeye.widget.WidgetProvider;
 
 import java.util.ArrayList;
@@ -410,14 +411,43 @@ public class AppRepository {
     }
 
     public void insertReminderExpense(ReminderExpense reminderExpense) {
-        AppDatabase.databaseWriteExecutor.execute(() -> reminderExpenseDao.insert(reminderExpense));
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            long id = reminderExpenseDao.insert(reminderExpense);
+            if (reminderExpense.isEnabled() && reminderExpense.getNextDueTimestamp() > System.currentTimeMillis()) {
+                AlarmScheduler.scheduleOneTime(
+                        context,
+                        (int) id,
+                        "Reminder: " + reminderExpense.getTitle(),
+                        "Your scheduled expense is due.",
+                        reminderExpense.getNextDueTimestamp()
+                );
+            }
+        });
     }
 
     public void updateReminderExpense(ReminderExpense reminderExpense) {
-        AppDatabase.databaseWriteExecutor.execute(() -> reminderExpenseDao.update(reminderExpense));
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            reminderExpenseDao.update(reminderExpense);
+            if (reminderExpense.isEnabled()) {
+                if (reminderExpense.getNextDueTimestamp() > System.currentTimeMillis()) {
+                    AlarmScheduler.scheduleOneTime(
+                            context,
+                            reminderExpense.getId(),
+                            "Reminder: " + reminderExpense.getTitle(),
+                            "Your scheduled expense is due.",
+                            reminderExpense.getNextDueTimestamp()
+                    );
+                }
+            } else {
+                AlarmScheduler.cancelAlarm(context, reminderExpense.getId());
+            }
+        });
     }
 
     public void deleteReminderExpense(ReminderExpense reminderExpense) {
-        AppDatabase.databaseWriteExecutor.execute(() -> reminderExpenseDao.delete(reminderExpense));
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            reminderExpenseDao.delete(reminderExpense);
+            AlarmScheduler.cancelAlarm(context, reminderExpense.getId());
+        });
     }
 }

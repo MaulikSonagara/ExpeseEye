@@ -132,6 +132,7 @@ public class SettingsFragment extends Fragment {
         setupThemeSelection(view);
         setupModeSwitch(view);
         setupEnhancedSettings(view);
+        setupDailyReminder(view);
         setupActionButtons(view);
         setupVersionInfo(view);
     }
@@ -189,6 +190,60 @@ public class SettingsFragment extends Fragment {
                 });
             });
         }
+    }
+
+    private void setupDailyReminder(View view) {
+        MaterialSwitch switchDaily = view.findViewById(R.id.switch_daily_reminder);
+        TextView tvTime = view.findViewById(R.id.tv_daily_reminder_time);
+        View btnSetTime = view.findViewById(R.id.btn_set_daily_reminder_time);
+
+        if (switchDaily == null || tvTime == null || btnSetTime == null) return;
+
+        switchDaily.setChecked(themeHelper.isDailyReminderEnabled());
+        tvTime.setText(themeHelper.getDailyReminderTime());
+
+        switchDaily.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            themeHelper.setDailyReminderEnabled(isChecked);
+            if (isChecked) {
+                scheduleDailyReminder();
+            } else {
+                com.example.expenseeye.utils.AlarmScheduler.cancelAlarm(requireContext(), 9999);
+            }
+        });
+
+        btnSetTime.setOnClickListener(v -> {
+            String currentTime = themeHelper.getDailyReminderTime();
+            String[] parts = currentTime.split(":");
+            int hour = Integer.parseInt(parts[0]);
+            int minute = Integer.parseInt(parts[1]);
+
+            new android.app.TimePickerDialog(requireContext(), (view1, hourOfDay, minute1) -> {
+                String selectedTime = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute1);
+                themeHelper.setDailyReminderTime(selectedTime);
+                tvTime.setText(selectedTime);
+                
+                if (themeHelper.isDailyReminderEnabled()) {
+                    scheduleDailyReminder();
+                }
+            }, hour, minute, true).show();
+        });
+    }
+
+    private void scheduleDailyReminder() {
+        String time = themeHelper.getDailyReminderTime();
+        String[] parts = time.split(":");
+        int hour = Integer.parseInt(parts[0]);
+        int minute = Integer.parseInt(parts[1]);
+
+        com.example.expenseeye.utils.AlarmScheduler.scheduleDaily(
+                requireContext(),
+                9999,
+                "Daily Log Reminder",
+                "Time to log your expenses for today!",
+                hour,
+                minute
+        );
+        Toast.makeText(getContext(), "Daily reminder set for " + time, Toast.LENGTH_SHORT).show();
     }
 
     private void showManageBudgetsDialog() {

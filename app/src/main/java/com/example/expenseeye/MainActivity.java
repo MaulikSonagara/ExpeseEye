@@ -1,11 +1,20 @@
 package com.example.expenseeye;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import androidx.fragment.app.Fragment;
+import com.example.expenseeye.utils.AlarmScheduler;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
@@ -21,6 +30,15 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Initialize Notification Channels
+        com.example.expenseeye.utils.NotificationHelper.initNotificationChannels(this);
+
+        // Handle Android 13+ Notification Permission
+        requestNotificationPermission();
+
+        // Handle Android 12+ Exact Alarm Permission
+        checkExactAlarmPermission();
 
         // Run reminder checker engine
         com.example.expenseeye.utils.ReminderEngine.checkAndProcessReminders(this);
@@ -90,6 +108,39 @@ public class MainActivity extends AppCompatActivity {
 
         if (viewPager != null) {
             handleIntentNavigation(viewPager);
+        }
+    }
+
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    // Permission granted
+                } else {
+                    Toast.makeText(this, "Notifications are disabled. You might miss important reminders.", Toast.LENGTH_LONG).show();
+                }
+            });
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+                    PackageManager.PERMISSION_GRANTED) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+    }
+
+    private void checkExactAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (!AlarmScheduler.canScheduleExactAlarms(this)) {
+                new MaterialAlertDialogBuilder(this)
+                        .setTitle("Permission Required")
+                        .setMessage("To receive reminders exactly on time, the app needs permission to schedule exact alarms. Please enable it in Settings.")
+                        .setPositiveButton("Settings", (dialog, which) -> {
+                            AlarmScheduler.requestExactAlarmPermission(this);
+                        })
+                        .setNegativeButton("Maybe Later", null)
+                        .show();
+            }
         }
     }
 

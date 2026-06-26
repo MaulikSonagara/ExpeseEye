@@ -30,7 +30,7 @@ public interface ReminderExpenseDao {
     List<ReminderExpense> getAllReminderExpensesSync();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(ReminderExpense reminderExpense);
+    long insert(ReminderExpense reminderExpense);
 
     @Update
     void update(ReminderExpense reminderExpense);

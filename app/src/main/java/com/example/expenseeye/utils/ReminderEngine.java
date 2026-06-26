@@ -1,6 +1,8 @@
 package com.example.expenseeye.utils;
 
 import android.content.Context;
+import android.util.Log;
+
 import com.example.expenseeye.database.AppDatabase;
 import com.example.expenseeye.models.Expense;
 import com.example.expenseeye.models.ReminderExpense;
@@ -10,14 +12,19 @@ import java.util.Calendar;
 import java.util.List;
 
 public class ReminderEngine {
+    private static final String TAG = "ReminderEngine";
 
     public static void checkAndProcessReminders(Context context) {
+        Log.d(TAG, "Checking and processing reminders...");
         AppDatabase.databaseWriteExecutor.execute(() -> {
             AppDatabase db = AppDatabase.getDatabase(context);
             List<ReminderExpense> activeReminders = db.reminderExpenseDao().getActiveReminderExpensesSync();
             if (activeReminders == null || activeReminders.isEmpty()) {
+                Log.d(TAG, "No active reminders found.");
                 return;
             }
+
+            Log.d(TAG, "Found " + activeReminders.size() + " active reminders.");
 
             long now = System.currentTimeMillis();
             boolean anyLogged = false;
@@ -78,9 +85,19 @@ public class ReminderEngine {
                 // Update lastLoggedTimestamp and nextDueTimestamp
                 re.setLastLoggedTimestamp(now);
                 re.setNextDueTimestamp(currentDue > 0 ? currentDue : 0);
+                
                 // If it was one-time (currentDue <= 0), we disable it
                 if (currentDue <= 0) {
                     re.setEnabled(false);
+                } else {
+                    // Schedule next alarm
+                    AlarmScheduler.scheduleOneTime(
+                            context,
+                            re.getId(),
+                            "Reminder: " + re.getTitle(),
+                            "Your scheduled expense is due.",
+                            currentDue
+                    );
                 }
                 db.reminderExpenseDao().update(re);
             }
