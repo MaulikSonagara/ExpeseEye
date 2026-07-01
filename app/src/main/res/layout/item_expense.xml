@@ -1,137 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="12dp"
-    android:layout_marginVertical="6dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="1dp"
-    app:strokeWidth="1dp"
-    app:strokeColor="?attr/colorOutlineVariant">
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:paddingVertical="12dp"
+    android:paddingHorizontal="4dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+    <!-- Left: Circular Category Icon Background (42dp) -->
+    <FrameLayout
+        android:id="@+id/category_icon_container"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:background="@android:color/transparent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageView
+            android:id="@+id/category_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_other"
+            app:tint="@android:color/white" />
+    </FrameLayout>
+
+    <!-- Middle: Content Info (Vertical stack of title and sub-row) -->
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:orientation="vertical"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="12dp"
+        app:layout_constraintStart_toEndOf="@id/category_icon_container"
+        app:layout_constraintEnd_toStartOf="@id/expense_amount_container"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Category Color Indicator (Background circle) -->
-        <FrameLayout
-            android:id="@+id/category_icon_container"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@android:color/transparent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
-
-            <ImageView
-                android:id="@+id/category_icon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_other"
-                app:tint="@android:color/white" />
-        </FrameLayout>
-
-        <!-- Expense Title & Payment Details -->
-        <LinearLayout
-            android:layout_width="0dp"
+        <TextView
+            android:id="@+id/expense_title"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            app:layout_constraintStart_toEndOf="@id/category_icon_container"
-            app:layout_constraintEnd_toStartOf="@id/expense_amount_container"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            android:textSize="18sp"
+            android:textStyle="normal"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="?android:attr/textColorPrimary"
+            tools:text="Milk &amp; Eggs" />
 
-            <TextView
-                android:id="@+id/expense_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="?android:attr/textColorPrimary"
-                tools:text="Milk &amp; Eggs" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="4dp"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:id="@+id/expense_category"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="12sp"
-                    android:textColor="?android:attr/textColorSecondary"
-                    tools:text="Groceries" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=" • "
-                    android:textSize="12sp"
-                    android:textColor="?android:attr/textColorSecondary"/>
-
-                <!-- Payment Method Badge -->
-                <TextView
-                    android:id="@+id/expense_payment_method"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="11sp"
-                    android:textColor="?attr/colorPrimary"
-                    android:background="?attr/colorSecondaryContainer"
-                    android:paddingHorizontal="6dp"
-                    android:paddingVertical="2dp"
-                    tools:text="UPI" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/expense_description"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="?android:attr/textColorSecondary"
-                android:layout_marginTop="4dp"
-                android:visibility="gone"
-                tools:text="Weekly stock-up from store" />
-        </LinearLayout>
-
-        <!-- Expense Amount & Time -->
         <LinearLayout
-            android:id="@+id/expense_amount_container"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="end"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical">
 
+            <!-- Category Tag (Small rounded capsule with mint background) -->
             <TextView
-                android:id="@+id/expense_amount"
+                android:id="@+id/expense_category"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="16sp"
+                android:background="@drawable/bg_mint_badge"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                android:textSize="10sp"
                 android:textStyle="bold"
-                android:textColor="?attr/colorError"
-                tools:text="- ₹250.00" />
+                android:textColor="?attr/colorPrimary"
+                android:letterSpacing="0.02"
+                tools:text="GROCERIES" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" • "
+                android:textSize="11sp"
+                android:textColor="?android:attr/textColorSecondary"/>
+
+            <!-- Timestamp -->
             <TextView
                 android:id="@+id/expense_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorSecondary"
+                tools:text="Today, 10:30 AM" />
+
+            <!-- Hidden/Subtle Payment Method Indicator -->
+            <TextView
+                android:id="@+id/expense_payment_method"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:textSize="11sp"
                 android:textColor="?android:attr/textColorSecondary"
-                android:layout_marginTop="4dp"
-                tools:text="10:30 AM" />
+                android:layout_marginStart="6dp"
+                android:background="#15000000"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="1dp"
+                tools:text="UPI"
+                android:visibility="gone" />
         </LinearLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Optional Description -->
+        <TextView
+            android:id="@+id/expense_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:layout_marginTop="4dp"
+            android:visibility="gone"
+            tools:text="Weekly stock-up from store" />
+    </LinearLayout>
 
-</com.google.android.material.card.MaterialCardView>
+    <!-- Right: Amount Container -->
+    <LinearLayout
+        android:id="@+id/expense_amount_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="end"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <TextView
+            android:id="@+id/expense_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="?android:attr/textColorPrimary"
+            tools:text="- $142.50" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

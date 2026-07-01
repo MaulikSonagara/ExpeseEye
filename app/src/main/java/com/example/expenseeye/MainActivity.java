@@ -51,6 +51,14 @@ public class MainActivity extends AppCompatActivity {
         ViewPager2 viewPager = findViewById(R.id.view_pager);
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
+        com.google.android.material.card.MaterialCardView cardBottomNav = findViewById(R.id.card_bottom_nav);
+        if (cardBottomNav != null) {
+            int surfaceColor = com.example.expenseeye.theme.ThemeManager.getColor(this, com.example.expenseeye.theme.ThemeManager.ThemeColor.SURFACE);
+            // Apply 85% opacity (0xD9) to the current theme's surface color to create a premium glass look
+            int translucentColor = (surfaceColor & 0x00FFFFFF) | (0xD9 << 24);
+            cardBottomNav.setCardBackgroundColor(translucentColor);
+        }
+
         MainPagerAdapter pagerAdapter = new MainPagerAdapter(this);
         if (viewPager != null) {
             viewPager.setAdapter(pagerAdapter);
@@ -83,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
                     if (bottomNavigationView != null && bottomNavigationView.getSelectedItemId() != itemId) {
                         bottomNavigationView.setSelectedItemId(itemId);
                     }
+                    updateBottomNavIconSizes(bottomNavigationView, itemId);
                 }
             });
         }
@@ -91,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
         if (bottomNavigationView != null && viewPager != null) {
             bottomNavigationView.setOnItemSelectedListener(item -> {
                 int itemId = item.getItemId();
+                updateBottomNavIconSizes(bottomNavigationView, itemId);
                 if (itemId == R.id.dashboardFragment) {
                     viewPager.setCurrentItem(0, true);
                     return true;
@@ -111,9 +121,53 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        if (bottomNavigationView != null) {
+            bottomNavigationView.post(() -> updateBottomNavIconSizes(bottomNavigationView, bottomNavigationView.getSelectedItemId()));
+        }
+
         if (viewPager != null) {
             handleIntentNavigation(viewPager);
         }
+    }
+
+    private void updateBottomNavIconSizes(BottomNavigationView bottomNavigationView, int selectedItemId) {
+        if (bottomNavigationView == null) return;
+        int selectedSize = (int) (20 * getResources().getDisplayMetrics().density);
+        int unselectedSize = (int) (16 * getResources().getDisplayMetrics().density);
+
+        android.view.Menu menu = bottomNavigationView.getMenu();
+        for (int i = 0; i < menu.size(); i++) {
+            android.view.MenuItem item = menu.getItem(i);
+            android.view.View itemView = bottomNavigationView.findViewById(item.getItemId());
+            if (itemView != null) {
+                android.widget.ImageView iconView = findImageView(itemView);
+                if (iconView != null) {
+                    android.view.ViewGroup.LayoutParams lp = iconView.getLayoutParams();
+                    if (item.getItemId() == selectedItemId) {
+                        lp.width = selectedSize;
+                        lp.height = selectedSize;
+                    } else {
+                        lp.width = unselectedSize;
+                        lp.height = unselectedSize;
+                    }
+                    iconView.setLayoutParams(lp);
+                }
+            }
+        }
+    }
+
+    private android.widget.ImageView findImageView(android.view.View view) {
+        if (view instanceof android.widget.ImageView) {
+            return (android.widget.ImageView) view;
+        }
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup vg = (android.view.ViewGroup) view;
+            for (int i = 0; i < vg.getChildCount(); i++) {
+                android.widget.ImageView iv = findImageView(vg.getChildAt(i));
+                if (iv != null) return iv;
+            }
+        }
+        return null;
     }
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =

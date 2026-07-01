@@ -3,8 +3,10 @@ package com.example.expenseeye.theme;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.view.Window;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import com.example.expenseeye.R;
 
 public class ThemeManager {
@@ -25,6 +27,21 @@ public class ThemeManager {
         // Apply Style Res
         int themeResId = getThemeResId(helper.getTheme());
         activity.setTheme(themeResId);
+
+        // Dynamically style status and navigation bars to match theme
+        Window window = activity.getWindow();
+        if (window != null) {
+            int statusBarColor = getColor(activity, ThemeColor.BACKGROUND);
+            int navBarColor = getColor(activity, ThemeColor.BACKGROUND);
+            
+            window.setStatusBarColor(statusBarColor);
+            window.setNavigationBarColor(navBarColor);
+
+            // Toggle dark/light icons depending on dark mode state
+            WindowInsetsControllerCompat controller = new WindowInsetsControllerCompat(window, window.getDecorView());
+            controller.setAppearanceLightStatusBars(!helper.isDarkMode());
+            controller.setAppearanceLightNavigationBars(!helper.isDarkMode());
+        }
     }
 
     public static int getThemeResId(String themeName) {

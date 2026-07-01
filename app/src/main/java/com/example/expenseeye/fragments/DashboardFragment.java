@@ -18,6 +18,7 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -59,6 +60,8 @@ public class DashboardFragment extends Fragment {
     private AppViewModel viewModel;
     private ExpenseAdapter adapter;
     private TextView tvMonthTotal, tvTodayTotal, tvWeekTotal, tvYearTotal, tvComparison, tvNoExpenses;
+    private TextView tvMonthBudgetLimit, tvEstSavings;
+    private com.google.android.material.progressindicator.LinearProgressIndicator progressMonthlyBudget;
     private android.widget.LinearLayout layoutBudgetContainer;
     private View tvBudgetHeader, cardBudgetContainer;
     private RecyclerView rvRecentExpenses;
@@ -90,16 +93,45 @@ public class DashboardFragment extends Fragment {
         FloatingActionButton fabAddExpense = view.findViewById(R.id.fab_add_expense);
         TextView btnSeeAll = view.findViewById(R.id.btn_see_all);
 
+        // New monthly summary card elements
+        tvMonthBudgetLimit = view.findViewById(R.id.tv_month_budget_limit);
+        tvEstSavings = view.findViewById(R.id.tv_est_savings);
+        progressMonthlyBudget = view.findViewById(R.id.progress_monthly_budget);
+
         final TextView tvDashOwe = view.findViewById(R.id.tv_dash_owe);
         final TextView tvDashOwed = view.findViewById(R.id.tv_dash_owed);
-        View cardDashboardBorrowOwe = view.findViewById(R.id.card_dashboard_borrow_owe);
+        View cardOwe = view.findViewById(R.id.card_owe);
+        View cardOwed = view.findViewById(R.id.card_owed);
         com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
         final String currencySymbol = prefHelper.getCurrencySymbol();
 
-        cardDashboardBorrowOwe.setOnClickListener(v -> {
+        View.OnClickListener borrowOweClick = v -> {
             Intent intent = new Intent(getActivity(), com.example.expenseeye.BorrowOweActivity.class);
             startActivity(intent);
-        });
+        };
+        if (cardOwe != null) cardOwe.setOnClickListener(borrowOweClick);
+        if (cardOwed != null) cardOwed.setOnClickListener(borrowOweClick);
+
+        View btnViewDetails = view.findViewById(R.id.btn_view_details);
+        if (btnViewDetails != null) {
+            btnViewDetails.setOnClickListener(v -> {
+                if (getActivity() != null) {
+                    com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = 
+                            getActivity().findViewById(R.id.bottom_navigation);
+                    if (bottomNav != null) {
+                        bottomNav.setSelectedItemId(R.id.expensesFragment);
+                    }
+                }
+            });
+        }
+
+        View btnEditBudgets = view.findViewById(R.id.btn_edit_budgets);
+        if (btnEditBudgets != null) {
+            btnEditBudgets.setOnClickListener(v -> {
+                Intent intent = new Intent(getActivity(), com.example.expenseeye.BudgetsActivity.class);
+                startActivity(intent);
+            });
+        }
 
         // Set up recycler view
         rvRecentExpenses.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -112,12 +144,16 @@ public class DashboardFragment extends Fragment {
         // Observe Borrow/Owe stats
         viewModel.getTotalOwedToOthers().observe(getViewLifecycleOwner(), owe -> {
             double val = owe != null ? owe : 0.0;
-            tvDashOwe.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, val));
+            if (tvDashOwe != null) {
+                tvDashOwe.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, val));
+            }
         });
 
         viewModel.getTotalOwedToMe().observe(getViewLifecycleOwner(), owed -> {
             double val = owed != null ? owed : 0.0;
-            tvDashOwed.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, val));
+            if (tvDashOwed != null) {
+                tvDashOwed.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, val));
+            }
         });
 
         // Observe Categories & PaymentMethods for spinners cache
@@ -269,10 +305,10 @@ public class DashboardFragment extends Fragment {
         com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
         String currencySymbol = prefHelper.getCurrencySymbol();
 
-        tvTodayTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, todayTotal));
-        tvWeekTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, weekTotal));
-        tvMonthTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, monthTotal));
-        tvYearTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, yearTotal));
+        if (tvTodayTotal != null) tvTodayTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, todayTotal));
+        if (tvWeekTotal != null) tvWeekTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, weekTotal));
+        if (tvMonthTotal != null) tvMonthTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, monthTotal));
+        if (tvYearTotal != null) tvYearTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, yearTotal));
 
         // Comparison comparison logic
         double lastMonthTotal = 0;
@@ -288,85 +324,160 @@ public class DashboardFragment extends Fragment {
             }
         }
 
-        if (lastMonthTotal > 0) {
-            double percent = ((monthTotal - lastMonthTotal) / lastMonthTotal) * 100;
-            if (percent > 0) {
-                tvComparison.setText(String.format(Locale.getDefault(), "▲ %.1f%% more than last month", percent));
-                tvComparison.setTextColor(Color.RED);
-            } else if (percent < 0) {
-                tvComparison.setText(String.format(Locale.getDefault(), "▼ %.1f%% less than last month", Math.abs(percent)));
-                tvComparison.setTextColor(Color.parseColor("#4CAF50")); // Green
+        if (tvComparison != null) {
+            if (lastMonthTotal > 0) {
+                double percent = ((monthTotal - lastMonthTotal) / lastMonthTotal) * 100;
+                if (percent > 0) {
+                    tvComparison.setText(String.format(Locale.getDefault(), "▲ %.1f%% more than last month", percent));
+                    tvComparison.setTextColor(com.example.expenseeye.theme.ThemeManager.getColor(getContext(), com.example.expenseeye.theme.ThemeManager.ThemeColor.DANGER));
+                } else if (percent < 0) {
+                    tvComparison.setText(String.format(Locale.getDefault(), "▼ %.1f%% less than last month", Math.abs(percent)));
+                    tvComparison.setTextColor(com.example.expenseeye.theme.ThemeManager.getColor(getContext(), com.example.expenseeye.theme.ThemeManager.ThemeColor.SUCCESS));
+                } else {
+                    tvComparison.setText("Same as last month");
+                    tvComparison.setTextColor(com.example.expenseeye.theme.ThemeManager.getColor(getContext(), com.example.expenseeye.theme.ThemeManager.ThemeColor.TEXT_SECONDARY));
+                }
             } else {
-                tvComparison.setText("Same as last month");
-                tvComparison.setTextColor(Color.GRAY);
+                tvComparison.setText("No previous month data");
+                tvComparison.setTextColor(com.example.expenseeye.theme.ThemeManager.getColor(getContext(), com.example.expenseeye.theme.ThemeManager.ThemeColor.TEXT_SECONDARY));
             }
-        } else {
-            tvComparison.setText("No previous month data");
-            tvComparison.setTextColor(Color.GRAY);
         }
     }
 
     private void resetDashboardTotals() {
         com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
         String currencySymbol = prefHelper.getCurrencySymbol();
-        tvTodayTotal.setText(currencySymbol + "0.00");
-        tvWeekTotal.setText(currencySymbol + "0.00");
-        tvMonthTotal.setText(currencySymbol + "0.00");
-        tvYearTotal.setText(currencySymbol + "0.00");
-        tvComparison.setText("No data");
+        if (tvTodayTotal != null) tvTodayTotal.setText(currencySymbol + "0.00");
+        if (tvWeekTotal != null) tvWeekTotal.setText(currencySymbol + "0.00");
+        if (tvMonthTotal != null) tvMonthTotal.setText(currencySymbol + "0.00");
+        if (tvYearTotal != null) tvYearTotal.setText(currencySymbol + "0.00");
+        if (tvComparison != null) tvComparison.setText("No data");
     }
 
     private void refreshBudgetSection() {
         if (layoutBudgetContainer == null) return;
         layoutBudgetContainer.removeAllViews();
 
-        if (currentBudgets == null || currentBudgets.isEmpty()) {
-            tvBudgetHeader.setVisibility(View.GONE);
-            cardBudgetContainer.setVisibility(View.GONE);
-            return;
-        }
-
-        tvBudgetHeader.setVisibility(View.VISIBLE);
-        cardBudgetContainer.setVisibility(View.VISIBLE);
-
         // Calculate total category spending for the current month
         Map<String, Double> spendingMap = new HashMap<>();
         Calendar cal = Calendar.getInstance();
         int currentMonth = cal.get(Calendar.MONTH);
         int currentYear = cal.get(Calendar.YEAR);
+        double overallSpent = 0.0;
 
         for (Expense e : currentExpenses) {
             cal.setTimeInMillis(e.getTimestamp());
             if (cal.get(Calendar.MONTH) == currentMonth && cal.get(Calendar.YEAR) == currentYear) {
                 String catName = e.getCategoryName();
                 spendingMap.put(catName, spendingMap.getOrDefault(catName, 0.0) + e.getAmount());
+                overallSpent += e.getAmount();
             }
         }
 
         com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
         String currency = prefHelper.getCurrencySymbol();
 
-        for (Budget budget : currentBudgets) {
+        // Find overall budget limit and category budgets
+        double overallBudgetLimit = 0.0;
+        List<Budget> categoryBudgets = new ArrayList<>();
+        if (currentBudgets != null) {
+            for (Budget budget : currentBudgets) {
+                if ("Overall".equalsIgnoreCase(budget.getCategoryName())) {
+                    overallBudgetLimit = budget.getAmount();
+                } else {
+                    categoryBudgets.add(budget);
+                }
+            }
+        }
+
+        // Update Monthly Summary Card
+        if (tvMonthBudgetLimit != null) {
+            if (overallBudgetLimit > 0) {
+                tvMonthBudgetLimit.setText(String.format(Locale.getDefault(), " / %s%.0f", currency, overallBudgetLimit));
+            } else {
+                tvMonthBudgetLimit.setText(" / Not Set");
+            }
+        }
+
+        if (progressMonthlyBudget != null) {
+            if (overallBudgetLimit > 0) {
+                int progress = (int) ((overallSpent / overallBudgetLimit) * 100);
+                progressMonthlyBudget.setProgress(Math.min(progress, 100));
+                if (overallSpent > overallBudgetLimit) {
+                    progressMonthlyBudget.setIndicatorColor(com.example.expenseeye.theme.ThemeManager.getColor(getContext(), com.example.expenseeye.theme.ThemeManager.ThemeColor.DANGER));
+                } else if (progress > 80) {
+                    progressMonthlyBudget.setIndicatorColor(com.example.expenseeye.theme.ThemeManager.getColor(getContext(), com.example.expenseeye.theme.ThemeManager.ThemeColor.WARNING));
+                } else {
+                    progressMonthlyBudget.setIndicatorColor(com.example.expenseeye.theme.ThemeManager.getColor(getContext(), com.example.expenseeye.theme.ThemeManager.ThemeColor.PRIMARY));
+                }
+            } else {
+                progressMonthlyBudget.setProgress(0);
+            }
+        }
+
+        if (tvEstSavings != null) {
+            if (overallBudgetLimit > 0) {
+                double savings = overallBudgetLimit - overallSpent;
+                tvEstSavings.setText(String.format(Locale.getDefault(), "%s%.2f", currency, Math.max(0.0, savings)));
+            } else {
+                tvEstSavings.setText("--");
+            }
+        }
+
+        // Now populate category-specific budgets under Budget Progress Card
+        if (categoryBudgets.isEmpty()) {
+            if (tvBudgetHeader != null) tvBudgetHeader.setVisibility(View.GONE);
+            if (cardBudgetContainer != null) cardBudgetContainer.setVisibility(View.GONE);
+            return;
+        }
+
+        if (tvBudgetHeader != null) tvBudgetHeader.setVisibility(View.VISIBLE);
+        if (cardBudgetContainer != null) cardBudgetContainer.setVisibility(View.VISIBLE);
+
+        for (Budget budget : categoryBudgets) {
             View budgetView = getLayoutInflater().inflate(R.layout.item_dashboard_budget, layoutBudgetContainer, false);
             TextView tvCat = budgetView.findViewById(R.id.tv_budget_label);
-            TextView tvPercent = budgetView.findViewById(R.id.tv_budget_percent);
             TextView tvRemaining = budgetView.findViewById(R.id.tv_budget_remaining);
             com.google.android.material.progressindicator.LinearProgressIndicator progressIndicator = budgetView.findViewById(R.id.progress_budget);
+            ImageView ivIcon = budgetView.findViewById(R.id.iv_budget_icon);
 
             double spent = spendingMap.getOrDefault(budget.getCategoryName(), 0.0);
             tvCat.setText(budget.getCategoryName());
-            tvRemaining.setText(String.format(Locale.getDefault(), "%s%.2f / %s%.2f spent", currency, spent, currency, budget.getAmount()));
+            tvRemaining.setText(String.format(Locale.getDefault(), "%s%.2f / %s%.2f", currency, spent, currency, budget.getAmount()));
 
             int progress = (int) ((spent / budget.getAmount()) * 100);
-            if (tvPercent != null) {
-                tvPercent.setText(String.format(Locale.getDefault(), "%d%%", progress));
-            }
             progressIndicator.setProgress(Math.min(progress, 100));
 
+            // Set dynamic icon on left
+            Category cat = null;
+            if (availableCategories != null) {
+                for (Category c : availableCategories) {
+                    if (c.getName().equalsIgnoreCase(budget.getCategoryName())) {
+                        cat = c;
+                        break;
+                    }
+                }
+            }
+            int color = Color.parseColor("#9E9E9E"); // Default grey
+            String iconName = "ic_other";
+            if (cat != null) {
+                color = cat.getColor();
+                iconName = cat.getIconName();
+            }
+            if (ivIcon != null) {
+                int resId = getContext().getResources().getIdentifier(iconName, "drawable", getContext().getPackageName());
+                if (resId != 0) {
+                    ivIcon.setImageResource(resId);
+                } else {
+                    ivIcon.setImageResource(R.drawable.ic_other);
+                }
+                ivIcon.setColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN);
+            }
+
             if (spent > budget.getAmount()) {
-                progressIndicator.setIndicatorColor(Color.RED);
+                progressIndicator.setIndicatorColor(com.example.expenseeye.theme.ThemeManager.getColor(getContext(), com.example.expenseeye.theme.ThemeManager.ThemeColor.DANGER));
             } else if (progress > 80) {
-                progressIndicator.setIndicatorColor(Color.parseColor("#FFA500")); // Orange
+                progressIndicator.setIndicatorColor(com.example.expenseeye.theme.ThemeManager.getColor(getContext(), com.example.expenseeye.theme.ThemeManager.ThemeColor.WARNING));
             } else {
                 progressIndicator.setIndicatorColor(com.example.expenseeye.theme.ThemeManager.getColor(getContext(), com.example.expenseeye.theme.ThemeManager.ThemeColor.PRIMARY));
             }

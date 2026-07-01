@@ -4,55 +4,69 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingHorizontal="16dp"
-    android:layout_marginTop="16dp">
+    android:layout_marginTop="18dp">
 
+    <!-- Top Info Row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
+        <!-- Left Icon (20dp) -->
+        <ImageView
+            android:id="@+id/iv_budget_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_other"
+            android:contentDescription="Category Icon"
+            app:tint="?attr/colorPrimary" />
+
+        <!-- 12dp spacing and Category Name -->
         <TextView
             android:id="@+id/tv_budget_label"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="OVERALL BUDGET"
-            android:textSize="11sp"
-            android:textColor="?android:attr/textColorSecondary"
-            android:textStyle="bold"
-            android:letterSpacing="0.05" />
+            android:layout_marginStart="12dp"
+            android:text="Food &amp; Dining"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="?android:attr/textColorPrimary" />
 
+        <!-- Flexible Spacer -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- Amount Progress Text -->
+        <TextView
+            android:id="@+id/tv_budget_remaining"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="$120 / $500"
+            android:textSize="13sp"
+            android:textColor="?android:attr/textColorSecondary" />
+
+        <!-- Optional hidden percentage view for code compatibility -->
         <TextView
             android:id="@+id/tv_budget_percent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0%"
-            android:textSize="11sp"
-            android:textColor="?android:attr/textColorPrimary"
-            android:textStyle="bold"/>
+            android:visibility="gone" />
     </LinearLayout>
 
+    <!-- Bottom Progress Line (6dp) -->
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progress_budget"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        app:trackThickness="6dp"
+        app:trackCornerRadius="3dp"
         app:indicatorColor="?attr/colorPrimary"
-        app:trackColor="?attr/colorOutlineVariant"
-        app:trackCornerRadius="4dp"
-        app:trackThickness="8dp"
+        app:trackColor="#EAF5EE"
         android:progress="0"
         android:max="100" />
-
-    <TextView
-        android:id="@+id/tv_budget_remaining"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="₹0.00 remaining"
-        android:textSize="11sp"
-        android:textColor="?android:attr/textColorSecondary"
-        android:layout_marginTop="6dp"
-        android:gravity="end" />
 
 </LinearLayout>
