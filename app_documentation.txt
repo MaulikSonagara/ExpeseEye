@@ -1,0 +1,82 @@
+EXPENSEEYE - APP OVERVIEW & FEATURES
+
+ExpenseEye is a personal finance tracker designed to help you monitor your spending, manage budgets, track debts, and maintain shopping checklists.
+
+--- MAIN PAGES (TABS) ---
+
+1. DASHBOARD (The Home Page)
+- Opens automatically when you start the app.
+- FEATURES:
+  - Big Spending Summary: See exactly how much you've spent this month at a glance.
+  - Quick Comparison: Tells you if you are spending more or less than last month.
+  - Overview Grid: Shows today's, this week's, and this year's total spending.
+  - Budget Progress: Visual bars showing how much of your monthly budget you've used up.
+  - Recent Expenses: A quick list of your 5 most recent transactions.
+  - Floating "+" Button: Tap to quickly add a new expense from anywhere on this page.
+  - Hamburger Menu (Top Right): Access advanced tools like Monthly Budgets, Reminder Expenses, and Borrow/Owe.
+
+2. EXPENSES (Detailed History)
+- Opens when you tap the second icon in the bottom menu.
+- FEATURES:
+  - Full List: Shows every single expense you've ever recorded, grouped by date.
+  - Search Bar: Type to find specific expenses by their title or description.
+  - Filters: Tap the filter icon to find expenses by a specific date range, category, payment method, or amount.
+  - Tap to Edit: Tap any item to change its details or delete it.
+
+3. CHECKLIST (Shopping List)
+- Opens when you tap the third icon in the bottom menu.
+- FEATURES:
+  - Add Items: Quickly type items you need to buy (like "Milk" or "Bread").
+  - Smart Category: The app tries to guess the category (Dairy, Grocery, etc.) as you type.
+  - Shopping Mode: A clean mode that makes it easier to check off items while in a store.
+  - Log as Expense: When you check an item as "done," the app asks if you want to automatically add it to your daily expenses so you don't have to type it again.
+
+4. REPORTS (Visual Analysis)
+- Opens when you tap the fourth icon in the bottom menu.
+- FEATURES:
+  - Statistics: See your daily average spending and your "Top Category" (where your most money goes).
+  - Pie Chart: A colorful circle showing which categories take up the biggest slice of your budget.
+  - Spending Trend: A line graph showing how your spending goes up or down over time.
+  - Payment Bar Chart: Shows which payment methods (Cash, UPI, Card) you use most.
+  - Range Selector: Switch between This Month, Last Month, This Year, or All Time views.
+
+5. SETTINGS (Personalization)
+- Opens when you tap the last icon in the bottom menu.
+- FEATURES:
+  - Appearance: Choose between 4 beautiful themes (Midnight, Forest, Sand, Ocean) and toggle Dark Mode.
+  - Currency: Change your currency symbol (₹, $, €, etc.).
+  - Daily Log Reminder: Set a specific time to receive a daily notification to remind you to log your expenses.
+  - Category Management: Create your own categories with custom icons and colors.
+  - Smart Features: Toggle title suggestions and auto-classification on or off.
+  - Tools & Data:
+    - Export: Save your data as a PDF report or a CSV spreadsheet.
+    - Backup: Save your database to your phone or cloud storage.
+    - Restore: Load an old backup. You can choose to "Merge" (add to current data) or "Overwrite" (replace current data).
+  - Test Notification: A button to check if the app's notification system is working correctly on your phone.
+
+--- SPECIAL FEATURES ---
+
+6. MONTHLY BUDGETS (Spending Limits)
+- Accessible via the Dashboard hamburger menu.
+- FEATURE: Set a limit for how much you want to spend in a month (Overall or per Category). The Dashboard will show you how close you are to hitting that limit.
+
+7. REMINDER EXPENSES (Auto-Logging)
+- Accessible via the Dashboard hamburger menu.
+- FEATURE: Schedule repeating bills (like Rent, Netflix, or EMI). The app will automatically log these as expenses on the due date and notify you.
+
+8. BORROW & OWE (Debt Tracker)
+- Accessible via the Dashboard hamburger menu.
+- FEATURE: Track money you've borrowed from someone or lent to a friend.
+  - Contact Integration: Quickly pick names from your phone's contacts.
+  - Due Dates: Set a date for when the money should be returned.
+  - Reminders: Get a notification when a debt is due.
+  - Partial Payments: Record when someone pays you back a small amount over time.
+  - Resolve: Mark a debt as "Settled" when it's fully paid back.
+
+--- HOW THE APP WORKS (LOGIC) ---
+
+- OFFLINE FIRST: All your data stays on your phone. No internet required.
+- AUTOMATIC SAVING: Everything saves the moment you tap "Save" or "Done."
+- SMART GUESSING: The app learns from your previous entries to suggest titles and categories.
+- RESTART PROTECTION: If you restart your phone, the app automatically reschedules your reminders so you never miss a bill.
+- DATA SAFETY: Using the "Merge" restore option ensures you never lose new data when importing an old backup.

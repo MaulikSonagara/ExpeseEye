@@ -42,13 +42,17 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.example.expenseeye.adapters.PaymentMethodAdapter;
 import com.example.expenseeye.utils.KeyboardFollow;
 
+import com.example.expenseeye.utils.ExpenseDialogHelper;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class DashboardFragment extends Fragment {
 
@@ -225,105 +229,97 @@ public class DashboardFragment extends Fragment {
         popup.show();
     }
 
-    private void resetDashboardTotals() {
-        tvTodayTotal.setText("₹0.00");
-        tvWeekTotal.setText("₹0.00");
-        tvMonthTotal.setText("₹0.00");
-        tvYearTotal.setText("₹0.00");
-        tvComparison.setText("Start logging expenses to see trends!");
-    }
-
     private void calculateTotals(List<Expense> expenses) {
-        // ... (existing code)
         double todayTotal = 0;
         double weekTotal = 0;
         double monthTotal = 0;
         double yearTotal = 0;
-        double lastMonthTotal = 0;
 
-        Calendar calToday = Calendar.getInstance();
-        Calendar calWeek = Calendar.getInstance();
-        calWeek.set(Calendar.DAY_OF_WEEK, calWeek.getFirstDayOfWeek());
-        calWeek.set(Calendar.HOUR_OF_DAY, 0);
-        calWeek.set(Calendar.MINUTE, 0);
-        calWeek.set(Calendar.SECOND, 0);
+        long now = System.currentTimeMillis();
 
-        Calendar calMonth = Calendar.getInstance();
-        calMonth.set(Calendar.DAY_OF_MONTH, 1);
-        calMonth.set(Calendar.HOUR_OF_DAY, 0);
+        Calendar calNow = Calendar.getInstance();
+        int currentDay = calNow.get(Calendar.DAY_OF_YEAR);
+        int currentWeek = calNow.get(Calendar.WEEK_OF_YEAR);
+        int currentMonth = calNow.get(Calendar.MONTH);
+        int currentYear = calNow.get(Calendar.YEAR);
 
-        Calendar calYear = Calendar.getInstance();
-        calYear.set(Calendar.DAY_OF_YEAR, 1);
+        Calendar calExp = Calendar.getInstance();
 
-        // Date bounds for last month comparison
-        Calendar calLastMonthStart = Calendar.getInstance();
-        calLastMonthStart.add(Calendar.MONTH, -1);
-        calLastMonthStart.set(Calendar.DAY_OF_MONTH, 1);
-        calLastMonthStart.set(Calendar.HOUR_OF_DAY, 0);
-        calLastMonthStart.set(Calendar.MINUTE, 0);
-        calLastMonthStart.set(Calendar.SECOND, 0);
+        for (Expense e : expenses) {
+            calExp.setTimeInMillis(e.getTimestamp());
+            int expYear = calExp.get(Calendar.YEAR);
 
-        Calendar calLastMonthEnd = Calendar.getInstance();
-        calLastMonthEnd.set(Calendar.DAY_OF_MONTH, 1);
-        calLastMonthEnd.add(Calendar.DAY_OF_MONTH, -1);
-        calLastMonthEnd.set(Calendar.HOUR_OF_DAY, 23);
-        calLastMonthEnd.set(Calendar.MINUTE, 59);
+            if (expYear == currentYear) {
+                yearTotal += e.getAmount();
 
-        for (Expense expense : expenses) {
-            long ts = expense.getTimestamp();
+                if (calExp.get(Calendar.MONTH) == currentMonth) {
+                    monthTotal += e.getAmount();
+                }
 
-            // Check if today
-            if (isSameDay(ts, calToday.getTimeInMillis())) {
-                todayTotal += expense.getAmount();
-            }
+                if (calExp.get(Calendar.WEEK_OF_YEAR) == currentWeek) {
+                    weekTotal += e.getAmount();
+                }
 
-            // Check if this week
-            if (ts >= calWeek.getTimeInMillis()) {
-                weekTotal += expense.getAmount();
-            }
-
-            // Check if this month
-            if (ts >= calMonth.getTimeInMillis()) {
-                monthTotal += expense.getAmount();
-            }
-
-            // Check if this year
-            if (ts >= calYear.getTimeInMillis()) {
-                yearTotal += expense.getAmount();
-            }
-
-            // Check if last month
-            if (ts >= calLastMonthStart.getTimeInMillis() && ts <= calLastMonthEnd.getTimeInMillis()) {
-                lastMonthTotal += expense.getAmount();
+                if (calExp.get(Calendar.DAY_OF_YEAR) == currentDay) {
+                    todayTotal += e.getAmount();
+                }
             }
         }
 
         com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
-        String currency = prefHelper.getCurrencySymbol();
+        String currencySymbol = prefHelper.getCurrencySymbol();
 
-        tvTodayTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currency, todayTotal));
-        tvWeekTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currency, weekTotal));
-        tvMonthTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currency, monthTotal));
-        tvYearTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currency, yearTotal));
+        tvTodayTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, todayTotal));
+        tvWeekTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, weekTotal));
+        tvMonthTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, monthTotal));
+        tvYearTotal.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, yearTotal));
 
-        // Comparison text
+        // Comparison comparison logic
+        double lastMonthTotal = 0;
+        Calendar calLastMonth = Calendar.getInstance();
+        calLastMonth.add(Calendar.MONTH, -1);
+        int lmMonth = calLastMonth.get(Calendar.MONTH);
+        int lmYear = calLastMonth.get(Calendar.YEAR);
+
+        for (Expense e : expenses) {
+            calExp.setTimeInMillis(e.getTimestamp());
+            if (calExp.get(Calendar.YEAR) == lmYear && calExp.get(Calendar.MONTH) == lmMonth) {
+                lastMonthTotal += e.getAmount();
+            }
+        }
+
         if (lastMonthTotal > 0) {
-            double difference = monthTotal - lastMonthTotal;
-            if (difference > 0) {
-                tvComparison.setText(String.format(Locale.getDefault(), "Spent %s%.2f more than last month (%s%.2f)", currency, difference, currency, lastMonthTotal));
-                tvComparison.setTextColor(Color.parseColor("#FFCDD2"));
+            double percent = ((monthTotal - lastMonthTotal) / lastMonthTotal) * 100;
+            if (percent > 0) {
+                tvComparison.setText(String.format(Locale.getDefault(), "▲ %.1f%% more than last month", percent));
+                tvComparison.setTextColor(Color.RED);
+            } else if (percent < 0) {
+                tvComparison.setText(String.format(Locale.getDefault(), "▼ %.1f%% less than last month", Math.abs(percent)));
+                tvComparison.setTextColor(Color.parseColor("#4CAF50")); // Green
             } else {
-                tvComparison.setText(String.format(Locale.getDefault(), "Saved %s%.2f compared to last month (%s%.2f)", currency, Math.abs(difference), currency, lastMonthTotal));
-                tvComparison.setTextColor(Color.parseColor("#C8E6C9"));
+                tvComparison.setText("Same as last month");
+                tvComparison.setTextColor(Color.GRAY);
             }
         } else {
-            tvComparison.setText("First month logging data. Keep it up!");
-            tvComparison.setTextColor(Color.parseColor("#E8EAF6"));
+            tvComparison.setText("No previous month data");
+            tvComparison.setTextColor(Color.GRAY);
         }
     }
 
+    private void resetDashboardTotals() {
+        com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+        String currencySymbol = prefHelper.getCurrencySymbol();
+        tvTodayTotal.setText(currencySymbol + "0.00");
+        tvWeekTotal.setText(currencySymbol + "0.00");
+        tvMonthTotal.setText(currencySymbol + "0.00");
+        tvYearTotal.setText(currencySymbol + "0.00");
+        tvComparison.setText("No data");
+    }
+
     private void refreshBudgetSection() {
+        if (layoutBudgetContainer == null) return;
         layoutBudgetContainer.removeAllViews();
+
         if (currentBudgets == null || currentBudgets.isEmpty()) {
             tvBudgetHeader.setVisibility(View.GONE);
             cardBudgetContainer.setVisibility(View.GONE);
@@ -332,50 +328,47 @@ public class DashboardFragment extends Fragment {
 
         tvBudgetHeader.setVisibility(View.VISIBLE);
         cardBudgetContainer.setVisibility(View.VISIBLE);
-        
-        ThemePreferenceHelper prefHelper = new ThemePreferenceHelper(requireContext());
-        String currency = prefHelper.getCurrencySymbol();
-        
-        Calendar calMonth = Calendar.getInstance();
-        calMonth.set(Calendar.DAY_OF_MONTH, 1);
-        calMonth.set(Calendar.HOUR_OF_DAY, 0);
-        calMonth.set(Calendar.MINUTE, 0);
-        calMonth.set(Calendar.SECOND, 0);
-        calMonth.set(Calendar.MILLISECOND, 0);
-        long monthStart = calMonth.getTimeInMillis();
 
-        for (Budget b : currentBudgets) {
-            View budgetView = getLayoutInflater().inflate(R.layout.item_dashboard_budget, layoutBudgetContainer, false);
-            
-            TextView tvLabel = budgetView.findViewById(R.id.tv_budget_label);
-            TextView tvPercent = budgetView.findViewById(R.id.tv_budget_percent);
-            com.google.android.material.progressindicator.LinearProgressIndicator progress = budgetView.findViewById(R.id.progress_budget);
-            TextView tvRemaining = budgetView.findViewById(R.id.tv_budget_remaining);
+        // Calculate total category spending for the current month
+        Map<String, Double> spendingMap = new HashMap<>();
+        Calendar cal = Calendar.getInstance();
+        int currentMonth = cal.get(Calendar.MONTH);
+        int currentYear = cal.get(Calendar.YEAR);
 
-            tvLabel.setText(b.getCategoryName().toUpperCase() + " BUDGET");
-
-            double totalSpent = 0;
-            for (Expense e : currentExpenses) {
-                if (e.getTimestamp() >= monthStart) {
-                    if ("Overall".equalsIgnoreCase(b.getCategoryName()) || 
-                        b.getCategoryName().equalsIgnoreCase(e.getCategoryName())) {
-                        totalSpent += e.getAmount();
-                    }
-                }
+        for (Expense e : currentExpenses) {
+            cal.setTimeInMillis(e.getTimestamp());
+            if (cal.get(Calendar.MONTH) == currentMonth && cal.get(Calendar.YEAR) == currentYear) {
+                String catName = e.getCategoryName();
+                spendingMap.put(catName, spendingMap.getOrDefault(catName, 0.0) + e.getAmount());
             }
+        }
 
-            double budgetAmount = b.getAmount();
-            int percent = budgetAmount > 0 ? (int) ((totalSpent / budgetAmount) * 100) : 0;
-            progress.setProgress(Math.min(percent, 100));
-            tvPercent.setText(percent + "%");
+        com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
+        String currency = prefHelper.getCurrencySymbol();
 
-            double remaining = budgetAmount - totalSpent;
-            if (remaining >= 0) {
-                tvRemaining.setText(String.format(Locale.getDefault(), "%s%.2f remaining", currency, remaining));
-                tvRemaining.setTextColor(Color.parseColor("#C5CAE9"));
+        for (Budget budget : currentBudgets) {
+            View budgetView = getLayoutInflater().inflate(R.layout.item_dashboard_budget, layoutBudgetContainer, false);
+            TextView tvCat = budgetView.findViewById(R.id.tv_budget_label);
+            TextView tvPercent = budgetView.findViewById(R.id.tv_budget_percent);
+            TextView tvRemaining = budgetView.findViewById(R.id.tv_budget_remaining);
+            com.google.android.material.progressindicator.LinearProgressIndicator progressIndicator = budgetView.findViewById(R.id.progress_budget);
+
+            double spent = spendingMap.getOrDefault(budget.getCategoryName(), 0.0);
+            tvCat.setText(budget.getCategoryName());
+            tvRemaining.setText(String.format(Locale.getDefault(), "%s%.2f / %s%.2f spent", currency, spent, currency, budget.getAmount()));
+
+            int progress = (int) ((spent / budget.getAmount()) * 100);
+            if (tvPercent != null) {
+                tvPercent.setText(String.format(Locale.getDefault(), "%d%%", progress));
+            }
+            progressIndicator.setProgress(Math.min(progress, 100));
+
+            if (spent > budget.getAmount()) {
+                progressIndicator.setIndicatorColor(Color.RED);
+            } else if (progress > 80) {
+                progressIndicator.setIndicatorColor(Color.parseColor("#FFA500")); // Orange
             } else {
-                tvRemaining.setText(String.format(Locale.getDefault(), "%s%.2f over budget!", currency, Math.abs(remaining)));
-                tvRemaining.setTextColor(Color.parseColor("#FFCDD2"));
+                progressIndicator.setIndicatorColor(com.example.expenseeye.theme.ThemeManager.getColor(getContext(), com.example.expenseeye.theme.ThemeManager.ThemeColor.PRIMARY));
             }
 
             layoutBudgetContainer.addView(budgetView);
@@ -392,407 +385,10 @@ public class DashboardFragment extends Fragment {
     }
 
     private void showAddExpenseBottomSheet() {
-        android.app.Dialog dialog = new android.app.Dialog(requireContext(), R.style.Theme_ExpenseEye_Dialog);
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_expense, null);
-        dialog.setContentView(dialogView);
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-            dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
-        }
-        KeyboardFollow.attach(
-                dialogView.findViewById(R.id.rl_quick_add_root),
-                dialogView.findViewById(R.id.card_quick_add)
-        );
-
-        TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
-        EditText etAmount = dialogView.findViewById(R.id.et_amount);
-        AutoCompleteTextView etTitle = dialogView.findViewById(R.id.et_title);
-        AutoCompleteTextView spinnerCategory = dialogView.findViewById(R.id.spinner_category);
-
-        // Setup suggestions for title
-        com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
-        if (prefHelper.isTitleSuggestionsEnabled()) {
-            List<String> suggestions = new ArrayList<>();
-            List<com.example.expenseeye.models.CategoryKeyword> kws = viewModel.getAllKeywords().getValue();
-            if (kws == null) {
-                kws = allKeywords;
-            }
-            if (kws != null) {
-                for (com.example.expenseeye.models.CategoryKeyword kw : kws) {
-                    if (kw.getKeyword() != null && !kw.getKeyword().trim().isEmpty()) {
-                        String cleanKw = kw.getKeyword().trim();
-                        if (!cleanKw.isEmpty()) {
-                            cleanKw = cleanKw.substring(0, 1).toUpperCase() + cleanKw.substring(1);
-                        }
-                        if (!suggestions.contains(cleanKw)) {
-                            suggestions.add(cleanKw);
-                        }
-                    }
-                }
-            }
-            ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, suggestions);
-            etTitle.setAdapter(titleAdapter);
-        } else {
-            etTitle.setAdapter(null);
-        }
-        Button btnDate = dialogView.findViewById(R.id.btn_date);
-        Button btnTime = dialogView.findViewById(R.id.btn_time);
-        EditText etDescription = dialogView.findViewById(R.id.et_description);
-        Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
-        Button btnSave = dialogView.findViewById(R.id.btn_save);
-
-        if (tvTitle != null) {
-            tvTitle.setVisibility(View.GONE);
-        }
-        selectedDateTime = Calendar.getInstance();
-
-        // Populate Category Spinner
-        List<Category> activeCats = viewModel.getEnabledCategories().getValue();
-        if (activeCats == null) {
-            activeCats = availableCategories;
-        }
-        List<String> catNames = new ArrayList<>();
-        for (Category c : activeCats) {
-            catNames.add(c.getName());
-        }
-        ArrayAdapter<String> catAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, catNames);
-        spinnerCategory.setAdapter(catAdapter);
-
-        // Populate Payment Method Chips
-        com.example.expenseeye.theme.ThemePreferenceHelper ph = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
-        int savedPmId = ph.getDefaultPaymentMethodId();
-        String initialPm = null;
-        if (savedPmId != -1) {
-            for (PaymentMethod pm : availablePaymentMethods) {
-                if (pm.getId() == savedPmId) {
-                    initialPm = pm.getName();
-                    break;
-                }
-            }
-        }
-        setupPaymentMethodChipsForDialog(dialogView, initialPm);
-
-        // Smart Classifier Text Watcher
-        final List<Category> finalActiveCats = activeCats;
-        etTitle.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                com.example.expenseeye.theme.ThemePreferenceHelper prefH = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
-                if (!prefH.isSmartClassifierEnabled()) return;
-
-                String titleText = s.toString();
-                String descText = etDescription != null ? etDescription.getText().toString() : "";
-                List<com.example.expenseeye.models.CategoryKeyword> kws = viewModel.getAllKeywords().getValue();
-                String classified = ExpenseClassifier.classifyExpense(titleText + " " + descText, finalActiveCats, kws);
-                int index = catNames.indexOf(classified);
-                if (index >= 0) {
-                    spinnerCategory.setText(classified, false);
-                }
-            }
-        });
-
-        // Date and Time button formatting
-        SimpleDateFormat sdfDate = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-        SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a", Locale.getDefault());
-        btnDate.setText(sdfDate.format(selectedDateTime.getTime()));
-        btnTime.setText(sdfTime.format(selectedDateTime.getTime()));
-
-        btnDate.setOnClickListener(v -> {
-            DatePickerDialog datePicker = new DatePickerDialog(getContext(), (view, year, month, dayOfMonth) -> {
-                selectedDateTime.set(Calendar.YEAR, year);
-                selectedDateTime.set(Calendar.MONTH, month);
-                selectedDateTime.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                btnDate.setText(sdfDate.format(selectedDateTime.getTime()));
-            }, selectedDateTime.get(Calendar.YEAR), selectedDateTime.get(Calendar.MONTH), selectedDateTime.get(Calendar.DAY_OF_MONTH));
-            datePicker.show();
-        });
-
-        btnTime.setOnClickListener(v -> {
-            TimePickerDialog timePicker = new TimePickerDialog(getContext(), (view, hourOfDay, minute) -> {
-                selectedDateTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                selectedDateTime.set(Calendar.MINUTE, minute);
-                btnTime.setText(sdfTime.format(selectedDateTime.getTime()));
-            }, selectedDateTime.get(Calendar.HOUR_OF_DAY), selectedDateTime.get(Calendar.MINUTE), false);
-            timePicker.show();
-        });
-
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
-
-        btnSave.setOnClickListener(v -> {
-            String amountStr = etAmount.getText().toString();
-            String titleStr = etTitle.getText().toString();
-            if (amountStr.isEmpty() || titleStr.isEmpty()) {
-                Toast.makeText(getContext(), "Please fill in title and amount", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            double amount = Double.parseDouble(amountStr);
-            String category = spinnerCategory.getText() != null ? spinnerCategory.getText().toString() : "Other";
-            
-            // Get selected payment method
-            String payment = getSelectedPaymentMethodFromDialog(dialogView);
-            String desc = etDescription.getText().toString();
-
-            // Find matching category details
-            int catId = 0;
-            for (Category c : availableCategories) {
-                if (c.getName().equals(category)) {
-                    catId = c.getId();
-                    break;
-                }
-            }
-
-            int pmId = 0;
-            for (PaymentMethod pm : availablePaymentMethods) {
-                if (pm.getName().equals(payment)) {
-                    pmId = pm.getId();
-                    break;
-                }
-            }
-
-            Expense newExpense = new Expense(
-                    titleStr, desc, amount, selectedDateTime.getTimeInMillis(),
-                    catId, category, pmId, payment, 0
-            );
-
-            viewModel.insertExpense(newExpense);
-            Toast.makeText(getContext(), "Expense added successfully", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-        });
-
-        dialog.show();
+        ExpenseDialogHelper.showExpenseDialog(requireContext(), getLayoutInflater(), viewModel, null, null, null);
     }
 
     private void showEditExpenseBottomSheet(Expense expense) {
-        android.app.Dialog dialog = new android.app.Dialog(requireContext(), R.style.Theme_ExpenseEye_Dialog);
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_expense, null);
-        dialog.setContentView(dialogView);
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-            dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
-        }
-        KeyboardFollow.attach(
-                dialogView.findViewById(R.id.rl_quick_add_root),
-                dialogView.findViewById(R.id.card_quick_add)
-        );
-
-        TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
-        EditText etAmount = dialogView.findViewById(R.id.et_amount);
-        AutoCompleteTextView etTitle = dialogView.findViewById(R.id.et_title);
-        AutoCompleteTextView spinnerCategory = dialogView.findViewById(R.id.spinner_category);
-
-        // Setup suggestions for title
-        com.example.expenseeye.theme.ThemePreferenceHelper prefHelper = new com.example.expenseeye.theme.ThemePreferenceHelper(requireContext());
-        if (prefHelper.isTitleSuggestionsEnabled()) {
-            List<String> suggestions = new ArrayList<>();
-            List<com.example.expenseeye.models.CategoryKeyword> kws = viewModel.getAllKeywords().getValue();
-            if (kws == null) {
-                kws = allKeywords;
-            }
-            if (kws != null) {
-                for (com.example.expenseeye.models.CategoryKeyword kw : kws) {
-                    if (kw.getKeyword() != null && !kw.getKeyword().trim().isEmpty()) {
-                        String cleanKw = kw.getKeyword().trim();
-                        if (!cleanKw.isEmpty()) {
-                            cleanKw = cleanKw.substring(0, 1).toUpperCase() + cleanKw.substring(1);
-                        }
-                        if (!suggestions.contains(cleanKw)) {
-                            suggestions.add(cleanKw);
-                        }
-                    }
-                }
-            }
-            ArrayAdapter<String> titleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, suggestions);
-            etTitle.setAdapter(titleAdapter);
-        } else {
-            etTitle.setAdapter(null);
-        }
-        Button btnDate = dialogView.findViewById(R.id.btn_date);
-        Button btnTime = dialogView.findViewById(R.id.btn_time);
-        EditText etDescription = dialogView.findViewById(R.id.et_description);
-        Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
-        Button btnSave = dialogView.findViewById(R.id.btn_save);
-        Button btnDelete = dialogView.findViewById(R.id.btn_delete);
-
-        if (tvTitle != null) {
-            tvTitle.setVisibility(View.GONE);
-        }
-        etAmount.setText(String.valueOf(expense.getAmount()));
-        etTitle.setText(expense.getTitle());
-        etDescription.setText(expense.getDescription());
-
-        selectedDateTime = Calendar.getInstance();
-        selectedDateTime.setTimeInMillis(expense.getTimestamp());
-
-        // Populate Category Spinner
-        List<Category> activeCats = viewModel.getEnabledCategories().getValue();
-        if (activeCats == null) {
-            activeCats = availableCategories;
-        }
-        List<String> catNames = new ArrayList<>();
-        boolean currentCatIncluded = false;
-        for (Category c : activeCats) {
-            catNames.add(c.getName());
-            if (c.getName().equals(expense.getCategoryName())) {
-                currentCatIncluded = true;
-            }
-        }
-        if (!currentCatIncluded && expense.getCategoryName() != null) {
-            catNames.add(expense.getCategoryName());
-        }
-        ArrayAdapter<String> catAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, catNames);
-        spinnerCategory.setAdapter(catAdapter);
-        spinnerCategory.setText(expense.getCategoryName(), false);
-
-        // Populate Payment Method Chips and select current
-        setupPaymentMethodChipsForDialog(dialogView, expense.getPaymentMethodName());
-
-        // Show Delete button and wire click listener
-        btnDelete.setVisibility(View.VISIBLE);
-        btnDelete.setOnClickListener(v -> {
-            viewModel.deleteExpense(expense);
-            Toast.makeText(getContext(), "Expense deleted", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-        });
-
-        // Date and Time button formatting
-        SimpleDateFormat sdfDate = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-        SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a", Locale.getDefault());
-        btnDate.setText(sdfDate.format(selectedDateTime.getTime()));
-        btnTime.setText(sdfTime.format(selectedDateTime.getTime()));
-
-        btnDate.setOnClickListener(v -> {
-            DatePickerDialog datePicker = new DatePickerDialog(getContext(), (view, year, month, dayOfMonth) -> {
-                selectedDateTime.set(Calendar.YEAR, year);
-                selectedDateTime.set(Calendar.MONTH, month);
-                selectedDateTime.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                btnDate.setText(sdfDate.format(selectedDateTime.getTime()));
-            }, selectedDateTime.get(Calendar.YEAR), selectedDateTime.get(Calendar.MONTH), selectedDateTime.get(Calendar.DAY_OF_MONTH));
-            datePicker.show();
-        });
-
-        btnTime.setOnClickListener(v -> {
-            TimePickerDialog timePicker = new TimePickerDialog(getContext(), (view, hourOfDay, minute) -> {
-                selectedDateTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                selectedDateTime.set(Calendar.MINUTE, minute);
-                btnTime.setText(sdfTime.format(selectedDateTime.getTime()));
-            }, selectedDateTime.get(Calendar.HOUR_OF_DAY), selectedDateTime.get(Calendar.MINUTE), false);
-            timePicker.show();
-        });
-
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
-
-        btnSave.setOnClickListener(v -> {
-            String amountStr = etAmount.getText().toString();
-            String titleStr = etTitle.getText().toString();
-            if (amountStr.isEmpty() || titleStr.isEmpty()) {
-                Toast.makeText(getContext(), "Please fill in title and amount", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            double amount = Double.parseDouble(amountStr);
-            String category = spinnerCategory.getText().toString();
-            
-            // Get selected payment method
-            String payment = getSelectedPaymentMethodFromDialog(dialogView);
-            String desc = etDescription.getText().toString();
-
-            // Find matching category details
-            int catId = expense.getCategoryId();
-            for (Category c : availableCategories) {
-                if (c.getName().equals(category)) {
-                    catId = c.getId();
-                    break;
-                }
-            }
-
-            int pmId = expense.getPaymentMethodId();
-            for (PaymentMethod pm : availablePaymentMethods) {
-                if (pm.getName().equals(payment)) {
-                    pmId = pm.getId();
-                    break;
-                }
-            }
-
-            expense.setTitle(titleStr);
-            expense.setAmount(amount);
-            expense.setTimestamp(selectedDateTime.getTimeInMillis());
-            expense.setCategoryId(catId);
-            expense.setCategoryName(category);
-            expense.setPaymentMethodId(pmId);
-            expense.setPaymentMethodName(payment);
-            expense.setDescription(desc);
-            expense.setType(0);
-
-            viewModel.updateExpense(expense);
-            Toast.makeText(getContext(), "Expense updated", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-        });
-
-        dialog.show();
-    }
-
-    private void setupPaymentMethodChipsForDialog(View dialogView, String selectedPaymentMethod) {
-        RecyclerView rvMain = dialogView.findViewById(R.id.rv_payment_main);
-        android.widget.LinearLayout layoutOther = dialogView.findViewById(R.id.layout_payment_other);
-        RecyclerView rvOther = dialogView.findViewById(R.id.rv_payment_other);
-
-        List<String> mainMethods = Arrays.asList("Cash", "UPI", "Other");
-        List<String> otherMethods = Arrays.asList("Debit Card", "Credit Card", "Bank Transfer", "Wallet");
-
-        String initialMain = "UPI";
-        if (selectedPaymentMethod != null) {
-            if (mainMethods.contains(selectedPaymentMethod)) initialMain = selectedPaymentMethod;
-            else if (otherMethods.contains(selectedPaymentMethod)) initialMain = "Other";
-        }
-
-        final PaymentMethodAdapter[] adapterOther = new PaymentMethodAdapter[1];
-        final PaymentMethodAdapter adapterMain = new PaymentMethodAdapter(mainMethods, initialMain, name -> {
-            if ("Other".equals(name)) {
-                layoutOther.setVisibility(View.VISIBLE);
-            } else {
-                layoutOther.setVisibility(View.GONE);
-                if (adapterOther[0] != null) adapterOther[0].setSelectedMethod(null);
-            }
-        });
-
-        rvMain.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        rvMain.setAdapter(adapterMain);
-
-        if ("Other".equals(initialMain)) {
-            layoutOther.setVisibility(View.VISIBLE);
-        }
-
-        adapterOther[0] = new PaymentMethodAdapter(otherMethods, selectedPaymentMethod, name -> {
-            // Sub-selection handled by adapter notify
-        });
-        rvOther.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        rvOther.setAdapter(adapterOther[0]);
-    }
-
-    private String getSelectedPaymentMethodFromDialog(View dialogView) {
-        RecyclerView rvMain = dialogView.findViewById(R.id.rv_payment_main);
-        RecyclerView rvOther = dialogView.findViewById(R.id.rv_payment_other);
-        
-        PaymentMethodAdapter mainAdapter = (PaymentMethodAdapter) rvMain.getAdapter();
-        PaymentMethodAdapter otherAdapter = (PaymentMethodAdapter) rvOther.getAdapter();
-
-        if (mainAdapter != null) {
-            String main = mainAdapter.getSelectedMethod();
-            if ("Other".equals(main) && otherAdapter != null) {
-                String other = otherAdapter.getSelectedMethod();
-                return (other != null) ? other : "Other";
-            }
-            return (main != null) ? main : "Cash";
-        }
-        return "Other";
+        ExpenseDialogHelper.showExpenseDialog(requireContext(), getLayoutInflater(), viewModel, expense, null, null);
     }
 }
