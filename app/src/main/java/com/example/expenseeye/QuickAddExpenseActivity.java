@@ -97,7 +97,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
 
         com.example.expenseeye.theme.ThemePreferenceHelper prefHAmount = new com.example.expenseeye.theme.ThemePreferenceHelper(this);
         final String currencySymbol = prefHAmount.getCurrencySymbol();
-        etAmount.setHint("Amount (" + currencySymbol + ")");
+        etAmount.setHint(currencySymbol + "0.00");
         etAmount.setKeyListener(android.text.method.DigitsKeyListener.getInstance("0123456789." + currencySymbol));
         etAmount.addTextChangedListener(new TextWatcher() {
             @Override

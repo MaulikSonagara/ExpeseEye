@@ -26,64 +26,47 @@
                 android:id="@+id/card_quick_add"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_margin="16dp"
                 android:layout_gravity="center"
-                android:layout_margin="24dp"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="8dp"
-                app:strokeWidth="0dp"
-                android:theme="@style/Theme.ExpenseEye">
+                app:strokeWidth="1dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                app:cardBackgroundColor="?attr/colorSurface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingHorizontal="24dp"
-                    android:paddingTop="24dp"
-                    android:paddingBottom="24dp"
-                    android:background="?attr/colorSurface">
+                    android:padding="24dp">
 
                     <TextView
                         android:id="@+id/tv_dialog_title"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Quick Log Expense"
-                        android:textSize="22sp"
-                        android:textStyle="bold"
-                        android:textColor="?android:attr/textColorPrimary"
-                        android:visibility="gone"
-                        android:layout_marginBottom="20dp" />
+                        android:visibility="gone"/>
 
                     <!-- 1. Amount Input -->
-                    <com.google.android.material.textfield.TextInputLayout
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_amount"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="14dp"
-                        app:boxCornerRadiusTopStart="12dp"
-                        app:boxCornerRadiusTopEnd="12dp"
-                        app:boxCornerRadiusBottomStart="12dp"
-                        app:boxCornerRadiusBottomEnd="12dp"
-                        app:startIconDrawable="@drawable/ic_expenses"
-                        app:startIconTint="?attr/colorPrimary"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/et_amount"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:hint="Amount (₹)"
-                            android:inputType="numberDecimal"
-                            android:textSize="16sp" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                        android:layout_marginBottom="10dp"
+                        android:background="@android:color/transparent"
+                        android:gravity="center"
+                        android:hint="₹0.00"
+                        android:inputType="numberDecimal"
+                        android:textSize="36sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorPrimary"
+                        android:textColorHint="?android:attr/textColorSecondary" />
 
                     <!-- 2. Title Input -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="14dp"
-                        app:boxCornerRadiusTopStart="12dp"
-                        app:boxCornerRadiusTopEnd="12dp"
-                        app:boxCornerRadiusBottomStart="12dp"
-                        app:boxCornerRadiusBottomEnd="12dp"
+                        android:layout_marginTop="-10dp"
+                        android:hint="Title"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                         <AutoCompleteTextView
@@ -91,12 +74,10 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
-                            android:hint="Title (e.g. Milk, Petrol)"
                             android:inputType="textCapSentences"
                             android:completionThreshold="1"
-                            android:textSize="16sp"
-                            android:paddingTop="16dp"
-                            android:paddingBottom="16dp"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp"
                             android:paddingStart="16dp"
                             android:paddingEnd="16dp" />
                     </com.google.android.material.textfield.TextInputLayout>
@@ -106,7 +87,7 @@
                         android:id="@+id/card_keyword_suggestion"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="14dp"
+                        android:layout_marginTop="8dp"
                         android:visibility="gone"
                         app:cardCornerRadius="12dp"
                         app:cardElevation="0dp"
@@ -120,7 +101,7 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:padding="12dp">
+                            android:padding="5dp">
 
                             <TextView
                                 android:id="@+id/tv_suggestion_text"
@@ -159,31 +140,27 @@
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="14dp"
-                        app:boxCornerRadiusTopStart="12dp"
-                        app:boxCornerRadiusTopEnd="12dp"
-                        app:boxCornerRadiusBottomStart="12dp"
-                        app:boxCornerRadiusBottomEnd="12dp"
+                        android:layout_marginTop="5dp"
+                        android:hint="Description (Optional)"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_description"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="Notes / Description (Optional)"
                             android:inputType="textMultiLine|textCapSentences"
                             android:minLines="1"
                             android:maxLines="3"
-                            android:scrollbars="vertical"
-                            android:textSize="16sp" />
+                            android:scrollbars="vertical" />
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- 4. Payment Method Chips -->
+                    <!-- 4. Payment Method Selection -->
                     <TextView
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
                         android:text="Payment Method"
-                        android:textSize="13sp"
+                        android:textSize="14sp"
                         android:textStyle="bold"
                         android:textColor="?android:attr/textColorSecondary"
                         android:layout_marginBottom="8dp"/>
@@ -194,8 +171,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                        tools:listitem="@layout/payment_option_chip"
-                        android:layout_marginBottom="8dp"/>
+                        tools:listitem="@layout/payment_option_chip"/>
 
                     <LinearLayout
                         android:id="@+id/layout_payment_other"
@@ -203,7 +179,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:visibility="gone"
-                        android:layout_marginBottom="16dp">
+                        android:layout_marginTop="8dp">
 
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/rv_payment_other"
@@ -214,12 +190,13 @@
                             tools:listitem="@layout/payment_option_chip"/>
                     </LinearLayout>
 
-                    <!-- 5. Category Buttons Selection (4 row buttons instead of dropdown) -->
+                    <!-- 5. Category Selection (4 row buttons instead of dropdown) -->
                     <TextView
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
                         android:text="Category"
-                        android:textSize="13sp"
+                        android:textSize="14sp"
                         android:textStyle="bold"
                         android:textColor="?android:attr/textColorSecondary"
                         android:layout_marginBottom="8dp"/>
@@ -228,8 +205,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="14dp">
+                        android:gravity="center_vertical">
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_cat_1"
@@ -243,7 +219,6 @@
                             android:padding="0dp"
                             android:textSize="12sp"
                             android:text="Food"
-                            app:strokeColor="?attr/colorPrimary"
                             app:cornerRadius="12dp" />
 
                         <com.google.android.material.button.MaterialButton
@@ -259,7 +234,6 @@
                             android:padding="0dp"
                             android:textSize="12sp"
                             android:text="Travel"
-                            app:strokeColor="?attr/colorPrimary"
                             app:cornerRadius="12dp" />
 
                         <com.google.android.material.button.MaterialButton
@@ -275,7 +249,6 @@
                             android:padding="0dp"
                             android:textSize="12sp"
                             android:text="Groceries"
-                            app:strokeColor="?attr/colorPrimary"
                             app:cornerRadius="12dp" />
 
                         <com.google.android.material.button.MaterialButton
@@ -290,7 +263,6 @@
                             android:padding="0dp"
                             android:textSize="12sp"
                             android:text="More"
-                            app:strokeColor="?attr/colorPrimary"
                             app:cornerRadius="12dp" />
                     </LinearLayout>
 
@@ -299,67 +271,58 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="24dp">
+                        android:layout_marginTop="10dp">
 
-                        <com.google.android.material.button.MaterialButton
+                        <Button
                             android:id="@+id/btn_date"
+                            style="@style/Widget.Material3.Button.TonalButton"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
-                            android:text="Select Date"
-                            app:icon="@drawable/ic_calendar"
-                            android:textColor="?attr/colorPrimary"
-                            app:iconTint="?attr/colorPrimary"
-                            app:strokeColor="?attr/colorPrimary"
-                            app:cornerRadius="12dp"/>
+                            android:layout_marginEnd="4dp"
+                            android:text="Date"
+                            app:icon="@drawable/ic_calendar"/>
 
-                        <com.google.android.material.button.MaterialButton
+                        <Button
                             android:id="@+id/btn_time"
+                            style="@style/Widget.Material3.Button.TonalButton"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginStart="6dp"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
-                            android:text="Select Time"
-                            app:icon="@android:drawable/ic_menu_recent_history"
-                            android:textColor="?attr/colorPrimary"
-                            app:iconTint="?attr/colorPrimary"
-                            app:strokeColor="?attr/colorPrimary"
-                            app:cornerRadius="12dp"/>
+                            android:layout_marginStart="4dp"
+                            android:text="Time" />
                     </LinearLayout>
 
-                    <!-- Save & Cancel Buttons -->
+                    <!-- Action Buttons: Cancel, Save -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="end">
+                        android:layout_marginTop="10dp">
 
-                        <com.google.android.material.button.MaterialButton
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"/>
+
+                        <Button
                             android:id="@+id/btn_cancel"
+                            style="@style/Widget.Material3.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            style="@style/Widget.Material3.Button.TextButton"
-                            android:text="Cancel"
-                            android:textColor="?android:attr/textColorSecondary"
-                            android:layout_marginEnd="8dp"/>
+                            android:text="Cancel" />
 
-                        <com.google.android.material.button.MaterialButton
+                        <Button
                             android:id="@+id/btn_save"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Save"
-                            app:backgroundTint="?attr/colorPrimary"
-                            android:textColor="@android:color/white"
-                            app:cornerRadius="12dp"/>
+                            android:layout_marginStart="8dp"
+                            android:text="Save" />
                     </LinearLayout>
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
-
         </FrameLayout>
 
     </androidx.core.widget.NestedScrollView>
