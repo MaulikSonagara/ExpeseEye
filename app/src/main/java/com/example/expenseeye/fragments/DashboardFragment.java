@@ -65,6 +65,12 @@ public class DashboardFragment extends Fragment {
     private android.widget.LinearLayout layoutBudgetContainer;
     private View tvBudgetHeader, cardBudgetContainer;
     private RecyclerView rvRecentExpenses;
+    private TextView tvGreeting, tvGreetingSub;
+    private android.widget.LinearLayout layoutDebtContainer;
+    private double totalOwedToOthers = 0.0;
+    private double totalOwedToMe = 0.0;
+    private final android.os.Handler greetingHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable greetingRunnable;
     private List<Category> availableCategories = new ArrayList<>();
     private List<PaymentMethod> availablePaymentMethods = new ArrayList<>();
     private List<com.example.expenseeye.models.CategoryKeyword> allKeywords = new ArrayList<>();
@@ -80,6 +86,9 @@ public class DashboardFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
 
         // Bind views
+        tvGreeting = view.findViewById(R.id.tv_greeting);
+        tvGreetingSub = view.findViewById(R.id.tv_greeting_sub);
+        layoutDebtContainer = view.findViewById(R.id.layout_debt_container);
         tvMonthTotal = view.findViewById(R.id.tv_month_total);
         tvTodayTotal = view.findViewById(R.id.tv_today_total);
         tvWeekTotal = view.findViewById(R.id.tv_week_total);
@@ -144,16 +153,20 @@ public class DashboardFragment extends Fragment {
         // Observe Borrow/Owe stats
         viewModel.getTotalOwedToOthers().observe(getViewLifecycleOwner(), owe -> {
             double val = owe != null ? owe : 0.0;
+            totalOwedToOthers = val;
             if (tvDashOwe != null) {
                 tvDashOwe.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, val));
             }
+            updateDebtContainerVisibility();
         });
 
         viewModel.getTotalOwedToMe().observe(getViewLifecycleOwner(), owed -> {
             double val = owed != null ? owed : 0.0;
+            totalOwedToMe = val;
             if (tvDashOwed != null) {
                 tvDashOwed.setText(String.format(Locale.getDefault(), "%s%.2f", currencySymbol, val));
             }
+            updateDebtContainerVisibility();
         });
 
         // Observe Categories & PaymentMethods for spinners cache
@@ -501,5 +514,67 @@ public class DashboardFragment extends Fragment {
 
     private void showEditExpenseBottomSheet(Expense expense) {
         ExpenseDialogHelper.showExpenseDialog(requireContext(), getLayoutInflater(), viewModel, expense, null, null);
+    }
+
+    private void updateDebtContainerVisibility() {
+        if (layoutDebtContainer == null) return;
+        if (totalOwedToOthers > 0 || totalOwedToMe > 0) {
+            layoutDebtContainer.setVisibility(View.VISIBLE);
+        } else {
+            layoutDebtContainer.setVisibility(View.GONE);
+        }
+    }
+
+    private void updateGreetingText() {
+        if (tvGreeting == null) return;
+        Calendar calendar = Calendar.getInstance();
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        String greeting;
+        if (hour >= 5 && hour < 12) {
+            greeting = "Good morning";
+        } else if (hour >= 12 && hour < 17) {
+            greeting = "Good afternoon";
+        } else if (hour >= 17 && hour < 21) {
+            greeting = "Good evening";
+        } else {
+            greeting = "Good night";
+        }
+        tvGreeting.setText(greeting + ", Alex");
+    }
+
+    private void updateGreetingSubtext() {
+        if (tvGreetingSub == null) return;
+        String[] variations = {
+            "Here's a look at your finances today.",
+            "Let's review your spending behavior today.",
+            "Here is a snapshot of your budget status.",
+            "Track your expenses and grow your savings today.",
+            "Let's see how your budget is holding up today.",
+            "Keep your eyes on your financial goals today."
+        };
+        int randomIndex = new java.util.Random().nextInt(variations.length);
+        tvGreetingSub.setText(variations[randomIndex]);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        greetingRunnable = new Runnable() {
+            @Override
+            public void run() {
+                updateGreetingText();
+                greetingHandler.postDelayed(this, 60000);
+            }
+        };
+        greetingHandler.post(greetingRunnable);
+        updateGreetingSubtext();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (greetingRunnable != null) {
+            greetingHandler.removeCallbacks(greetingRunnable);
+        }
     }
 }

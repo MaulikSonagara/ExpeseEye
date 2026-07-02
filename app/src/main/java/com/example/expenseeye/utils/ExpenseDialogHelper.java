@@ -132,8 +132,8 @@ public class ExpenseDialogHelper {
         // Helper to update selection
         java.util.function.Consumer<String> selectCategory = (selectedCat) -> {
             currentCategory[0] = selectedCat;
-            int colorSelectedBg = com.example.expenseeye.theme.ThemeManager.getColor(context, com.example.expenseeye.theme.ThemeManager.ThemeColor.PRIMARY_SOFT);
-            int colorSelectedText = com.example.expenseeye.theme.ThemeManager.getColor(context, com.example.expenseeye.theme.ThemeManager.ThemeColor.PRIMARY);
+            int colorSelectedBg = com.example.expenseeye.theme.ThemeManager.getColor(context, com.example.expenseeye.theme.ThemeManager.ThemeColor.PRIMARY);
+            int colorSelectedText = com.example.expenseeye.theme.ThemeManager.getColor(context, com.example.expenseeye.theme.ThemeManager.ThemeColor.SURFACE);
             int colorUnselectedBg = Color.TRANSPARENT;
             int colorUnselectedText = com.example.expenseeye.theme.ThemeManager.getColor(context, com.example.expenseeye.theme.ThemeManager.ThemeColor.PRIMARY);
             int strokeColor = com.example.expenseeye.theme.ThemeManager.getColor(context, com.example.expenseeye.theme.ThemeManager.ThemeColor.DIVIDER);
@@ -194,8 +194,34 @@ public class ExpenseDialogHelper {
 
         // Setup Title Suggestions autocomplete
         ThemePreferenceHelper prefHelper = new ThemePreferenceHelper(context);
-        String currency = prefHelper.getCurrencySymbol();
-        etAmount.setHint(currency + "0.00");
+        final String currencySymbol = prefHelper.getCurrencySymbol();
+        etAmount.setHint(currencySymbol + "0.00");
+        etAmount.setKeyListener(android.text.method.DigitsKeyListener.getInstance("0123456789." + currencySymbol));
+        etAmount.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (!s.toString().startsWith(currencySymbol)) {
+                    etAmount.removeTextChangedListener(this);
+                    String cleanString = s.toString().replaceAll("[^0-9.]", "");
+                    String newText = currencySymbol + cleanString;
+                    etAmount.setText(newText);
+                    etAmount.setSelection(newText.length());
+                    etAmount.addTextChangedListener(this);
+                }
+            }
+        });
+
+        // Initialize with currency symbol for new expense
+        if (expenseToEdit == null) {
+            etAmount.setText(currencySymbol);
+        }
+
         if (prefHelper.isTitleSuggestionsEnabled()) {
             List<String> suggestions = new ArrayList<>();
             for (CategoryKeyword kw : allKeywords) {
@@ -230,7 +256,7 @@ public class ExpenseDialogHelper {
         // Populate values based on Mode (Add, Edit, checklist item)
         if (expenseToEdit != null) {
             if (tvTitle != null) tvTitle.setText("Edit Expense");
-            etAmount.setText(String.valueOf(expenseToEdit.getAmount()));
+            etAmount.setText(currencySymbol + expenseToEdit.getAmount());
             etTitleInput.setText(expenseToEdit.getTitle());
             etDescription.setText(expenseToEdit.getDescription());
             selectedDateTime.setTimeInMillis(expenseToEdit.getTimestamp());
@@ -357,13 +383,20 @@ public class ExpenseDialogHelper {
         List<Category> finalAllCategories = allCategories;
         btnSave.setOnClickListener(v -> {
             String amountStr = etAmount.getText().toString().trim();
+            amountStr = amountStr.replace(currencySymbol, "").replace(",", "").trim();
             String titleStr = etTitleInput.getText().toString().trim();
             if (amountStr.isEmpty() || titleStr.isEmpty()) {
                 Toast.makeText(context, "Please enter both amount and title", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            double amount = Double.parseDouble(amountStr);
+            double amount;
+            try {
+                amount = Double.parseDouble(amountStr);
+            } catch (NumberFormatException e) {
+                Toast.makeText(context, "Please enter a valid amount", Toast.LENGTH_SHORT).show();
+                return;
+            }
             String category = currentCategory[0];
             String payment = getSelectedPaymentMethodFromDialog(dialogView);
             String desc = etDescription.getText().toString().trim();
@@ -418,7 +451,7 @@ public class ExpenseDialogHelper {
         }, 200);
     }
 
-    private static List<String> getFrequentCategories(List<Expense> expenses, List<Category> allCategories) {
+    public static List<String> getFrequentCategories(List<Expense> expenses, List<Category> allCategories) {
         Map<String, Integer> freqMap = new HashMap<>();
         if (expenses != null) {
             for (Expense e : expenses) {

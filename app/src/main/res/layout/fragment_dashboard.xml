@@ -69,6 +69,7 @@
                     android:layout_marginBottom="24dp">
 
                     <TextView
+                        android:id="@+id/tv_greeting"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Good evening, Alex"
@@ -77,6 +78,7 @@
                         android:textColor="?android:attr/textColorPrimary" />
 
                     <TextView
+                        android:id="@+id/tv_greeting_sub"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
@@ -89,7 +91,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="24dp"
+                    android:layout_marginBottom="15dp"
                     app:cardCornerRadius="24dp"
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
@@ -118,20 +120,7 @@
                                 android:letterSpacing="0.08"
                                 android:textStyle="bold" />
 
-                            <!-- Top Right: Small Pill Badge -->
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:background="@drawable/bg_mint_badge"
-                                android:backgroundTint="?attr/colorErrorContainer"
-                                android:paddingHorizontal="12dp"
-                                android:paddingVertical="4dp"
-                                android:text="↗ +12%"
-                                android:textColor="?attr/colorError"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
+
                         </RelativeLayout>
 
                         <!-- Large Amount Text (42sp, Bold) -->
@@ -141,7 +130,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="16dp"
                             android:text="$142.50"
-                            android:textSize="42sp"
+                            android:textSize="32sp"
                             android:textStyle="bold"
                             android:textColor="?android:attr/textColorPrimary" />
 
@@ -175,7 +164,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="24dp"
+                    android:layout_marginBottom="15dp"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
@@ -210,7 +199,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="$2,450"
-                                android:textSize="28sp"
+                                android:textSize="22sp"
                                 android:textStyle="bold"
                                 android:textColor="?android:attr/textColorPrimary" />
 
@@ -219,7 +208,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text=" / $3,000"
-                                android:textSize="18sp"
+                                android:textSize="15sp"
                                 android:textColor="?android:attr/textColorSecondary"
                                 android:fontFamily="sans-serif-medium" />
                         </LinearLayout>
@@ -301,7 +290,7 @@
                     android:id="@+id/card_budget_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="24dp"
+                    android:layout_marginBottom="15dp"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
@@ -363,10 +352,12 @@
                     android:visibility="gone" />
 
                 <LinearLayout
+                    android:id="@+id/layout_debt_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="24dp">
+                    android:layout_marginBottom="24dp"
+                    android:visibility="gone">
 
                     <!-- Owe Card (Left) -->
                     <com.google.android.material.card.MaterialCardView
@@ -579,10 +570,10 @@
         android:layout_marginTop="12dp"
         android:layout_marginEnd="16dp"
         android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_notifications"
+        android:src="@drawable/ic_menu"
         android:padding="10dp"
         android:scaleType="fitCenter"
-        android:contentDescription="Notifications"
+        android:contentDescription="Menu"
         app:tint="?android:attr/textColorPrimary" />
 
     <!-- Hidden compatibility text views for R.id.tv_week_total and R.id.tv_year_total -->

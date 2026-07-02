@@ -25,6 +25,10 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final java.util.List<Integer> navigationHistory = new java.util.ArrayList<>();
+    private boolean isBackNavigation = false;
+    private androidx.activity.OnBackPressedCallback backPressedCallback;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Load and apply theme preference
@@ -51,6 +55,25 @@ public class MainActivity extends AppCompatActivity {
         ViewPager2 viewPager = findViewById(R.id.view_pager);
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
+        if (viewPager != null) {
+            backPressedCallback = new androidx.activity.OnBackPressedCallback(true) {
+                @Override
+                public void handleOnBackPressed() {
+                    if (navigationHistory.size() > 1) {
+                        navigationHistory.remove(navigationHistory.size() - 1);
+                        int previousPage = navigationHistory.get(navigationHistory.size() - 1);
+                        isBackNavigation = true;
+                        viewPager.setCurrentItem(previousPage, true);
+                        isBackNavigation = false;
+                    } else {
+                        setEnabled(false);
+                        getOnBackPressedDispatcher().onBackPressed();
+                    }
+                }
+            };
+            getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
+        }
+
         com.google.android.material.card.MaterialCardView cardBottomNav = findViewById(R.id.card_bottom_nav);
         if (cardBottomNav != null) {
             int surfaceColor = com.example.expenseeye.theme.ThemeManager.getColor(this, com.example.expenseeye.theme.ThemeManager.ThemeColor.SURFACE);
@@ -68,6 +91,16 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onPageSelected(int position) {
                     super.onPageSelected(position);
+
+                    if (!isBackNavigation) {
+                        if (navigationHistory.isEmpty() || navigationHistory.get(navigationHistory.size() - 1) != position) {
+                            navigationHistory.add(position);
+                        }
+                    }
+                    if (backPressedCallback != null) {
+                        backPressedCallback.setEnabled(true);
+                    }
+
                     int itemId;
                     switch (position) {
                         case 0:

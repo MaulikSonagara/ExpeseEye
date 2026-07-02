@@ -33,6 +33,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.expenseeye.adapters.PaymentMethodAdapter;
 import com.example.expenseeye.utils.KeyboardFollow;
+import com.google.android.material.button.MaterialButton;
+import android.content.res.ColorStateList;
+import android.widget.PopupMenu;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -53,7 +56,9 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
     private RelativeLayout rootLayout;
     private CardView cardQuickAdd;
     private EditText etAmount, etDescription;
-    private AutoCompleteTextView etTitle, spinnerCategory;
+    private AutoCompleteTextView etTitle;
+    private MaterialButton btnCat1, btnCat2, btnCat3, btnCatMore;
+    private final String[] currentCategory = { "Other" };
     private Button btnDate, btnTime, btnCancel, btnSave;
 
     private List<Category> availableCategories = new ArrayList<>();
@@ -74,7 +79,10 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         KeyboardFollow.attach(rootLayout, cardQuickAdd);
         etAmount = findViewById(R.id.et_amount);
         etTitle = findViewById(R.id.et_title);
-        spinnerCategory = findViewById(R.id.spinner_category);
+        btnCat1 = findViewById(R.id.btn_cat_1);
+        btnCat2 = findViewById(R.id.btn_cat_2);
+        btnCat3 = findViewById(R.id.btn_cat_3);
+        btnCatMore = findViewById(R.id.btn_cat_more);
         btnDate = findViewById(R.id.btn_date);
         btnTime = findViewById(R.id.btn_time);
         etDescription = findViewById(R.id.et_description);
@@ -87,12 +95,38 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         // Initial setup
         setupDateTimeButtons();
 
+        com.example.expenseeye.theme.ThemePreferenceHelper prefHAmount = new com.example.expenseeye.theme.ThemePreferenceHelper(this);
+        final String currencySymbol = prefHAmount.getCurrencySymbol();
+        etAmount.setHint("Amount (" + currencySymbol + ")");
+        etAmount.setKeyListener(android.text.method.DigitsKeyListener.getInstance("0123456789." + currencySymbol));
+        etAmount.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (!s.toString().startsWith(currencySymbol)) {
+                    etAmount.removeTextChangedListener(this);
+                    String cleanString = s.toString().replaceAll("[^0-9.]", "");
+                    String newText = currencySymbol + cleanString;
+                    etAmount.setText(newText);
+                    etAmount.setSelection(newText.length());
+                    etAmount.addTextChangedListener(this);
+                }
+            }
+        });
+        etAmount.setText(currencySymbol);
+
         // Load Categories & Payment Methods in background thread
         final List<com.example.expenseeye.models.CategoryKeyword>[] allKeywords = new List[]{new ArrayList<>()};
         AppDatabase.databaseWriteExecutor.execute(() -> {
             availableCategories = repository.getEnabledCategoriesSync();
             availablePaymentMethods = repository.getAllPaymentMethodsSync();
             allKeywords[0] = repository.getAllKeywordsSync();
+            final List<Expense> allExpenses = repository.getAllExpensesSync();
 
             // Populate category name list
             categoryNames.clear();
@@ -114,7 +148,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
             }
 
             runOnUiThread(() -> {
-                setupCategorySpinner();
+                setupCategoryButtons(allExpenses);
                 
                 com.example.expenseeye.theme.ThemePreferenceHelper ph = new com.example.expenseeye.theme.ThemePreferenceHelper(this);
                 int savedId = ph.getDefaultPaymentMethodId();
@@ -154,9 +188,8 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
                 String titleText = s.toString();
                 String descText = etDescription != null ? etDescription.getText().toString() : "";
                 String classified = ExpenseClassifier.classifyExpense(titleText + " " + descText, availableCategories, allKeywords[0]);
-                int index = categoryNames.indexOf(classified);
-                if (index >= 0) {
-                    spinnerCategory.setText(classified, false);
+                if (classified != null) {
+                    selectCategory(classified);
                 }
             }
         });
@@ -207,9 +240,75 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
         });
     }
 
-    private void setupCategorySpinner() {
-        ArrayAdapter<String> catAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, categoryNames);
-        spinnerCategory.setAdapter(catAdapter);
+    private void selectCategory(String selectedCat) {
+        currentCategory[0] = selectedCat;
+        int colorSelectedBg = com.example.expenseeye.theme.ThemeManager.getColor(this, com.example.expenseeye.theme.ThemeManager.ThemeColor.PRIMARY);
+        int colorSelectedText = com.example.expenseeye.theme.ThemeManager.getColor(this, com.example.expenseeye.theme.ThemeManager.ThemeColor.SURFACE);
+        int colorUnselectedBg = Color.TRANSPARENT;
+        int colorUnselectedText = com.example.expenseeye.theme.ThemeManager.getColor(this, com.example.expenseeye.theme.ThemeManager.ThemeColor.PRIMARY);
+        int strokeColor = com.example.expenseeye.theme.ThemeManager.getColor(this, com.example.expenseeye.theme.ThemeManager.ThemeColor.DIVIDER);
+        float density = getResources().getDisplayMetrics().density;
+        int strokeWidth = (int) (1 * density);
+
+        MaterialButton[] buttons = {btnCat1, btnCat2, btnCat3};
+        boolean foundInTop3 = false;
+        for (MaterialButton btn : buttons) {
+            if (btn == null) continue;
+            String btnText = btn.getText().toString();
+            if (btnText.equalsIgnoreCase(selectedCat)) {
+                btn.setBackgroundTintList(ColorStateList.valueOf(colorSelectedBg));
+                btn.setTextColor(colorSelectedText);
+                btn.setStrokeColor(ColorStateList.valueOf(Color.TRANSPARENT));
+                btn.setStrokeWidth(0);
+                foundInTop3 = true;
+            } else {
+                btn.setBackgroundTintList(ColorStateList.valueOf(colorUnselectedBg));
+                btn.setTextColor(colorUnselectedText);
+                btn.setStrokeColor(ColorStateList.valueOf(strokeColor));
+                btn.setStrokeWidth(strokeWidth);
+            }
+        }
+
+        if (foundInTop3) {
+            btnCatMore.setText("More");
+            btnCatMore.setBackgroundTintList(ColorStateList.valueOf(colorUnselectedBg));
+            btnCatMore.setTextColor(colorUnselectedText);
+            btnCatMore.setStrokeColor(ColorStateList.valueOf(strokeColor));
+            btnCatMore.setStrokeWidth(strokeWidth);
+        } else {
+            btnCatMore.setText(selectedCat);
+            btnCatMore.setBackgroundTintList(ColorStateList.valueOf(colorSelectedBg));
+            btnCatMore.setTextColor(colorSelectedText);
+            btnCatMore.setStrokeColor(ColorStateList.valueOf(Color.TRANSPARENT));
+            btnCatMore.setStrokeWidth(0);
+        }
+    }
+
+    private void setupCategoryButtons(final List<Expense> allExpenses) {
+        final Context context = this;
+        List<String> top3Cats = com.example.expenseeye.utils.ExpenseDialogHelper.getFrequentCategories(allExpenses, availableCategories);
+        if (top3Cats.size() > 0) btnCat1.setText(top3Cats.get(0));
+        if (top3Cats.size() > 1) btnCat2.setText(top3Cats.get(1));
+        if (top3Cats.size() > 2) btnCat3.setText(top3Cats.get(2));
+
+        btnCat1.setOnClickListener(v -> selectCategory(btnCat1.getText().toString()));
+        btnCat2.setOnClickListener(v -> selectCategory(btnCat2.getText().toString()));
+        btnCat3.setOnClickListener(v -> selectCategory(btnCat3.getText().toString()));
+
+        btnCatMore.setOnClickListener(v -> {
+            PopupMenu popupMenu = new PopupMenu(context, btnCatMore);
+            for (Category cat : availableCategories) {
+                popupMenu.getMenu().add(cat.getName());
+            }
+            popupMenu.setOnMenuItemClickListener(item -> {
+                selectCategory(item.getTitle().toString());
+                return true;
+            });
+            popupMenu.show();
+        });
+
+        // Initialize default selection
+        selectCategory(top3Cats.isEmpty() ? "Other" : top3Cats.get(0));
     }
 
     private void setupTitleAutocomplete(List<String> suggestions) {
@@ -282,7 +381,7 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
             }
 
             if (index >= 0) {
-                spinnerCategory.setText(categoryNames.get(index), false);
+                selectCategory(categoryNames.get(index));
             }
         }
     }
@@ -346,7 +445,10 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
     }
 
     private void saveExpense() {
+        com.example.expenseeye.theme.ThemePreferenceHelper prefH = new com.example.expenseeye.theme.ThemePreferenceHelper(this);
+        final String currencySymbol = prefH.getCurrencySymbol();
         String amountStr = etAmount.getText().toString().trim();
+        amountStr = amountStr.replace(currencySymbol, "").replace(",", "").trim();
         String titleStr = etTitle.getText().toString().trim();
 
         if (amountStr.isEmpty() || titleStr.isEmpty()) {
@@ -354,8 +456,14 @@ public class QuickAddExpenseActivity extends AppCompatActivity {
             return;
         }
 
-        double amount = Double.parseDouble(amountStr);
-        String category = spinnerCategory.getText() != null ? spinnerCategory.getText().toString() : "Other";
+        double amount;
+        try {
+            amount = Double.parseDouble(amountStr);
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Please enter a valid amount", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String category = currentCategory[0];
 
         String payment = "Other";
         if (adapterMain != null) {

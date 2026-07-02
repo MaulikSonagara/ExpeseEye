@@ -38,6 +38,10 @@ import com.google.android.material.snackbar.Snackbar;
 import com.example.expenseeye.adapters.PaymentMethodAdapter;
 import com.example.expenseeye.utils.KeyboardFollow;
 
+import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -128,7 +132,15 @@ public class ExpensesFragment extends Fragment {
             }
         });
 
-        btnFilter.setOnClickListener(v -> showFilterBottomSheet());
+        btnFilter.setOnClickListener(v -> {
+            com.example.expenseeye.database.AppDatabase.databaseWriteExecutor.execute(() -> {
+                final List<Category> allCats = viewModel.getAllCategoriesSync();
+                final List<PaymentMethod> allPMs = viewModel.getAllPaymentMethodsSync();
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    showFilterBottomSheet(allCats, allPMs);
+                });
+            });
+        });
         tvClearFilters.setOnClickListener(v -> resetFilters());
 
 
@@ -199,7 +211,7 @@ public class ExpensesFragment extends Fragment {
         chipGroupActiveFilters.addView(chip);
     }
 
-    private void showFilterBottomSheet() {
+    private void showFilterBottomSheet(List<Category> categoriesList, List<PaymentMethod> pmsList) {
         BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_filter_expenses, null);
         dialog.setContentView(dialogView);
@@ -261,20 +273,22 @@ public class ExpensesFragment extends Fragment {
         });
 
         // Add Category Chips dynamically
-        for (Category category : availableCategories) {
+        for (Category category : categoriesList) {
             Chip chip = new Chip(getContext());
             chip.setText(category.getName());
             chip.setCheckable(true);
             chip.setChecked(currentParams.categories.contains(category.getName()));
+            styleFilterChip(chip);
             cgCategories.addView(chip);
         }
 
         // Add Payment Method Chips dynamically
-        for (PaymentMethod pm : availablePaymentMethods) {
+        for (PaymentMethod pm : pmsList) {
             Chip chip = new Chip(getContext());
             chip.setText(pm.getName());
             chip.setCheckable(true);
             chip.setChecked(currentParams.paymentMethods.contains(pm.getName()));
+            styleFilterChip(chip);
             cgPayments.addView(chip);
         }
 
@@ -326,6 +340,47 @@ public class ExpensesFragment extends Fragment {
         });
 
         dialog.show();
+    }
+
+    private void styleFilterChip(Chip chip) {
+        Context context = getContext();
+        if (context == null) return;
+
+        int colorPrimary = com.example.expenseeye.theme.ThemeManager.getColor(context, com.example.expenseeye.theme.ThemeManager.ThemeColor.PRIMARY);
+        int colorSurface = com.example.expenseeye.theme.ThemeManager.getColor(context, com.example.expenseeye.theme.ThemeManager.ThemeColor.SURFACE);
+        int colorDivider = com.example.expenseeye.theme.ThemeManager.getColor(context, com.example.expenseeye.theme.ThemeManager.ThemeColor.DIVIDER);
+        int colorTextSecondary = com.example.expenseeye.theme.ThemeManager.getColor(context, com.example.expenseeye.theme.ThemeManager.ThemeColor.TEXT_SECONDARY);
+
+        int[][] states = new int[][] {
+            new int[] { android.R.attr.state_checked }, // checked
+            new int[] { -android.R.attr.state_checked } // unchecked
+        };
+
+        // Background Color State List
+        int[] colorsBg = new int[] {
+            colorPrimary,
+            Color.TRANSPARENT
+        };
+        ColorStateList bgStateList = new ColorStateList(states, colorsBg);
+
+        // Text Color State List
+        int[] colorsText = new int[] {
+            colorSurface,
+            colorTextSecondary
+        };
+        ColorStateList textStateList = new ColorStateList(states, colorsText);
+
+        // Stroke Color State List
+        int[] colorsStroke = new int[] {
+            Color.TRANSPARENT,
+            colorDivider
+        };
+        ColorStateList strokeStateList = new ColorStateList(states, colorsStroke);
+
+        chip.setChipBackgroundColor(bgStateList);
+        chip.setTextColor(textStateList);
+        chip.setChipStrokeColor(strokeStateList);
+        chip.setChipStrokeWidth(1.0f * getResources().getDisplayMetrics().density);
     }
 
     private void showEditExpenseBottomSheet(Expense expense) {

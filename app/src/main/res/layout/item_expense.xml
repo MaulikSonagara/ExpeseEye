@@ -8,7 +8,7 @@
     android:clickable="true"
     android:focusable="true"
     android:paddingVertical="12dp"
-    android:paddingHorizontal="4dp">
+    android:paddingHorizontal="0dp">
 
     <!-- Left: Circular Category Icon Background (42dp) -->
     <FrameLayout
