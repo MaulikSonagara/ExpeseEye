@@ -100,6 +100,12 @@ public class AppRepository {
         });
     }
 
+    public Expense findExpenseForBorrowOweSync(long timestamp) {
+        long minTime = timestamp - 5000;
+        long maxTime = timestamp + 5000;
+        return expenseDao.findExpenseForBorrowOwe(minTime, maxTime);
+    }
+
     public LiveData<Double> getTotalSpendingInRangeLive(long start, long end) {
         return expenseDao.getTotalSpendingInRangeLive(start, end);
     }

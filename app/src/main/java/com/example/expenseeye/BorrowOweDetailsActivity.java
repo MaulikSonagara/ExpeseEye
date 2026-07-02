@@ -227,6 +227,29 @@ public class BorrowOweDetailsActivity extends AppCompatActivity {
                 .setPositiveButton("Delete", (dialog, which) -> {
                     viewModel.deleteBorrowOwePayment(payment);
                     Toast.makeText(this, "Payment log deleted", Toast.LENGTH_SHORT).show();
+
+                    if (currentItem != null && !currentItem.isBorrow() && currentItem.isWasAddedAsExpense()) {
+                        final double restoredAmount = payment.getAmountPaid();
+                        com.example.expenseeye.database.AppDatabase.databaseWriteExecutor.execute(() -> {
+                            com.example.expenseeye.models.Expense originalExpense = viewModel.findExpenseForBorrowOweSync(currentItem.getTimestamp());
+                            if (originalExpense != null) {
+                                runOnUiThread(() -> {
+                                    double currentExpAmount = originalExpense.getAmount();
+                                    double updatedExpAmount = currentExpAmount + restoredAmount;
+                                    new MaterialAlertDialogBuilder(this)
+                                            .setTitle("Restore Linked Expense")
+                                            .setMessage("Since you deleted this payback payment, would you like to restore the expense amount back to " + currencySymbol + String.format(Locale.getDefault(), "%.2f", updatedExpAmount) + "?")
+                                            .setPositiveButton("Restore Amount", (expDialog, expWhich) -> {
+                                                originalExpense.setAmount(updatedExpAmount);
+                                                viewModel.updateExpense(originalExpense);
+                                                Toast.makeText(this, "Linked expense restored", Toast.LENGTH_SHORT).show();
+                                            })
+                                            .setNegativeButton("Keep As Is", null)
+                                            .show();
+                                });
+                            }
+                        });
+                    }
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -286,8 +309,19 @@ public class BorrowOweDetailsActivity extends AppCompatActivity {
         spinnerCategory.setOnClickListener(v -> spinnerCategory.showDropDown());
         spinnerPayment.setOnClickListener(v -> spinnerPayment.showDropDown());
 
+        if (currentItem.isBorrow()) {
+            switchLog.setVisibility(View.VISIBLE);
+        } else {
+            switchLog.setVisibility(View.GONE);
+            layoutOptions.setVisibility(View.GONE);
+        }
+
         switchLog.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            layoutOptions.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            if (switchLog.getVisibility() == View.VISIBLE) {
+                layoutOptions.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            } else {
+                layoutOptions.setVisibility(View.GONE);
+            }
         });
 
         androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this)
@@ -375,9 +409,53 @@ public class BorrowOweDetailsActivity extends AppCompatActivity {
 
             Toast.makeText(this, "Payment recorded successfully", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
+
+            final double payAmount = amount;
+            if (currentItem != null && !currentItem.isBorrow() && currentItem.isWasAddedAsExpense()) {
+                com.example.expenseeye.database.AppDatabase.databaseWriteExecutor.execute(() -> {
+                    com.example.expenseeye.models.Expense originalExpense = viewModel.findExpenseForBorrowOweSync(currentItem.getTimestamp());
+                    if (originalExpense != null) {
+                        runOnUiThread(() -> showUpdateExpensePopup(originalExpense, payAmount));
+                    }
+                });
+            }
         });
 
         dialog.show();
+    }
+
+    private void showUpdateExpensePopup(final Expense originalExpense, final double payAmount) {
+        double currentExpAmount = originalExpense.getAmount();
+        double calculatedAmount = currentExpAmount - payAmount;
+        if (calculatedAmount < 0) {
+            calculatedAmount = 0;
+        }
+        final double updatedExpAmount = calculatedAmount;
+
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
+        builder.setTitle("Update Linked Expense Log");
+
+        if (updatedExpAmount <= 0.001) {
+            builder.setMessage("This transaction was logged as an expense of " + currencySymbol + String.format(Locale.getDefault(), "%.2f", currentExpAmount) + ".\n\nSince it is now fully paid back, would you like to delete the corresponding expense log to avoid conflict?");
+            builder.setPositiveButton("Delete Expense", (dialog, which) -> {
+                viewModel.deleteExpense(originalExpense);
+                Toast.makeText(this, "Linked expense log deleted", Toast.LENGTH_SHORT).show();
+            });
+        } else {
+            builder.setMessage("This transaction was logged as an expense of " + currencySymbol + String.format(Locale.getDefault(), "%.2f", currentExpAmount) + ".\n\nSince " + currencySymbol + String.format(Locale.getDefault(), "%.2f", payAmount) + " is being paid back, would you like to update the expense to " + currencySymbol + String.format(Locale.getDefault(), "%.2f", updatedExpAmount) + "?");
+            builder.setPositiveButton("Update Expense", (dialog, which) -> {
+                originalExpense.setAmount(updatedExpAmount);
+                viewModel.updateExpense(originalExpense);
+                Toast.makeText(this, "Linked expense log updated to " + currencySymbol + String.format(Locale.getDefault(), "%.2f", updatedExpAmount), Toast.LENGTH_SHORT).show();
+            });
+            builder.setNeutralButton("Delete Instead", (dialog, which) -> {
+                viewModel.deleteExpense(originalExpense);
+                Toast.makeText(this, "Linked expense log deleted", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        builder.setNegativeButton("Keep As Is", null);
+        builder.show();
     }
 
     @Override
@@ -397,9 +475,34 @@ public class BorrowOweDetailsActivity extends AppCompatActivity {
                     .setTitle("Delete Record")
                     .setMessage("Are you sure you want to delete this borrow/owe record and all its payment history?")
                     .setPositiveButton("Delete", (dialog, which) -> {
-                        viewModel.deleteBorrowOwe(currentItem);
+                        final BorrowOwe itemToDelete = currentItem;
+                        viewModel.deleteBorrowOwe(itemToDelete);
                         Toast.makeText(this, "Record deleted", Toast.LENGTH_SHORT).show();
-                        finish();
+
+                        if (itemToDelete != null && !itemToDelete.isBorrow() && itemToDelete.isWasAddedAsExpense()) {
+                            com.example.expenseeye.database.AppDatabase.databaseWriteExecutor.execute(() -> {
+                                com.example.expenseeye.models.Expense originalExpense = viewModel.findExpenseForBorrowOweSync(itemToDelete.getTimestamp());
+                                if (originalExpense != null) {
+                                    runOnUiThread(() -> {
+                                        new MaterialAlertDialogBuilder(this)
+                                                .setTitle("Delete Linked Expense")
+                                                .setMessage("Would you like to delete the corresponding expense log as well to avoid conflict?")
+                                                .setPositiveButton("Delete Expense", (expDialog, expWhich) -> {
+                                                    viewModel.deleteExpense(originalExpense);
+                                                    Toast.makeText(this, "Linked expense log deleted", Toast.LENGTH_SHORT).show();
+                                                    finish();
+                                                })
+                                                .setNegativeButton("Keep Expense", (expDialog, expWhich) -> finish())
+                                                .setOnCancelListener(dialogInterface -> finish())
+                                                .show();
+                                    });
+                                } else {
+                                    runOnUiThread(this::finish);
+                                }
+                            });
+                        } else {
+                            finish();
+                        }
                     })
                     .setNegativeButton("Cancel", null)
                     .show();

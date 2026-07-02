@@ -172,6 +172,25 @@ public class BorrowOweActivity extends AppCompatActivity {
                     item.setSettled(true);
                     viewModel.updateBorrowOwe(item);
                     Toast.makeText(this, "Transaction settled!", Toast.LENGTH_SHORT).show();
+
+                    if (!item.isBorrow() && item.isWasAddedAsExpense()) {
+                        com.example.expenseeye.database.AppDatabase.databaseWriteExecutor.execute(() -> {
+                            com.example.expenseeye.models.Expense originalExpense = viewModel.findExpenseForBorrowOweSync(item.getTimestamp());
+                            if (originalExpense != null) {
+                                runOnUiThread(() -> {
+                                    new MaterialAlertDialogBuilder(this)
+                                            .setTitle("Delete Linked Expense")
+                                            .setMessage("Since this lent transaction is now settled, would you like to delete the corresponding expense log to avoid conflict?")
+                                            .setPositiveButton("Delete Expense", (expDialog, expWhich) -> {
+                                                viewModel.deleteExpense(originalExpense);
+                                                Toast.makeText(this, "Linked expense log deleted", Toast.LENGTH_SHORT).show();
+                                            })
+                                            .setNegativeButton("Keep As Is", null)
+                                            .show();
+                                });
+                            }
+                        });
+                    }
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -284,12 +303,33 @@ public class BorrowOweActivity extends AppCompatActivity {
             }
             // Cannot log again as expense upon edit
             switchLogExpense.setVisibility(View.GONE);
+            layoutExpenseOptions.setVisibility(View.GONE);
         } else {
             tvTitle.setText("Add Transaction");
             toggleType.check(R.id.btn_type_borrowed);
             etDueDate.setText("");
-            switchLogExpense.setVisibility(View.VISIBLE);
+            switchLogExpense.setVisibility(View.GONE);
+            switchLogExpense.setChecked(false);
+            layoutExpenseOptions.setVisibility(View.GONE);
         }
+
+        // Toggle Switch visibility based on Borrowed vs Lent type
+        toggleType.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (isChecked) {
+                if (checkedId == R.id.btn_type_borrowed) {
+                    switchLogExpense.setChecked(false);
+                    switchLogExpense.setVisibility(View.GONE);
+                    layoutExpenseOptions.setVisibility(View.GONE);
+                } else if (checkedId == R.id.btn_type_lent) {
+                    if (!isEdit) {
+                        switchLogExpense.setVisibility(View.VISIBLE);
+                        if (switchLogExpense.isChecked()) {
+                            layoutExpenseOptions.setVisibility(View.VISIBLE);
+                        }
+                    }
+                }
+            }
+        });
 
         // Dropdown popups
         spinnerCategory.setOnClickListener(v -> spinnerCategory.showDropDown());
@@ -297,7 +337,11 @@ public class BorrowOweActivity extends AppCompatActivity {
 
         // Toggle Switch visibility for expandable options
         switchLogExpense.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            layoutExpenseOptions.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            if (switchLogExpense.getVisibility() == View.VISIBLE) {
+                layoutExpenseOptions.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            } else {
+                layoutExpenseOptions.setVisibility(View.GONE);
+            }
         });
 
         // Setup DatePicker click on input field

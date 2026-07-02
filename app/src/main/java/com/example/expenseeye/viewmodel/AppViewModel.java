@@ -136,6 +136,10 @@ public class AppViewModel extends AndroidViewModel {
         repository.deleteExpense(expense);
     }
 
+    public Expense findExpenseForBorrowOweSync(long timestamp) {
+        return repository.findExpenseForBorrowOweSync(timestamp);
+    }
+
     // Category actions
     public void insertCategory(Category category) {
         repository.insertCategory(category);

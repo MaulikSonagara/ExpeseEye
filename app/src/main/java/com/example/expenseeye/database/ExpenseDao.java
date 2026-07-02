@@ -51,4 +51,7 @@ public interface ExpenseDao {
 
     @Query("UPDATE expenses SET categoryId = :newId, categoryName = :newName WHERE categoryId = :oldId")
     void updateExpenseCategory(int oldId, int newId, String newName);
+
+    @Query("SELECT * FROM expenses WHERE description = 'Borrow/Owe Reference' AND timestamp >= :minTime AND timestamp <= :maxTime LIMIT 1")
+    Expense findExpenseForBorrowOwe(long minTime, long maxTime);
 }
