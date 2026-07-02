@@ -119,6 +119,18 @@
             android:theme="@style/Theme.ExpenseEye"
             android:exported="false" />
 
+        <activity
+            android:name=".TripsActivity"
+            android:label="Trips"
+            android:theme="@style/Theme.ExpenseEye"
+            android:exported="false" />
+
+        <activity
+            android:name=".TripDetailsActivity"
+            android:label="Trip Details"
+            android:theme="@style/Theme.ExpenseEye"
+            android:exported="false" />
+
 
 
         <!-- Expense Home Screen Widget Provider -->

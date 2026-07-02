@@ -66,11 +66,13 @@ public class ExpenseDialogHelper {
             final List<PaymentMethod> allPaymentMethods = viewModel.getAllPaymentMethodsSync();
             final List<CategoryKeyword> allKeywords = viewModel.getAllKeywordsSync();
             final List<Expense> allExpenses = viewModel.getAllExpensesSync();
+            final com.example.expenseeye.models.Trip activeTrip = viewModel.getActiveTripSync();
+            final List<com.example.expenseeye.models.Trip> allTrips = viewModel.getAllTripsSync();
 
             // Post back to the main thread to show the Dialog UI
             new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                 showExpenseDialogUi(context, inflater, viewModel, expenseToEdit, checklistItem, callback,
-                        allCategories, enabledCategories, allPaymentMethods, allKeywords, allExpenses);
+                        allCategories, enabledCategories, allPaymentMethods, allKeywords, allExpenses, activeTrip, allTrips);
             });
         });
     }
@@ -79,7 +81,8 @@ public class ExpenseDialogHelper {
                                             Expense expenseToEdit, ChecklistItem checklistItem, DialogCallback callback,
                                             List<Category> allCategories, List<Category> enabledCategories,
                                             List<PaymentMethod> allPaymentMethods, List<CategoryKeyword> allKeywords,
-                                            List<Expense> allExpenses) {
+                                            List<Expense> allExpenses, com.example.expenseeye.models.Trip activeTrip,
+                                            List<com.example.expenseeye.models.Trip> allTrips) {
         Dialog dialog = new Dialog(context, R.style.Theme_ExpenseEye_Dialog);
         View dialogView = inflater.inflate(R.layout.dialog_add_expense, null);
         dialog.setContentView(dialogView);
@@ -115,6 +118,41 @@ public class ExpenseDialogHelper {
         MaterialButton btnCat2 = dialogView.findViewById(R.id.btn_cat_2);
         MaterialButton btnCat3 = dialogView.findViewById(R.id.btn_cat_3);
         MaterialButton btnCatMore = dialogView.findViewById(R.id.btn_cat_more);
+
+        // Trip Selection (For editing old expenses)
+        MaterialButton btnTripSelect = dialogView.findViewById(R.id.btn_trip_select);
+        final int[] selectedTripId = { -1 };
+
+        if (expenseToEdit != null) {
+            selectedTripId[0] = expenseToEdit.getTripId();
+            if (selectedTripId[0] != -1 && allTrips != null) {
+                for (com.example.expenseeye.models.Trip t : allTrips) {
+                    if (t.getId() == selectedTripId[0]) {
+                        btnTripSelect.setText("Trip: " + t.getTitle());
+                        break;
+                    }
+                }
+            }
+        } else if (activeTrip != null) {
+            selectedTripId[0] = activeTrip.getId();
+            btnTripSelect.setText("Trip: " + activeTrip.getTitle());
+        }
+
+        btnTripSelect.setOnClickListener(v -> {
+            PopupMenu popup = new PopupMenu(context, btnTripSelect);
+            popup.getMenu().add(0, -1, 0, "No Trip");
+            if (allTrips != null) {
+                for (com.example.expenseeye.models.Trip t : allTrips) {
+                    popup.getMenu().add(0, t.getId(), 0, t.getTitle());
+                }
+            }
+            popup.setOnMenuItemClickListener(item -> {
+                selectedTripId[0] = item.getItemId();
+                btnTripSelect.setText(item.getItemId() == -1 ? "Link to Trip" : "Trip: " + item.getTitle());
+                return true;
+            });
+            popup.show();
+        });
 
         // Keep track of state
         final Calendar selectedDateTime = Calendar.getInstance();
@@ -220,6 +258,12 @@ public class ExpenseDialogHelper {
         // Initialize with currency symbol for new expense
         if (expenseToEdit == null) {
             etAmount.setText(currencySymbol);
+            if (activeTrip != null) {
+                if (tvTitle != null) {
+                    tvTitle.setText("Add Expense (Trip: " + activeTrip.getTitle() + ")");
+                    tvTitle.setVisibility(View.VISIBLE);
+                }
+            }
         }
 
         if (prefHelper.isTitleSuggestionsEnabled()) {
@@ -418,10 +462,11 @@ public class ExpenseDialogHelper {
             }
 
             Expense expense;
+            int tripId = selectedTripId[0];
             if (expenseToEdit != null) {
                 expense = new Expense(
                         titleStr, desc, amount, selectedDateTime.getTimeInMillis(),
-                        catId, category, pmId, payment, expenseToEdit.getType()
+                        catId, category, pmId, payment, expenseToEdit.getType(), tripId
                 );
                 expense.setId(expenseToEdit.getId());
                 viewModel.updateExpense(expense);
@@ -429,7 +474,7 @@ public class ExpenseDialogHelper {
             } else {
                 expense = new Expense(
                         titleStr, desc, amount, selectedDateTime.getTimeInMillis(),
-                        catId, category, pmId, payment, 0
+                        catId, category, pmId, payment, 0, tripId
                 );
                 viewModel.insertExpense(expense);
                 Toast.makeText(context, "Expense added successfully", Toast.LENGTH_SHORT).show();

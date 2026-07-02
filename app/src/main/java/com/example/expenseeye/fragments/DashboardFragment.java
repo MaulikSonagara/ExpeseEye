@@ -65,7 +65,8 @@ public class DashboardFragment extends Fragment {
     private android.widget.LinearLayout layoutBudgetContainer;
     private View tvBudgetHeader, cardBudgetContainer;
     private RecyclerView rvRecentExpenses;
-    private TextView tvGreeting, tvGreetingSub;
+    private TextView tvGreeting, tvGreetingSub, tvActiveTripName;
+    private View cardActiveTrip;
     private android.widget.LinearLayout layoutDebtContainer;
     private double totalOwedToOthers = 0.0;
     private double totalOwedToMe = 0.0;
@@ -88,6 +89,8 @@ public class DashboardFragment extends Fragment {
         // Bind views
         tvGreeting = view.findViewById(R.id.tv_greeting);
         tvGreetingSub = view.findViewById(R.id.tv_greeting_sub);
+        cardActiveTrip = view.findViewById(R.id.card_active_trip);
+        tvActiveTripName = view.findViewById(R.id.tv_active_trip_name);
         layoutDebtContainer = view.findViewById(R.id.layout_debt_container);
         tvMonthTotal = view.findViewById(R.id.tv_month_total);
         tvTodayTotal = view.findViewById(R.id.tv_today_total);
@@ -250,6 +253,20 @@ public class DashboardFragment extends Fragment {
             btnMenu.setOnClickListener(this::showHamburgerMenu);
         }
 
+        viewModel.getActiveTrip().observe(getViewLifecycleOwner(), trip -> {
+            if (trip != null) {
+                cardActiveTrip.setVisibility(View.VISIBLE);
+                tvActiveTripName.setText(trip.getTitle());
+                view.findViewById(R.id.btn_active_trip_details).setOnClickListener(v -> {
+                    Intent intent = new Intent(getActivity(), com.example.expenseeye.TripDetailsActivity.class);
+                    intent.putExtra("TRIP_ID", trip.getId());
+                    startActivity(intent);
+                });
+            } else {
+                cardActiveTrip.setVisibility(View.GONE);
+            }
+        });
+
         return view;
     }
 
@@ -258,6 +275,7 @@ public class DashboardFragment extends Fragment {
         popup.getMenu().add(0, 1, 0, "Monthly Budgets");
         popup.getMenu().add(0, 2, 1, "Reminder Expenses");
         popup.getMenu().add(0, 3, 2, "Borrow & Owe");
+        popup.getMenu().add(0, 4, 3, "Trips");
         
         popup.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == 1) {
@@ -270,6 +288,10 @@ public class DashboardFragment extends Fragment {
                 return true;
             } else if (item.getItemId() == 3) {
                 Intent intent = new Intent(getActivity(), com.example.expenseeye.BorrowOweActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (item.getItemId() == 4) {
+                Intent intent = new Intent(getActivity(), com.example.expenseeye.TripsActivity.class);
                 startActivity(intent);
                 return true;
             }

@@ -53,6 +53,9 @@ dependencies {
     
     // MPAndroidChart
     implementation(libs.mp.android.chart)
+    
+    // DocumentFile for SAF
+    implementation(libs.documentfile)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)

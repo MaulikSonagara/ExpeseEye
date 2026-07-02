@@ -23,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -73,6 +74,23 @@ public class SettingsFragment extends Fragment {
     // Flag to determine which export requires permission upon callback
     private boolean pendingPdfExport = false;
     private boolean pendingCsvExport = false;
+
+    private final ActivityResultLauncher<Uri> folderPickerLauncher = registerForActivityResult(
+            new androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree(),
+            uri -> {
+                if (uri != null) {
+                    try {
+                        requireContext().getContentResolver().takePersistableUriPermission(uri,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        themeHelper.setSaveLocationUri(uri.toString());
+                        showToastOnMainThread("Save location updated!");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        showToastOnMainThread("Failed to set save location.");
+                    }
+                }
+            }
+    );
 
     // Activity result launcher for Storage Permission (Android 9 and below)
     private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
@@ -134,6 +152,9 @@ public class SettingsFragment extends Fragment {
         setupEnhancedSettings(view);
         setupDailyReminder(view);
         setupActionButtons(view);
+        
+        view.findViewById(R.id.btn_set_save_location).setOnClickListener(v -> folderPickerLauncher.launch(null));
+
         setupVersionInfo(view);
     }
 
@@ -1060,11 +1081,37 @@ public class SettingsFragment extends Fragment {
     }
 
     private boolean saveFileToDownloads(File sourceFile, String displayName, String mimeType) {
+        String customUriStr = themeHelper.getSaveLocationUri();
+        if (customUriStr != null) {
+            try {
+                Uri treeUri = Uri.parse(customUriStr);
+                DocumentFile pickedDir = DocumentFile.fromTreeUri(requireContext(), treeUri);
+                if (pickedDir != null && pickedDir.canWrite()) {
+                    DocumentFile newFile = pickedDir.createFile(mimeType, displayName);
+                    if (newFile != null) {
+                        try (InputStream in = new FileInputStream(sourceFile);
+                             OutputStream out = requireContext().getContentResolver().openOutputStream(newFile.getUri())) {
+                            if (out == null) return false;
+                            byte[] buffer = new byte[8192];
+                            int read;
+                            while ((read = in.read(buffer)) != -1) {
+                                out.write(buffer, 0, read);
+                            }
+                            return true;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Default logic: Save to Downloads/ExpenseEye
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ContentValues values = new ContentValues();
             values.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName);
             values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
-            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/ExpenseEye");
 
             Uri uri = requireContext().getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
             if (uri != null) {
@@ -1083,10 +1130,11 @@ public class SettingsFragment extends Fragment {
             }
         } else {
             File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            if (!downloadsDir.exists()) {
-                downloadsDir.mkdirs();
+            File expenseEyeDir = new File(downloadsDir, "ExpenseEye");
+            if (!expenseEyeDir.exists()) {
+                expenseEyeDir.mkdirs();
             }
-            File targetFile = new File(downloadsDir, displayName);
+            File targetFile = new File(expenseEyeDir, displayName);
             try (InputStream in = new FileInputStream(sourceFile);
                  OutputStream out = new FileOutputStream(targetFile)) {
                 byte[] buffer = new byte[8192];

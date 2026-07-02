@@ -218,6 +218,11 @@ public class DatabaseBackupHelper {
                         if (typeIndex != -1) {
                             values.put("type", cursor.getInt(typeIndex));
                         }
+                        // Handle 'trip_id' if it exists in source
+                        int tripIdIndex = cursor.getColumnIndex("trip_id");
+                        if (tripIdIndex != -1) {
+                            values.put("trip_id", cursor.getInt(tripIdIndex));
+                        }
                         targetDb.insert("expenses", SQLiteDatabase.CONFLICT_IGNORE, values);
                     }
                 }
@@ -252,6 +257,24 @@ public class DatabaseBackupHelper {
                             values.put("type", cursor.getInt(typeIndex));
                         }
                         targetDb.insert("reminder_expenses", SQLiteDatabase.CONFLICT_IGNORE, values);
+                    }
+                }
+
+                // Merge Trips
+                try (android.database.Cursor checkCursor = sourceDb.rawQuery("SELECT DISTINCT tbl_name FROM sqlite_master WHERE tbl_name = 'trips'", null)) {
+                    if (checkCursor != null && checkCursor.getCount() > 0) {
+                        try (android.database.Cursor cursor = sourceDb.query("trips", null, null, null, null, null, null)) {
+                            while (cursor.moveToNext()) {
+                                ContentValues values = new ContentValues();
+                                values.put("title", cursor.getString(cursor.getColumnIndexOrThrow("title")));
+                                values.put("description", cursor.getString(cursor.getColumnIndexOrThrow("description")));
+                                values.put("startTimestamp", cursor.getLong(cursor.getColumnIndexOrThrow("startTimestamp")));
+                                values.put("endTimestamp", cursor.getLong(cursor.getColumnIndexOrThrow("endTimestamp")));
+                                values.put("isActive", cursor.getInt(cursor.getColumnIndexOrThrow("isActive")));
+                                values.put("budget", cursor.getDouble(cursor.getColumnIndexOrThrow("budget")));
+                                targetDb.insert("trips", SQLiteDatabase.CONFLICT_IGNORE, values);
+                            }
+                        }
                     }
                 }
 

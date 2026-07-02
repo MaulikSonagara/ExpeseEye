@@ -17,8 +17,15 @@ public class Expense {
     private String paymentMethodName;
     @androidx.room.ColumnInfo(name = "type", defaultValue = "0")
     private int type; // 0 for Expense, 1 for Income
+    @androidx.room.ColumnInfo(name = "trip_id", defaultValue = "-1")
+    private int tripId; // -1 for no trip
 
     public Expense(String title, String description, double amount, long timestamp, int categoryId, String categoryName, int paymentMethodId, String paymentMethodName, int type) {
+        this(title, description, amount, timestamp, categoryId, categoryName, paymentMethodId, paymentMethodName, type, -1);
+    }
+
+    @androidx.room.Ignore
+    public Expense(String title, String description, double amount, long timestamp, int categoryId, String categoryName, int paymentMethodId, String paymentMethodName, int type, int tripId) {
         this.title = title;
         this.description = description;
         this.amount = amount;
@@ -28,6 +35,7 @@ public class Expense {
         this.paymentMethodId = paymentMethodId;
         this.paymentMethodName = paymentMethodName;
         this.type = type;
+        this.tripId = tripId;
     }
 
     public long getId() {
@@ -108,5 +116,13 @@ public class Expense {
 
     public void setType(int type) {
         this.type = type;
+    }
+
+    public int getTripId() {
+        return tripId;
+    }
+
+    public void setTripId(int tripId) {
+        this.tripId = tripId;
     }
 }

@@ -145,7 +145,21 @@
                         android:scrollbars="vertical" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- 4. Payment Method Selection -->
+                <!-- 4. Trip Selection (Optional) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_trip_select"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Link to Trip"
+                    android:gravity="start|center_vertical"
+                    app:icon="@drawable/ic_travel"
+                    app:cornerRadius="12dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp" />
+
+                <!-- 5. Payment Method Selection -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

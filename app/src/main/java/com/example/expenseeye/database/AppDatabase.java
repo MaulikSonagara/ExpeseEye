@@ -19,13 +19,14 @@ import com.example.expenseeye.models.PaymentMethod;
 import com.example.expenseeye.models.ReminderExpense;
 import com.example.expenseeye.models.BorrowOwe;
 import com.example.expenseeye.models.BorrowOwePayment;
+import com.example.expenseeye.models.Trip;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {Expense.class, Category.class, PaymentMethod.class, ChecklistItem.class, CategoryKeyword.class, Budget.class, ReminderExpense.class, BorrowOwe.class, BorrowOwePayment.class}, version = AppDatabase.DATABASE_VERSION, exportSchema = false)
+@Database(entities = {Expense.class, Category.class, PaymentMethod.class, ChecklistItem.class, CategoryKeyword.class, Budget.class, ReminderExpense.class, BorrowOwe.class, BorrowOwePayment.class, Trip.class}, version = AppDatabase.DATABASE_VERSION, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
-    public static final int DATABASE_VERSION = 8;
+    public static final int DATABASE_VERSION = 9;
     public abstract ExpenseDao expenseDao();
     public abstract CategoryDao categoryDao();
     public abstract PaymentMethodDao paymentMethodDao();
@@ -35,6 +36,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract ReminderExpenseDao reminderExpenseDao();
     public abstract BorrowOweDao borrowOweDao();
     public abstract BorrowOwePaymentDao borrowOwePaymentDao();
+    public abstract TripDao tripDao();
 
     private static volatile AppDatabase INSTANCE;
     private static final int NUMBER_OF_THREADS = 4;
@@ -230,6 +232,21 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    public static final Migration MIGRATION_8_9 = new Migration(8, 9) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS `trips` (" +
+                    "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`title` TEXT, " +
+                    "`description` TEXT, " +
+                    "`startTimestamp` INTEGER NOT NULL, " +
+                    "`endTimestamp` INTEGER NOT NULL, " +
+                    "`isActive` INTEGER NOT NULL, " +
+                    "`budget` REAL NOT NULL)");
+            database.execSQL("ALTER TABLE expenses ADD COLUMN trip_id INTEGER NOT NULL DEFAULT -1");
+        }
+    };
+
     public static AppDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
@@ -237,7 +254,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "expense_eye_database")
                             .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
                             .addCallback(sRoomDatabaseCallback)
                             .build();
                 }

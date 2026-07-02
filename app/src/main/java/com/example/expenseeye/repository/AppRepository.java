@@ -13,6 +13,7 @@ import com.example.expenseeye.database.ChecklistItemDao;
 import com.example.expenseeye.database.ExpenseDao;
 import com.example.expenseeye.database.PaymentMethodDao;
 import com.example.expenseeye.database.ReminderExpenseDao;
+import com.example.expenseeye.database.TripDao;
 import com.example.expenseeye.models.Budget;
 import com.example.expenseeye.models.Category;
 import com.example.expenseeye.models.CategoryKeyword;
@@ -22,6 +23,7 @@ import com.example.expenseeye.models.PaymentMethod;
 import com.example.expenseeye.models.ReminderExpense;
 import com.example.expenseeye.models.BorrowOwe;
 import com.example.expenseeye.models.BorrowOwePayment;
+import com.example.expenseeye.models.Trip;
 import com.example.expenseeye.database.BorrowOweDao;
 import com.example.expenseeye.database.BorrowOwePaymentDao;
 import com.example.expenseeye.utils.AlarmScheduler;
@@ -39,6 +41,7 @@ public class AppRepository {
     private final CategoryKeywordsDao categoryKeywordsDao;
     private final BudgetDao budgetDao;
     private final ReminderExpenseDao reminderExpenseDao;
+    private final TripDao tripDao;
 
     private final LiveData<List<Expense>> allExpenses;
     private final LiveData<List<Category>> allCategories;
@@ -59,6 +62,7 @@ public class AppRepository {
         categoryKeywordsDao = db.categoryKeywordsDao();
         budgetDao = db.budgetDao();
         reminderExpenseDao = db.reminderExpenseDao();
+        tripDao = db.tripDao();
 
         allExpenses = expenseDao.getAllExpenses();
         allCategories = categoryDao.getAllCategories();
@@ -511,5 +515,66 @@ public class AppRepository {
 
     public void deleteBorrowOwePayment(BorrowOwePayment payment) {
         AppDatabase.databaseWriteExecutor.execute(() -> borrowOwePaymentDao.delete(payment));
+    }
+
+    // --- Trip Methods ---
+
+    public LiveData<List<Trip>> getAllTrips() {
+        return tripDao.getAllTrips();
+    }
+
+    public List<Trip> getAllTripsSync() {
+        // I need to add this to TripDao too if not there
+        return tripDao.getAllTripsSync();
+    }
+
+    public LiveData<Trip> getActiveTrip() {
+        return tripDao.getActiveTrip();
+    }
+
+    public void insertTrip(Trip trip) {
+        AppDatabase.databaseWriteExecutor.execute(() -> tripDao.insert(trip));
+    }
+
+    public void updateTrip(Trip trip) {
+        AppDatabase.databaseWriteExecutor.execute(() -> tripDao.update(trip));
+    }
+
+    public void deleteTrip(Trip trip) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            expenseDao.unlinkExpensesFromTrip(trip.getId());
+            tripDao.delete(trip);
+        });
+    }
+
+    public void activateTrip(int tripId) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            tripDao.deactivateAllTrips();
+            tripDao.activateTrip(tripId);
+        });
+    }
+
+    public void deactivateAllTrips() {
+        AppDatabase.databaseWriteExecutor.execute(() -> tripDao.deactivateAllTrips());
+    }
+
+    public LiveData<Trip> getTripById(int tripId) {
+        return tripDao.getTripById(tripId);
+    }
+
+    public Trip getActiveTripSync() {
+        return tripDao.getActiveTripSync();
+    }
+
+    public LiveData<List<Expense>> getExpensesForTrip(int tripId) {
+        return expenseDao.getExpensesForTrip(tripId);
+    }
+
+    public List<Expense> getExpensesForTripSync(int tripId) {
+        return expenseDao.getExpensesForTripSync(tripId);
+    }
+
+    public void linkExpensesToTrip(List<Long> expenseIds, int tripId) {
+        AppDatabase.databaseWriteExecutor.execute(() -> expenseDao.linkExpensesToTrip(expenseIds, tripId));
     }
 }

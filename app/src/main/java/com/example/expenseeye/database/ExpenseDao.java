@@ -54,4 +54,16 @@ public interface ExpenseDao {
 
     @Query("SELECT * FROM expenses WHERE description = 'Borrow/Owe Reference' AND timestamp >= :minTime AND timestamp <= :maxTime LIMIT 1")
     Expense findExpenseForBorrowOwe(long minTime, long maxTime);
+
+    @Query("SELECT * FROM expenses WHERE trip_id = :tripId ORDER BY timestamp DESC")
+    List<Expense> getExpensesForTripSync(int tripId);
+
+    @Query("SELECT * FROM expenses WHERE trip_id = :tripId ORDER BY timestamp DESC")
+    LiveData<List<Expense>> getExpensesForTrip(int tripId);
+
+    @Query("UPDATE expenses SET trip_id = :tripId WHERE id IN (:expenseIds)")
+    void linkExpensesToTrip(List<Long> expenseIds, int tripId);
+
+    @Query("UPDATE expenses SET trip_id = -1 WHERE trip_id = :tripId")
+    void unlinkExpensesFromTrip(int tripId);
 }

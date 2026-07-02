@@ -15,6 +15,7 @@ public class ThemePreferenceHelper {
     private static final String KEY_CHECKLIST_SMART_CLASSIFIER = "checklist_classifier_enabled";
     private static final String KEY_DAILY_REMINDER = "daily_reminder_enabled";
     private static final String KEY_DAILY_REMINDER_TIME = "daily_reminder_time";
+    private static final String KEY_SAVE_LOCATION_URI = "save_location_uri";
 
     public static final String THEME_MIDNIGHT = "Midnight Calm";
     public static final String THEME_FOREST = "Forest Ledger";
@@ -120,5 +121,13 @@ public class ThemePreferenceHelper {
 
     public String getDailyReminderTime() {
         return prefs.getString(KEY_DAILY_REMINDER_TIME, "21:00");
+    }
+
+    public void setSaveLocationUri(String uri) {
+        prefs.edit().putString(KEY_SAVE_LOCATION_URI, uri).apply();
+    }
+
+    public String getSaveLocationUri() {
+        return prefs.getString(KEY_SAVE_LOCATION_URI, null);
     }
 }

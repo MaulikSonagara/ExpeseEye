@@ -17,6 +17,7 @@ import com.example.expenseeye.models.PaymentMethod;
 import com.example.expenseeye.models.ReminderExpense;
 import com.example.expenseeye.models.BorrowOwe;
 import com.example.expenseeye.models.BorrowOwePayment;
+import com.example.expenseeye.models.Trip;
 import com.example.expenseeye.repository.AppRepository;
 
 import java.util.ArrayList;
@@ -322,5 +323,55 @@ public class AppViewModel extends AndroidViewModel {
 
     public void deleteBorrowOwePayment(BorrowOwePayment payment) {
         repository.deleteBorrowOwePayment(payment);
+    }
+
+    // --- Trip Methods ---
+
+    public LiveData<List<Trip>> getAllTrips() {
+        return repository.getAllTrips();
+    }
+
+    public List<Trip> getAllTripsSync() {
+        return repository.getAllTripsSync();
+    }
+
+    public LiveData<Trip> getActiveTrip() {
+        return repository.getActiveTrip();
+    }
+
+    public void insertTrip(Trip trip) {
+        repository.insertTrip(trip);
+    }
+
+    public void updateTrip(Trip trip) {
+        repository.updateTrip(trip);
+    }
+
+    public void deleteTrip(Trip trip) {
+        repository.deleteTrip(trip);
+    }
+
+    public void activateTrip(int tripId) {
+        repository.activateTrip(tripId);
+    }
+
+    public void deactivateAllTrips() {
+        repository.deactivateAllTrips();
+    }
+
+    public LiveData<Trip> getTripById(int tripId) {
+        return repository.getTripById(tripId);
+    }
+
+    public LiveData<List<Expense>> getExpensesForTrip(int tripId) {
+        return repository.getExpensesForTrip(tripId);
+    }
+
+    public Trip getActiveTripSync() {
+        return repository.getActiveTripSync();
+    }
+
+    public void linkExpensesToTrip(List<Long> expenseIds, int tripId) {
+        repository.linkExpensesToTrip(expenseIds, tripId);
     }
 }

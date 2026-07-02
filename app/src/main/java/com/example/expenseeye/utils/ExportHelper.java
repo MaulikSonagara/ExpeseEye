@@ -54,6 +54,10 @@ public class ExportHelper {
     }
 
     public static boolean exportToPDF(List<Expense> expenses, File file, long startDate, long endDate) {
+        return exportToPDF(expenses, file, startDate, endDate, null);
+    }
+
+    public static boolean exportToPDF(List<Expense> expenses, File file, long startDate, long endDate, String tripName) {
         PdfDocument document = new PdfDocument();
         int pageWidth = 595; // A4 size width
         int pageHeight = 842; // A4 size height
@@ -200,7 +204,11 @@ public class ExportHelper {
         paint.setColor(Color.WHITE);
         paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
         paint.setTextSize(16);
-        canvas1.drawText("EXPENSEEYE FINANCIAL REPORT", 35, 50, paint);
+        if (tripName != null) {
+            canvas1.drawText("TRIP REPORT: " + tripName.toUpperCase(), 35, 50, paint);
+        } else {
+            canvas1.drawText("EXPENSEEYE FINANCIAL REPORT", 35, 50, paint);
+        }
         
         paint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL));
         paint.setTextSize(10);

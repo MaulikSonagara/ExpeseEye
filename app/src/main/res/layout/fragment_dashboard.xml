@@ -87,6 +87,71 @@
                         android:textColor="?android:attr/textColorSecondary" />
                 </LinearLayout>
 
+                <!-- ACTIVE TRIP BANNER -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_active_trip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="15dp"
+                    android:visibility="gone"
+                    app:cardCornerRadius="22dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="?attr/colorPrimary"
+                    app:cardBackgroundColor="?attr/colorPrimaryContainer"
+                    tools:visibility="visible">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_travel"
+                            app:tint="?attr/colorPrimary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="ACTIVE TRIP"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                android:textColor="?attr/colorPrimary"
+                                android:letterSpacing="0.08" />
+
+                            <TextView
+                                android:id="@+id/tv_active_trip_name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Europe Tour"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="?attr/colorOnPrimaryContainer" />
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_active_trip_details"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="View"
+                            android:textSize="13sp"
+                            android:textColor="?attr/colorPrimary"
+                            android:paddingHorizontal="12dp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- PRIMARY HERO CARD (28dp below Greeting, Height: ~180dp, Radius: 24dp) -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
